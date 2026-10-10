@@ -453,7 +453,7 @@ export default function Home() {
             <span>Tecnologia & Engenharia de Vendas</span>
           </div>
           <div>
-            © {new Date().getFullYear()} Konverops. Todos os direitos reservados.
+            © 2026 Konverops. Todos os direitos reservados.
           </div>
           <div className="font-mono text-zinc-400">
             konverops.tech
