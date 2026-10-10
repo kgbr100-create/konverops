@@ -21,39 +21,39 @@ export default function Home() {
                 konverops<span className="text-emerald-400">.tech</span>
               </span>
               <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-medium">
-                Sales Engineering & Media
+                Engenharia de Vendas & Mídia
               </span>
             </div>
           </div>
 
           <nav className="hidden items-center gap-8 text-sm font-medium text-zinc-400 md:flex">
-            <a href="#capacidades" className="transition hover:text-white">
-              Capacidades
+            <a href="#solucoes" className="transition hover:text-white">
+              Soluções
             </a>
             <a href="#arquitetura" className="transition hover:text-white">
-              Arquitetura
+              Infraestrutura
             </a>
-            <a href="#inteligencia-artificial" className="transition hover:text-white">
-              IA & Dados
+            <a href="#inteligencia" className="transition hover:text-white">
+              Inteligência Artificial
             </a>
             <a href="#metodologia" className="transition hover:text-white">
               Metodologia
             </a>
-            <a href="#fundador" className="transition hover:text-white">
-              Fundador
+            <a href="#sobre" className="transition hover:text-white">
+              Sobre
             </a>
           </nav>
 
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Sistemas Operacionais
+              Operações Ativas
             </div>
             <a
               href="mailto:contato@konverops.tech"
               className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-emerald-300 shadow-sm shadow-emerald-500/20"
             >
-              Falar com Engenheiro
+              Agendar Reunião
             </a>
           </div>
         </div>
@@ -62,9 +62,9 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative z-10 mx-auto max-w-7xl px-6 pt-24 pb-20 text-center lg:pt-32">
         <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-4 py-1.5 text-xs font-medium text-zinc-300 backdrop-blur-md mb-8">
-          <span className="text-emerald-400 font-semibold">ANTHROPIC STARTUP ECOSYSTEM</span>
+          <span className="text-emerald-400 font-semibold font-mono">ENGENHARIA DE VENDAS</span>
           <span className="text-zinc-600">•</span>
-          <span>META ADS SCALE ARCHITECTURE</span>
+          <span>AQUISIÇÃO & TRÁFEGO AVANÇADO B2B E VAREJO</span>
         </div>
 
         <h1 className="mx-auto max-w-5xl text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
@@ -75,45 +75,46 @@ export default function Home() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-zinc-400 sm:text-xl">
-          Transformamos investimento em mídia paga em receita previsível. Combinamos gestão
-          avançada de <strong>Meta Ads</strong>, páginas ultrarrápidas em <strong>Next.js</strong>,
-          automação comercial inteligente e telemetria preditiva com <strong>Claude (Anthropic)</strong>.
+          Transformamos orçamento de mídia em receita previsível. Combinamos gestão avançada de{" "}
+          <strong className="text-zinc-200">Meta Ads</strong>, páginas ultrarrápidas em{" "}
+          <strong className="text-zinc-200">Next.js</strong>, agentes conversacionais inteligentes e
+          modelos preditivos de IA para escalar operações comerciais com rigor técnico.
         </p>
 
         {/* CTA Buttons */}
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
-            href="mailto:contato@konverops.tech?subject=Diagnóstico%20Técnico%20de%20Mídia"
+            href="mailto:contato@konverops.tech?subject=Diagnóstico%20de%20Performance%20-%20Konverops"
             className="flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-400 px-8 font-semibold text-black transition hover:bg-emerald-300 shadow-lg shadow-emerald-500/25"
           >
-            <span>Agendar Diagnóstico Técnico</span>
+            <span>Solicitar Diagnóstico Comercial</span>
             <span className="text-base font-bold">→</span>
           </a>
           <a
-            href="#capacidades"
+            href="#solucoes"
             className="flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-8 font-medium text-zinc-300 transition hover:border-zinc-700 hover:text-white"
           >
-            Ver Capacidades da Stack
+            Conhecer Nossas Soluções
           </a>
         </div>
 
         {/* Key Metrics Bar */}
         <div className="mt-16 grid grid-cols-2 gap-4 border-y border-zinc-800/80 py-8 sm:grid-cols-4 max-w-4xl mx-auto">
           <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">+98.4%</div>
-            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Precisão CAPI Server</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">+98%</div>
+            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Precisão de Telemetria CAPI</div>
           </div>
           <div className="text-center">
             <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">&lt; 0.8s</div>
-            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Tempo de Carregamento</div>
+            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Carregamento de Páginas</div>
           </div>
           <div className="text-center">
             <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">3.8x</div>
-            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">ROAS Médio de Escala</div>
+            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">ROAS Médio em Campanhas</div>
           </div>
           <div className="text-center">
             <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">24/7</div>
-            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Triagem de Leads Ativa</div>
+            <div className="text-xs text-zinc-400 mt-1 uppercase tracking-wider">Atendimento Automatizado</div>
           </div>
         </div>
 
@@ -123,44 +124,44 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <span className="h-3 w-3 rounded-full bg-emerald-500 animate-ping" />
               <span className="font-mono text-xs font-semibold uppercase tracking-wider text-zinc-300">
-                Konverops Engine Node: Live Media Telemetry
+                Konverops Telemetry Node: Monitoramento em Tempo Real
               </span>
             </div>
             <div className="flex items-center gap-2 font-mono text-xs text-zinc-500">
-              <span>REGION: GRU-BRA</span>
+              <span>SISTEMAS OPERACIONAIS</span>
               <span>•</span>
-              <span className="text-emerald-400">STATUS: HEALTHY</span>
+              <span className="text-emerald-400">LATÊNCIA OTIMIZADA</span>
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/70 p-4">
-              <span className="text-xs text-zinc-500 font-mono uppercase">Aquisição (Meta Ads Engine)</span>
-              <p className="mt-2 text-xl font-bold font-mono text-white">R$ 142.850</p>
-              <span className="text-xs text-emerald-400">Volume de Mídia Gerenciado</span>
+              <span className="text-xs text-zinc-500 font-mono uppercase">Mídia Paga (Meta Ads)</span>
+              <p className="mt-2 text-xl font-bold font-mono text-white">R$ 185.000+</p>
+              <span className="text-xs text-emerald-400">Orçamento sob Gestão Ativa</span>
               <div className="mt-3 flex items-center justify-between text-xs text-zinc-400 border-t border-zinc-900 pt-2 font-mono">
-                <span>CPA Alvo: R$ 18,20</span>
+                <span>Custo por Lead: Otimizado</span>
                 <span className="text-emerald-400">ROAS: 4.2x</span>
               </div>
             </div>
 
             <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/70 p-4">
               <span className="text-xs text-zinc-500 font-mono uppercase">Infraestrutura Web (Next.js)</span>
-              <p className="mt-2 text-xl font-bold font-mono text-emerald-400">620 ms</p>
-              <span className="text-xs text-zinc-400">Edge Latency • Core Web Vitals 99/100</span>
+              <p className="mt-2 text-xl font-bold font-mono text-emerald-400">&lt; 700 ms</p>
+              <span className="text-xs text-zinc-400">Edge Network • Core Web Vitals Alto</span>
               <div className="mt-3 flex items-center justify-between text-xs text-zinc-400 border-t border-zinc-900 pt-2 font-mono">
-                <span>Bounce Rate: 8.4%</span>
-                <span className="text-emerald-400">Conversion: 14.8%</span>
+                <span>Taxa de Retenção: 91.6%</span>
+                <span className="text-emerald-400">Conversão: Alta</span>
               </div>
             </div>
 
             <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/70 p-4">
-              <span className="text-xs text-zinc-500 font-mono uppercase">IA Telemetry (Claude Sonnet 3.5)</span>
+              <span className="text-xs text-zinc-500 font-mono uppercase">Modelos de IA & Triagem</span>
               <p className="mt-2 text-xl font-bold font-mono text-cyan-400">Ativo</p>
-              <span className="text-xs text-zinc-400">Otimização Contínua de Audiências</span>
+              <span className="text-xs text-zinc-400">Análise Preditiva de Criativos</span>
               <div className="mt-3 flex items-center justify-between text-xs text-zinc-400 border-t border-zinc-900 pt-2 font-mono">
-                <span>Creative Fatigue: 0%</span>
-                <span className="text-cyan-400">Auto-Refine: ON</span>
+                <span>Fadiga de Anúncio: Baixa</span>
+                <span className="text-cyan-400">Automação: 24/7</span>
               </div>
             </div>
           </div>
@@ -168,17 +169,17 @@ export default function Home() {
       </section>
 
       {/* Core Capabilities */}
-      <section id="capacidades" className="relative z-10 mx-auto max-w-7xl px-6 py-24">
+      <section id="solucoes" className="relative z-10 mx-auto max-w-7xl px-6 py-24">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="font-mono text-xs font-semibold uppercase tracking-widest text-emerald-400">
-            Capacidades Operacionais
+            Nossas Soluções
           </span>
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
-            Não somos uma agência tradicional. Somos engenheiros de crescimento.
+            Infraestrutura completa de aquisição para empresas que buscam escala.
           </h2>
           <p className="mt-4 text-base text-zinc-400">
-            A maioria dos negócios perde dinheiro porque separa a compra de tráfego da infraestrutura técnica.
-            Na Konverops, operamos toda a esteira como um sistema único integrado.
+            Eliminamos os gargalos entre investimento em anúncios, velocidade de página e atendimento comercial.
+            Tudo é desenhado para maximizar a conversão.
           </p>
         </div>
 
@@ -188,21 +189,21 @@ export default function Home() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 font-mono text-xl font-bold text-emerald-400 border border-emerald-500/20">
               01
             </div>
-            <h3 className="mt-6 text-xl font-bold text-white">Gestão & Compra de Mídia Paga (Meta Ads)</h3>
+            <h3 className="mt-6 text-xl font-bold text-white">Gestão Avançada de Tráfego Pago (Meta Ads)</h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              Compramos mídia com rigor matemático. Estratégias de escala para varejo físico, comércio local e B2B. 
-              Realizamos testes multivariados de criativos, isolamento de públicos, calibração de lances e 
-              distribuição inteligente de orçamento (CBO/ABO) focada estritamente em ROAS e lucro líquido.
+              Estratégias avançadas de compra de mídia e escala para varejo, negócios locais e B2B. 
+              Realizamos testes contínuos de criativos, segmentações orientadas a ticket médio alto e 
+              distribuição inteligente de orçamento focada exclusivamente no retorno sobre investimento (ROAS).
             </p>
             <ul className="mt-6 space-y-2 text-xs font-mono text-zinc-300">
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span> Escala horizontal e vertical de campanhas
+                <span className="text-emerald-400">✓</span> Escala horizontal e vertical com controle de CAC
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span> Proteção de margem e combate a fadiga de anúncios
+                <span className="text-emerald-400">✓</span> Mitigação sistemática de fadiga de anúncios
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span> Segmentação orientada a ticket médio qualificado
+                <span className="text-emerald-400">✓</span> Otimização orientada a vendas reais e faturamento
               </li>
             </ul>
           </div>
@@ -212,21 +213,21 @@ export default function Home() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-500/10 font-mono text-xl font-bold text-teal-400 border border-teal-500/20">
               02
             </div>
-            <h3 className="mt-6 text-xl font-bold text-white">Engenharia Web & Landing Pages (Next.js / Supabase)</h3>
+            <h3 className="mt-6 text-xl font-bold text-white">Desenvolvimento Web & Landing Pages Ultrarrápidas</h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              Páginas lentas no WordPress destroem o retorno do seu anúncio antes do primeiro segundo.
-              Construímos landing pages sob medida em <strong>Next.js</strong> com carregamento em milissegundos, 
-              infraestrutura serverless na Vercel e bancos de dados <strong>Supabase</strong> para captura instantânea.
+              Páginas pesadas e lentas desperdiçam até 50% dos cliques pagos. Desenvolvemos landing pages 
+              sob medida com arquitetura moderna em <strong>Next.js</strong>, bancos de dados em nuvem e 
+              carregamento instantâneo para garantir que nenhum lead se perca no clique.
             </p>
             <ul className="mt-6 space-y-2 text-xs font-mono text-zinc-300">
               <li className="flex items-center gap-2">
-                <span className="text-teal-400">✓</span> Carregamento sub-segundo (&lt; 0.8s) em conexões 4G
+                <span className="text-teal-400">✓</span> Carregamento sub-segundo (&lt; 0.8s) em qualquer dispositivo
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-teal-400">✓</span> Arquitetura mobile-first ultra responsiva
+                <span className="text-teal-400">✓</span> Design mobile-first otimizado para tomada de ação
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-teal-400">✓</span> Integração segura de formulários e webhooks
+                <span className="text-teal-400">✓</span> Integração direta com formulários e webhooks seguros
               </li>
             </ul>
           </div>
@@ -236,21 +237,21 @@ export default function Home() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 font-mono text-xl font-bold text-cyan-400 border border-cyan-500/20">
               03
             </div>
-            <h3 className="mt-6 text-xl font-bold text-white">Automação Comercial & Atendimento (Manychat)</h3>
+            <h3 className="mt-6 text-xl font-bold text-white">Chatbots Inteligentes & Automação Comercial</h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              Lead que espera 10 minutos para ser atendido compra do concorrente. Implementamos automações 
-              conversacionais no WhatsApp e Direct que respondem em 3 segundos, filtram o lead qualificado 
-              e entregam o comprador pronto no colo do seu time de fechamento.
+              Respostas instantâneas são cruciais para fechar negócios. Implementamos agentes conversacionais e 
+              chatbots com inteligência artificial para WhatsApp e canais digitais, qualificando o lead em tempo real 
+              e transferindo para o vendedor apenas os contatos com real intenção de compra.
             </p>
             <ul className="mt-6 space-y-2 text-xs font-mono text-zinc-300">
               <li className="flex items-center gap-2">
-                <span className="text-cyan-400">✓</span> Qualificação automática de poder de compra
+                <span className="text-cyan-400">✓</span> Triagem e qualificação de leads 24 horas por dia
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-cyan-400">✓</span> Roteamento inteligente de vendedores
+                <span className="text-cyan-400">✓</span> Distribuição automática de contatos para corretores ou vendedores
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-cyan-400">✓</span> Disparo de avisos em tempo real via CRM e Asaas
+                <span className="text-cyan-400">✓</span> Notificações instantâneas em CRMs e canais internos
               </li>
             </ul>
           </div>
@@ -260,62 +261,62 @@ export default function Home() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 font-mono text-xl font-bold text-emerald-400 border border-emerald-500/20">
               04
             </div>
-            <h3 className="mt-6 text-xl font-bold text-white">Telemetria & Business Intelligence (Looker Studio)</h3>
+            <h3 className="mt-6 text-xl font-bold text-white">Telemetria de Dados & Dashboards Executivos</h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              Configuramos a <strong>Meta Conversions API (CAPI)</strong> via servidor para blindar seu rastreamento 
-              contra bloqueadores do iOS. Construímos dashboards executivos no <strong>Looker Studio</strong> onde 
-              você acompanha CAC, LTV e ROAS em tempo real, sem planilhas confusas.
+              Instalamos rastreamento server-side via API de Conversões (Meta CAPI) para garantir dados precisos 
+              mesmo com bloqueadores de anúncios. Entregamos painéis em tempo real no <strong>Looker Studio</strong>, 
+              dando total clareza sobre investimento, custo por aquisição e faturamento gerado.
             </p>
             <ul className="mt-6 space-y-2 text-xs font-mono text-zinc-300">
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span> Rastreamento confiável server-side sem perdas
+                <span className="text-emerald-400">✓</span> Rastreamento direto no servidor com alta taxa de correspondência
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span> Atribuição exata de receita por canal e criativo
+                <span className="text-emerald-400">✓</span> Atribuição transparente de receita por campanha
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-400">✓</span> Painéis executivos transparentes 24/7
+                <span className="text-emerald-400">✓</span> Painéis claros sem métricas de vaidade
               </li>
             </ul>
           </div>
         </div>
       </section>
 
-      {/* AI & Anthropic Integration */}
-      <section id="inteligencia-artificial" className="relative z-10 border-y border-zinc-800/60 bg-zinc-900/20 py-24">
+      {/* AI & Automation Engine */}
+      <section id="inteligencia" className="relative z-10 border-y border-zinc-800/60 bg-zinc-900/20 py-24">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-mono font-medium text-cyan-400 mb-6">
-                CLAUDE FOR STARTUPS PROGRAM APPLICANT
+                INTELIGÊNCIA COMPUTACIONAL & IA
               </div>
               <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
-                Como usamos modelos de IA da Anthropic na gestão de tráfego.
+                Como aplicamos modelos de IA na otimização de campanhas.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-zinc-400">
-                A Konverops utiliza a API oficial do Claude para processar grandes volumes de métricas de anúncios e
-                acelerar a tomada de decisão comercial em tempo real.
+                Utilizamos modelos avançados de inteligência artificial integrados aos nossos fluxos de trabalho 
+                para processar grandes volumes de métricas e tomar decisões de tráfego com velocidade e precisão.
               </p>
 
               <div className="mt-8 space-y-4">
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
                   <h4 className="font-semibold text-white text-sm">1. Análise Preditiva de Métricas de Leilão</h4>
                   <p className="mt-1 text-xs text-zinc-400">
-                    Processamento contínuo de CTR, CPC e conversões para identificar tendências de saturação antes que o ROAS caia.
+                    Algoritmos que monitoram variações de custo por clique e frequência para antecipar o momento exato de renovar os criativos.
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-                  <h4 className="font-semibold text-white text-sm">2. Geração Dinâmica de Copys Persuasivas</h4>
+                  <h4 className="font-semibold text-white text-sm">2. Geração e Teste de Variações Textuais</h4>
                   <p className="mt-1 text-xs text-zinc-400">
-                    O modelo gera dezenas de variações contextuais de títulos, descrições e roteiros de anúncios para testes A/B instantâneos.
+                    Modelos de linguagem ajustados para produzir dezenas de ganchos e copys persuasivas direcionadas ao perfil de cada segmento.
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-                  <h4 className="font-semibold text-white text-sm">3. Orquestração Conversacional Inteligente</h4>
+                  <h4 className="font-semibold text-white text-sm">3. Chatbots com Compreensão Contextual</h4>
                   <p className="mt-1 text-xs text-zinc-400">
-                    IA integrada às esteiras Manychat para responder dúvidas contextuais e guiar o lead até o agendamento de venda.
+                    Atendimento que compreende dúvidas reais do cliente, analisa contexto e conduz a conversa com naturalidade até a conversão.
                   </p>
                 </div>
               </div>
@@ -323,21 +324,21 @@ export default function Home() {
 
             <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-xs shadow-2xl">
               <div className="flex items-center justify-between border-b border-zinc-800 pb-3 text-zinc-500">
-                <span>api.anthropic.com/v1/messages</span>
-                <span className="text-emerald-400">200 OK • 142ms</span>
+                <span>konverops.internal / analytics-engine</span>
+                <span className="text-emerald-400">200 OK • Status: Ativo</span>
               </div>
               <pre className="mt-4 overflow-x-auto text-zinc-300 leading-relaxed">
 {`{
-  "model": "claude-3-5-sonnet-20241022",
-  "system": "Konverops Media Engine: Optimize Ad Creatives",
-  "analysis": {
-    "campaign_id": "meta_retail_scale_v4",
-    "metrics": {
-      "impressions": 482910,
-      "roas": 4.82,
-      "cpa": 17.40
-    },
-    "recommendation": "Aumentar orçamento em +25% no conjunto CBO_02. Fadiga detectada no criativo_03; substituir por copy_variacao_B gerada pela IA."
+  "system": "Konverops Media & Performance Engine",
+  "pipeline": "campaign_optimization_node",
+  "data_inputs": {
+    "channel": "Meta Ads (CAPI Server-Side)",
+    "events_analyzed_24h": 142850,
+    "roas_current": 4.18
+  },
+  "ai_recommendation": {
+    "action": "Escalar conjunto CBO_02 em +20%",
+    "reasoning": "Taxa de conversão consistente com custo por aquisição 18% abaixo da meta. Sugerida nova bateria de testes de criativos."
   }
 }`}
               </pre>
@@ -350,22 +351,22 @@ export default function Home() {
       <section id="metodologia" className="relative z-10 mx-auto max-w-7xl px-6 py-24">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="font-mono text-xs font-semibold uppercase tracking-widest text-emerald-400">
-            Processo de Execução
+            Metodologia
           </span>
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
             O Método Engenharia de Vendas
           </h2>
           <p className="mt-4 text-base text-zinc-400">
-            Quatro etapas claras para transformar investimento em faturamento com previsibilidade.
+            Estrutura em quatro etapas para construir crescimento previsível para o seu negócio.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
             <span className="font-mono text-2xl font-bold text-emerald-400">01</span>
-            <h3 className="mt-4 font-bold text-white">Diagnóstico & Telemetria</h3>
+            <h3 className="mt-4 font-bold text-white">Diagnóstico & Dados</h3>
             <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              Auditoria de pixels, APIs de conversão, dados históricos de tráfego e gargalos no atendimento.
+              Auditoria dos canais de tráfego, telemetria de pixels, gargalos de atendimento e histórico de conversão.
             </p>
           </div>
 
@@ -373,7 +374,7 @@ export default function Home() {
             <span className="font-mono text-2xl font-bold text-teal-400">02</span>
             <h3 className="mt-4 font-bold text-white">Arquitetura de Conversão</h3>
             <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              Construção da landing page ultrarrápida (Next.js) e configuração dos fluxos automatizados no Manychat.
+              Desenvolvimento de páginas de alta velocidade e estruturação de agentes inteligentes de WhatsApp e canais de contato.
             </p>
           </div>
 
@@ -381,7 +382,7 @@ export default function Home() {
             <span className="font-mono text-2xl font-bold text-cyan-400">03</span>
             <h3 className="mt-4 font-bold text-white">Aquisição & Escala</h3>
             <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              Lançamento das campanhas no Meta Ads com segmentação orientada a compradores de alto valor.
+              Execução de campanhas orientadas a retorno financeiro real, segmentadas para o perfil ideal de comprador.
             </p>
           </div>
 
@@ -389,30 +390,29 @@ export default function Home() {
             <span className="font-mono text-2xl font-bold text-emerald-400">04</span>
             <h3 className="mt-4 font-bold text-white">Otimização Contínua</h3>
             <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-              Análise diária dos dashboards Looker Studio, testes A/B de criativos e refinamento algorítmico com Claude.
+              Acompanhamento em dashboards executivos, testes A/B sistemáticos e refinamento diário de performance.
             </p>
           </div>
         </div>
       </section>
 
       {/* Founder Section */}
-      <section id="fundador" className="relative z-10 border-t border-zinc-800/60 bg-zinc-900/30 py-20">
+      <section id="sobre" className="relative z-10 border-t border-zinc-800/60 bg-zinc-900/30 py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 font-mono text-2xl font-black text-black shadow-xl shadow-emerald-500/20">
             KN
           </div>
           <h3 className="mt-6 text-2xl font-bold text-white">Kelvin Nunes Gonzaga</h3>
           <p className="font-mono text-xs uppercase tracking-wider text-emerald-400 mt-1">
-            Fundador & Lead Performance Engineer
+            Fundador & Especialista em Performance
           </p>
           <p className="mt-4 text-sm leading-relaxed text-zinc-400 max-w-2xl mx-auto">
-            Especialista em compra de mídia e gestão de tráfego com formação e know-how técnico em 
-            engenharia de software, desenvolvimento web e automação. Criei a <strong>Konverops</strong> para 
-            oferecer ao varejo e a empresas em crescimento o mesmo rigor técnico de dados utilizado pelas 
-            startups mais eficientes do mercado.
+            Atuo na interseção entre compra de mídia estratégica e tecnologia. A <strong>Konverops</strong> nasceu 
+            com a missão de aplicar rigor de dados, desenvolvimento moderno e inteligência artificial para que 
+            empresas em crescimento escalem suas vendas com previsibilidade e sem desperdício de orçamento.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs font-mono text-zinc-400">
-            <span>CNPJ/MEI ATIVO</span>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-zinc-400">
+            <span>CNPJ ATIVO</span>
             <span>•</span>
             <span>SÃO PAULO - BRASIL</span>
             <span>•</span>
@@ -427,18 +427,17 @@ export default function Home() {
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-24 text-center">
         <div className="rounded-3xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-950 p-12 lg:p-16 shadow-2xl">
           <h2 className="text-3xl font-extrabold tracking-tight sm:text-5xl text-white">
-            Pronto para construir sua máquina de vendas?
+            Pronto para profissionalizar sua aquisição de clientes?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base text-zinc-400">
-            Pare de desperdiçar orçamento com agências generalistas. Vamos estruturar sua infraestrutura
-            completa de aquisição com Meta Ads, Next.js e inteligência artificial.
+            Vamos desenhar a estratégia ideal para sua empresa, unindo tráfego de alta conversão e tecnologia.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="mailto:contato@konverops.tech?subject=Contato%20Konverops%20-%20Proposta"
+              href="mailto:contato@konverops.tech?subject=Contato%20Konverops%20-%20Diagnóstico"
               className="flex h-12 w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-400 px-8 font-semibold text-black transition hover:bg-emerald-300 shadow-lg shadow-emerald-500/25"
             >
-              Falar Diretamente com Kelvin
+              Falar com Nossos Especialistas
             </a>
           </div>
         </div>
@@ -450,7 +449,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <span className="font-mono font-bold text-zinc-300">Konverops</span>
             <span>•</span>
-            <span>Tecnologia & Engenharia de Vendas</span>
+            <span>Engenharia de Vendas & Mídia</span>
           </div>
           <div>
             © 2026 Konverops. Todos os direitos reservados.

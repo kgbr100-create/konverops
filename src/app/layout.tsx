@@ -23,9 +23,10 @@ export const metadata: Metadata = {
     "Media Buyer",
     "Engenharia de Vendas",
     "Next.js",
-    "Manychat",
+    "Automação Comercial",
+    "Chatbots de IA",
     "Looker Studio",
-    "Claude Anthropic",
+    "Inteligência Artificial",
   ],
   authors: [{ name: "Kelvin Nunes Gonzaga" }],
   openGraph: {
