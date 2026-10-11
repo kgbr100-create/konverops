@@ -412,12 +412,21 @@ export default function Home() {
             empresas em crescimento escalem suas vendas com previsibilidade e sem desperdício de orçamento.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-zinc-400">
-            <span>CNPJ ATIVO</span>
+            <span className="text-zinc-300 font-semibold">CNPJ: 61.492.627/0001-00</span>
             <span>•</span>
             <span>SÃO PAULO - BRASIL</span>
             <span>•</span>
-            <a href="mailto:contato@konverops.tech" className="text-emerald-400 hover:underline">
-              contato@konverops.tech
+            <a 
+              href="https://www.linkedin.com/in/kelvin-gonzaga-347b84442/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-emerald-400 hover:underline flex items-center gap-1"
+            >
+              LinkedIn do Fundador ↗
+            </a>
+            <span>•</span>
+            <a href="mailto:kelvin@konverops.tech" className="text-emerald-400 hover:underline">
+              kelvin@konverops.tech
             </a>
           </div>
         </div>
@@ -434,7 +443,7 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="mailto:contato@konverops.tech?subject=Contato%20Konverops%20-%20Diagnóstico"
+              href="mailto:kelvin@konverops.tech?subject=Contato%20Konverops%20-%20Diagnóstico"
               className="flex h-12 w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-400 px-8 font-semibold text-black transition hover:bg-emerald-300 shadow-lg shadow-emerald-500/25"
             >
               Falar com Nossos Especialistas
@@ -444,18 +453,40 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-zinc-800/60 bg-zinc-950 py-12 text-center text-xs text-zinc-500">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-zinc-300">Konverops</span>
-            <span>•</span>
-            <span>Engenharia de Vendas & Mídia</span>
+      <footer className="relative z-10 border-t border-zinc-800/60 bg-zinc-950 py-12 text-xs text-zinc-400">
+        <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-bold text-white">Konverops</span>
+              <span>•</span>
+              <span className="text-zinc-500">Engenharia de Vendas & Infraestrutura B2B</span>
+            </div>
+            <span className="hidden sm:inline text-zinc-700">|</span>
+            <span className="font-mono text-zinc-500">CNPJ: 61.492.627/0001-00</span>
           </div>
-          <div>
-            © 2026 Konverops. Todos os direitos reservados.
+
+          <div className="flex flex-wrap items-center justify-center gap-6 text-zinc-400">
+            <a href="/privacidade" className="hover:text-emerald-400 transition">
+              Política de Privacidade
+            </a>
+            <a href="/termos" className="hover:text-emerald-400 transition">
+              Termos de Uso
+            </a>
+            <a 
+              href="https://www.linkedin.com/in/kelvin-gonzaga-347b84442/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-emerald-400 transition"
+            >
+              LinkedIn
+            </a>
+            <a href="mailto:kelvin@konverops.tech" className="text-emerald-400 hover:underline">
+              kelvin@konverops.tech
+            </a>
           </div>
-          <div className="font-mono text-zinc-400">
-            konverops.tech
+
+          <div className="text-zinc-500 font-mono text-center sm:text-right">
+            © 2026 Konverops. São Paulo, Brasil.
           </div>
         </div>
       </footer>
