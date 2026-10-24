@@ -157,23 +157,35 @@ export default function AdminDashboardPage() {
     if (!file || uploadingIndex === null) return;
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('slug', slug || 'clientes');
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const rawDataUrl = event.target?.result as string;
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        // Otimização e compressão automática via Canvas
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const targetWidth = Math.min(img.width, 680);
+          const scale = targetWidth / img.width;
+          canvas.width = targetWidth;
+          canvas.height = img.height * scale;
 
-      const data = await res.json();
-      if (data.success && data.url) {
-        handleUpdateBanner(uploadingIndex, 'imageUrl', data.url);
-      } else {
-        alert(data.error || 'Erro no upload da imagem.');
-      }
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            // Exporta WebP leve (~30KB) com 90% de qualidade cristalina
+            const compressed = canvas.toDataURL('image/webp', 0.90);
+            handleUpdateBanner(uploadingIndex, 'imageUrl', compressed);
+          } else {
+            handleUpdateBanner(uploadingIndex, 'imageUrl', rawDataUrl);
+          }
+        };
+        img.src = rawDataUrl;
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
-      alert('Falha ao enviar arquivo de imagem.');
+      console.error('Erro ao processar imagem:', err);
+      alert('Falha ao processar arquivo de imagem local.');
     } finally {
       setUploadingIndex(null);
     }
@@ -500,11 +512,10 @@ export default function AdminDashboardPage() {
                       <div className="w-full md:w-48 flex-shrink-0 flex flex-col items-center">
                         <div className="relative w-full h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md">
                           {banner.imageUrl ? (
-                            <Image
+                            <img
                               src={banner.imageUrl}
                               alt={banner.title}
-                              fill
-                              className="object-cover"
+                              className="w-full h-full object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">

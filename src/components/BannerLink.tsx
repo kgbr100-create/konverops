@@ -39,6 +39,7 @@ export default function BannerLink({ banner, priority = false }: BannerLinkProps
         width={640}
         height={192}
         priority={priority}
+        unoptimized={banner.imageUrl.startsWith('data:')}
         className="w-full h-auto object-cover block select-none"
       />
     </a>
