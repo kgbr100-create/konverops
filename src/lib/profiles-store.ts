@@ -61,7 +61,21 @@ export async function getClientBySlug(slug: string): Promise<ClientProfile | und
   try {
     const raw = await redisCommand(['GET', `profile:${normalizedSlug}`]);
     if (raw) {
-      return typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (parsed && Array.isArray(parsed.banners) && parsed.banners.length > 0) {
+        return parsed;
+      }
+      if (CLIENT_PROFILES[normalizedSlug]) {
+        return {
+          ...CLIENT_PROFILES[normalizedSlug],
+          ...parsed,
+          banners:
+            parsed?.banners && parsed.banners.length > 0
+              ? parsed.banners
+              : CLIENT_PROFILES[normalizedSlug].banners,
+        };
+      }
+      return parsed;
     }
   } catch (error) {
     console.warn(`Erro ao buscar profile:${normalizedSlug} no Redis:`, error);
