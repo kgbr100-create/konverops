@@ -19,9 +19,9 @@ export async function POST(request: Request) {
   try {
     const body: ClientProfile = await request.json();
 
-    if (!body.slug || !body.nicheBadge) {
+    if (!body.slug) {
       return NextResponse.json(
-        { success: false, error: 'Slug e Pílula de Nicho são obrigatórios.' },
+        { success: false, error: 'O slug (URL) da página é obrigatório.' },
         { status: 400 }
       );
     }

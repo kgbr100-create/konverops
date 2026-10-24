@@ -6,22 +6,79 @@ import type { BioBanner } from '@/data/profiles';
 interface BannerLinkProps {
   banner: BioBanner;
   priority?: boolean;
+  metaPixelId?: string;
+  metaAccessToken?: string;
+  metaTestEventCode?: string;
 }
 
 declare global {
   interface Window {
-    fbq?: (action: string, eventName: string, params?: Record<string, unknown>) => void;
+    fbq?: (
+      action: string,
+      eventName: string,
+      params?: Record<string, unknown>,
+      options?: { eventID?: string }
+    ) => void;
   }
 }
 
-export default function BannerLink({ banner, priority = false }: BannerLinkProps) {
+export default function BannerLink({
+  banner,
+  priority = false,
+  metaPixelId,
+  metaAccessToken,
+  metaTestEventCode,
+}: BannerLinkProps) {
   const handleClick = () => {
-    // Client-side tracking (Meta Pixel / CAPI trigger)
-    if (typeof window !== 'undefined' && window.fbq && banner.trackingEvent) {
-      window.fbq('track', banner.trackingEvent, {
-        banner_id: banner.id,
-        banner_title: banner.title,
-      });
+    if (!banner.trackingEvent || banner.trackingEvent === 'None') {
+      return;
+    }
+
+    const eventName =
+      banner.trackingEvent === 'Custom'
+        ? banner.customEventName || 'CustomBioClick'
+        : banner.trackingEvent;
+
+    // Gera UUID v4 único para garantir a deduplicação perfeita no Meta Events Manager
+    const eventId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : 'ev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+
+    const customData = {
+      content_name: banner.title,
+      content_category: banner.eventCategory || 'Bio Link',
+      value: Number(banner.eventValue) || 0,
+      currency: banner.eventCurrency || 'BRL',
+    };
+
+    // 1. Disparo no Navegador (Meta Pixel fbq) com eventID para deduplicação
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', eventName, customData, { eventID: eventId });
+    }
+
+    // 2. Disparo no Servidor (Meta Conversions API - CAPI) em background
+    if (metaPixelId) {
+      try {
+        fetch('/api/meta-capi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pixelId: metaPixelId,
+            accessToken: metaAccessToken,
+            testEventCode: metaTestEventCode,
+            eventName,
+            eventId, // Mesmo ID do navegador
+            sourceUrl: typeof window !== 'undefined' ? window.location.href : '',
+            customData,
+          }),
+          keepalive: true, // Garante envio mesmo se a página for redirecionada
+        }).catch(() => {
+          // Silent catch para não interromper navegação do usuário
+        });
+      } catch (err) {
+        // Fallback silencioso
+      }
     }
   };
 

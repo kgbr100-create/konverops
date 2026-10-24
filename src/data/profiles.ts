@@ -1,16 +1,35 @@
+export type MetaStandardEvent =
+  | 'Contact'
+  | 'Schedule'
+  | 'Lead'
+  | 'InitiateCheckout'
+  | 'ViewContent'
+  | 'Custom'
+  | 'None';
+
 export interface BioBanner {
   id: string;
   title: string;
   imageUrl: string;
   destinationUrl: string;
-  trackingEvent?: 'Contact' | 'Lead' | 'Schedule' | 'ViewContent';
+  trackingEvent?: MetaStandardEvent;
+  customEventName?: string;
+  eventCategory?: string;
+  eventValue?: number;
+  eventCurrency?: string;
   target?: '_blank' | '_self';
 }
 
 export interface ClientProfile {
   slug: string;
-  nicheBadge: string;
+  showNicheBadge?: boolean;
+  nicheBadge?: string;
   badgeBgColor?: string; // e.g. '#00b768'
+  pageBgColor?: string; // e.g. '#070b14' ou '#ffffff'
+  cardBgColor?: string; // e.g. '#0f172a' ou '#ffffff'
+  metaPixelId?: string; // ID do Meta Pixel / Dataset (ex: '123456789012345')
+  metaAccessToken?: string; // Token CAPI opcional
+  metaTestEventCode?: string; // Código de teste da Meta (ex: 'TEST12345')
   name: string;
   title: string;
   description: string;
@@ -22,8 +41,12 @@ export interface ClientProfile {
 export const CLIENT_PROFILES: Record<string, ClientProfile> = {
   kelvin: {
     slug: 'kelvin',
+    showNicheBadge: false,
     nicheBadge: 'Engenharia de Vendas',
     badgeBgColor: '#00b768',
+    pageBgColor: '#070b14',
+    cardBgColor: '#0a0f1d',
+    metaPixelId: '',
     name: 'Kelvin Gonzaga',
     title: 'Fundador & Head of Sales Engineering • Konverops',
     description: 'Infraestrutura Web de Ultra Performance (Next.js) & Escala de Mídia com Rastreamento Server-Side First-Party (Meta CAPI).',
@@ -36,6 +59,9 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         imageUrl: '/banners/kelvin/banner-whatsapp.png',
         destinationUrl: 'https://wa.me/5511999999999?text=Ol%C3%A1%20Kelvin,%20gostaria%20de%20alinhar%20um%20projeto%20com%20a%20Konverops.',
         trackingEvent: 'Contact',
+        eventCategory: 'WhatsApp',
+        eventValue: 0,
+        eventCurrency: 'BRL',
         target: '_blank',
       },
       {
@@ -44,6 +70,9 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         imageUrl: '/banners/kelvin/banner-diagnostico.png',
         destinationUrl: 'https://wa.me/5511999999999?text=Ol%C3%A1%20Kelvin,%20gostaria%20de%20agendar%20um%20Diagn%C3%B3stico%20de%20Performance%20Web.',
         trackingEvent: 'Schedule',
+        eventCategory: 'Agendamento',
+        eventValue: 0,
+        eventCurrency: 'BRL',
         target: '_blank',
       },
       {
@@ -52,6 +81,9 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         imageUrl: '/banners/kelvin/banner-capi.png',
         destinationUrl: 'https://wa.me/5511999999999?text=Ol%C3%A1%20Kelvin,%20quero%20conhecer%20a%20blindagem%20Meta%20CAPI.',
         trackingEvent: 'Lead',
+        eventCategory: 'Serviço',
+        eventValue: 0,
+        eventCurrency: 'BRL',
         target: '_blank',
       },
       {
@@ -60,6 +92,9 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         imageUrl: '/banners/kelvin/banner-konverops.png',
         destinationUrl: 'https://www.konverops.tech',
         trackingEvent: 'ViewContent',
+        eventCategory: 'Website',
+        eventValue: 0,
+        eventCurrency: 'BRL',
         target: '_blank',
       },
     ],

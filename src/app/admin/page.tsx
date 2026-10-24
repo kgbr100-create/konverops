@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import type { ClientProfile, BioBanner } from '@/data/profiles';
+import type { ClientProfile, BioBanner, MetaStandardEvent } from '@/data/profiles';
 
 export default function AdminDashboardPage() {
   const [profiles, setProfiles] = useState<ClientProfile[]>([]);
@@ -10,12 +10,17 @@ export default function AdminDashboardPage() {
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessUrl, setSaveSuccessUrl] = useState<string | null>(null);
-  const [activeBannerIndex, setActiveBannerIndex] = useState<number | null>(null);
 
   // Form State
   const [slug, setSlug] = useState('');
-  const [nicheBadge, setNicheBadge] = useState('Nutricionista');
+  const [showNicheBadge, setShowNicheBadge] = useState(false);
+  const [nicheBadge, setNicheBadge] = useState('Engenharia de Vendas');
   const [badgeBgColor, setBadgeBgColor] = useState('#00b768');
+  const [pageBgColor, setPageBgColor] = useState('#070b14');
+  const [cardBgColor, setCardBgColor] = useState('#0a0f1d');
+  const [metaPixelId, setMetaPixelId] = useState('');
+  const [metaAccessToken, setMetaAccessToken] = useState('');
+  const [metaTestEventCode, setMetaTestEventCode] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [banners, setBanners] = useState<BioBanner[]>([]);
@@ -59,8 +64,14 @@ export default function AdminDashboardPage() {
 
   const handleCreateNew = () => {
     setSlug('');
-    setNicheBadge('Novo Nicho');
+    setShowNicheBadge(false);
+    setNicheBadge('Engenharia de Vendas');
     setBadgeBgColor('#00b768');
+    setPageBgColor('#070b14');
+    setCardBgColor('#0a0f1d');
+    setMetaPixelId('');
+    setMetaAccessToken('');
+    setMetaTestEventCode('');
     setName('');
     setDescription('');
     setBanners([
@@ -70,6 +81,9 @@ export default function AdminDashboardPage() {
         imageUrl: '/banners/kelvin/banner-whatsapp.png',
         destinationUrl: 'https://wa.me/5511999999999',
         trackingEvent: 'Contact',
+        eventCategory: 'WhatsApp',
+        eventValue: 0,
+        eventCurrency: 'BRL',
         target: '_blank',
       },
     ]);
@@ -79,8 +93,14 @@ export default function AdminDashboardPage() {
 
   const handleEditProfile = (profile: ClientProfile) => {
     setSlug(profile.slug);
+    setShowNicheBadge(profile.showNicheBadge ?? false);
     setNicheBadge(profile.nicheBadge || 'Geral');
     setBadgeBgColor(profile.badgeBgColor || '#00b768');
+    setPageBgColor(profile.pageBgColor || '#070b14');
+    setCardBgColor(profile.cardBgColor || '#0a0f1d');
+    setMetaPixelId(profile.metaPixelId || '');
+    setMetaAccessToken(profile.metaAccessToken || '');
+    setMetaTestEventCode(profile.metaTestEventCode || '');
     setName(profile.name || '');
     setDescription(profile.description || '');
     setBanners(profile.banners || []);
@@ -117,6 +137,9 @@ export default function AdminDashboardPage() {
       imageUrl: '/banners/kelvin/banner-whatsapp.png',
       destinationUrl: 'https://wa.me/5511999999999',
       trackingEvent: 'Contact',
+      eventCategory: 'WhatsApp',
+      eventValue: 0,
+      eventCurrency: 'BRL',
       target: '_blank',
     };
     setBanners([...banners, newBanner]);
@@ -137,7 +160,11 @@ export default function AdminDashboardPage() {
     setBanners(updated);
   };
 
-  const handleUpdateBanner = (index: number, field: keyof BioBanner, value: string) => {
+  const handleUpdateBanner = (
+    index: number,
+    field: keyof BioBanner,
+    value: string | number | undefined
+  ) => {
     const updated = [...banners];
     updated[index] = { ...updated[index], [field]: value };
     setBanners(updated);
@@ -174,7 +201,7 @@ export default function AdminDashboardPage() {
           if (ctx) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             // Exporta WebP leve (~30KB) com 90% de qualidade cristalina
-            const compressed = canvas.toDataURL('image/webp', 0.90);
+            const compressed = canvas.toDataURL('image/webp', 0.9);
             handleUpdateBanner(uploadingIndex, 'imageUrl', compressed);
           } else {
             handleUpdateBanner(uploadingIndex, 'imageUrl', rawDataUrl);
@@ -194,7 +221,7 @@ export default function AdminDashboardPage() {
   // Save profile to database
   const handleSaveProfile = async () => {
     if (!slug.trim()) {
-      alert('Por favor, informe a URL do cliente (slug). Ex: dra-mariana');
+      alert('Por favor, informe a URL do cliente (slug). Ex: kelvin ou dra-mariana');
       return;
     }
 
@@ -202,11 +229,17 @@ export default function AdminDashboardPage() {
       setIsSaving(true);
       const profileData: ClientProfile = {
         slug: slug.trim().toLowerCase(),
+        showNicheBadge,
         nicheBadge: nicheBadge.trim(),
         badgeBgColor,
-        name: name.trim() || nicheBadge.trim(),
-        title: `${name.trim()} • ${nicheBadge.trim()}`,
-        description: description.trim() || `Bio Link Oficial de ${name.trim()}`,
+        pageBgColor,
+        cardBgColor,
+        metaPixelId: metaPixelId.trim(),
+        metaAccessToken: metaAccessToken.trim(),
+        metaTestEventCode: metaTestEventCode.trim(),
+        name: name.trim() || slug.trim(),
+        title: `${name.trim() || slug.trim()} • Konverops`,
+        description: description.trim() || `Bio Link Oficial de ${name.trim() || slug.trim()}`,
         footerUrl: `konverops.tech/${slug.trim().toLowerCase()}`,
         banners,
       };
@@ -256,7 +289,7 @@ export default function AdminDashboardPage() {
               </span>
             </h1>
             <p className="text-xs text-slate-400">
-              Gerenciador de Links em Banners para Clientes com Rastreamento CAPI
+              Gerenciador de Links em Banners com Rastreamento Meta Ads (Pixel & CAPI Server-Side)
             </p>
           </div>
         </div>
@@ -316,15 +349,29 @@ export default function AdminDashboardPage() {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span
-                        style={{ backgroundColor: p.badgeBgColor || '#00b768' }}
-                        className="px-3 py-1 rounded-full text-white font-extrabold text-[11px] uppercase tracking-wider shadow-sm"
-                      >
-                        {p.nicheBadge}
-                      </span>
-                      <span className="text-xs text-slate-500 font-mono">
-                        {p.banners?.length || 0} banner(s)
-                      </span>
+                      {p.showNicheBadge && p.nicheBadge ? (
+                        <span
+                          style={{ backgroundColor: p.badgeBgColor || '#00b768' }}
+                          className="px-3 py-1 rounded-full text-white font-extrabold text-[11px] uppercase tracking-wider shadow-sm"
+                        >
+                          {p.nicheBadge}
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold text-[10px]">
+                          Pílula Desativada
+                        </span>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        {p.metaPixelId && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                            Meta Pixel
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-500 font-mono">
+                          {p.banners?.length || 0} banner(s)
+                        </span>
+                      </div>
                     </div>
 
                     <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">
@@ -374,10 +421,8 @@ export default function AdminDashboardPage() {
       ) : (
         /* ELEMENTOR CANVAS BUILDER (SPLIT SCREEN) */
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          
           {/* LEFT PANEL: Controls, Inputs & Banner Uploads */}
           <div className="w-full lg:w-7/12 p-6 overflow-y-auto max-h-[calc(100vh-73px)] border-r border-slate-800 bg-[#0a0f1d]/50">
-            
             {/* Success Notification Bar */}
             {saveSuccessUrl && (
               <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
@@ -400,13 +445,13 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            {/* Step 1: Client Settings */}
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 mb-5 shadow-lg">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+            {/* Step 1: Client Settings & Page Visuals */}
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 mb-5 shadow-lg space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
                   1
                 </span>
-                Configuração Básica do Cliente
+                Identificação e Aparência da Página
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -419,8 +464,10 @@ export default function AdminDashboardPage() {
                     <input
                       type="text"
                       value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '-'))}
-                      placeholder="dra-mariana"
+                      onChange={(e) =>
+                        setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '-'))
+                      }
+                      placeholder="kelvin"
                       className="bg-transparent text-white font-bold outline-none flex-1 placeholder:text-slate-600"
                     />
                   </div>
@@ -434,46 +481,239 @@ export default function AdminDashboardPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Dra. Mariana Alves"
+                    placeholder="Kelvin Gonzaga"
                     className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Pílula de Nicho (Topo do Celular)
-                  </label>
-                  <input
-                    type="text"
-                    value={nicheBadge}
-                    onChange={(e) => setNicheBadge(e.target.value)}
-                    placeholder="Nutricionista"
-                    className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Cor da Pílula de Nicho
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={badgeBgColor}
-                      onChange={(e) => setBadgeBgColor(e.target.value)}
-                      className="w-9 h-9 rounded-xl bg-transparent border-0 cursor-pointer"
+              {/* TOGGLE PÍLULA DE NICHO */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-slate-200 block">
+                      Exibir Pílula de Nicho no Topo
+                    </label>
+                    <p className="text-[11px] text-slate-400">
+                      {showNicheBadge
+                        ? 'Visível: Mostra a etiqueta de categoria no topo do smartphone.'
+                        : 'Desativada: Oculta a etiqueta para um visual 100% focado e limpo.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNicheBadge(!showNicheBadge)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      showNicheBadge ? 'bg-emerald-500' : 'bg-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        showNicheBadge ? 'translate-x-6' : 'translate-x-1'
+                      }`}
                     />
-                    <div className="flex items-center gap-1.5">
-                      {['#00b768', '#0748b3', '#8b5cf6', '#d97706', '#dc2626'].map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setBadgeBgColor(color)}
-                          style={{ backgroundColor: color }}
-                          className={`w-6 h-6 rounded-full border-2 transition-transform ${badgeBgColor === color ? 'border-white scale-110' : 'border-transparent'}`}
+                  </button>
+                </div>
+
+                {showNicheBadge && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 p-3 bg-slate-950/60 rounded-xl border border-slate-800 animate-fadeIn">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                        Texto da Pílula de Nicho
+                      </label>
+                      <input
+                        type="text"
+                        value={nicheBadge}
+                        onChange={(e) => setNicheBadge(e.target.value)}
+                        placeholder="Nutricionista"
+                        className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                        Cor da Pílula
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={badgeBgColor}
+                          onChange={(e) => setBadgeBgColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
                         />
+                        <div className="flex items-center gap-1.5">
+                          {['#00b768', '#0748b3', '#8b5cf6', '#d97706', '#dc2626'].map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setBadgeBgColor(color)}
+                              style={{ backgroundColor: color }}
+                              className={`w-5 h-5 rounded-full border-2 transition-transform ${
+                                badgeBgColor === color ? 'border-white scale-110' : 'border-transparent'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* PERSONALIZAÇÃO DE CORES DA PÁGINA */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <label className="text-xs font-bold text-slate-200 block mb-2">
+                  Paleta de Cores da Página
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Cor de Fundo da Tela */}
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                      Fundo da Tela (Background)
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="color"
+                        value={pageBgColor}
+                        onChange={(e) => setPageBgColor(e.target.value)}
+                        className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={pageBgColor}
+                        onChange={(e) => setPageBgColor(e.target.value)}
+                        className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                      />
+                    </div>
+                    {/* Presets */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[
+                        { name: 'Obsidian', color: '#070b14' },
+                        { name: 'Slate', color: '#0f172a' },
+                        { name: 'Branco', color: '#ffffff' },
+                        { name: 'Neve', color: '#f8fafc' },
+                        { name: 'Cinza', color: '#eef2f6' },
+                        { name: 'Esmeralda', color: '#052e16' },
+                      ].map((item) => (
+                        <button
+                          key={item.color}
+                          type="button"
+                          onClick={() => setPageBgColor(item.color)}
+                          className="px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700 hover:border-slate-500 transition-colors flex items-center gap-1 bg-slate-900 text-slate-300"
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full border border-black/20"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          {item.name}
+                        </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Cor do Cartão/Container */}
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                      Container dos Banners (Card)
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="color"
+                        value={cardBgColor}
+                        onChange={(e) => setCardBgColor(e.target.value)}
+                        className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={cardBgColor}
+                        onChange={(e) => setCardBgColor(e.target.value)}
+                        className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                      />
+                    </div>
+                    {/* Presets */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[
+                        { name: 'Dark Navy', color: '#0a0f1d' },
+                        { name: 'Branco', color: '#ffffff' },
+                        { name: 'Dark Slate', color: '#1e293b' },
+                        { name: 'Black', color: '#020408' },
+                      ].map((item) => (
+                        <button
+                          key={item.color}
+                          type="button"
+                          onClick={() => setCardBgColor(item.color)}
+                          className="px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700 hover:border-slate-500 transition-colors flex items-center gap-1 bg-slate-900 text-slate-300"
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full border border-black/20"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* RASTREAMENTO META ADS & CAPI */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                    Rastreamento Meta Ads (Pixel & CAPI Server-Side Oficial)
+                  </label>
+                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                    Deduplicação Automática via eventID
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3.5 bg-blue-950/20 rounded-xl border border-blue-900/40">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                      Meta Pixel / Dataset ID
+                    </label>
+                    <input
+                      type="text"
+                      value={metaPixelId}
+                      onChange={(e) => setMetaPixelId(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Ex: 123456789012345"
+                      className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-blue-500 placeholder:text-slate-600"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      Dispara PageView e eventos com fbevents.js
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                      Token CAPI (Conversions API)
+                    </label>
+                    <input
+                      type="password"
+                      value={metaAccessToken}
+                      onChange={(e) => setMetaAccessToken(e.target.value)}
+                      placeholder="Token EAAB... (Opcional)"
+                      className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-blue-500 placeholder:text-slate-600"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      Blindagem server-side anti ad-blocker
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                      Test Event Code
+                    </label>
+                    <input
+                      type="text"
+                      value={metaTestEventCode}
+                      onChange={(e) => setMetaTestEventCode(e.target.value.toUpperCase())}
+                      placeholder="Ex: TEST12345 (Opcional)"
+                      className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-blue-500 placeholder:text-slate-600"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      Depuração ao vivo no Gerenciador da Meta
+                    </span>
                   </div>
                 </div>
               </div>
@@ -486,7 +726,7 @@ export default function AdminDashboardPage() {
                   <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
                     2
                   </span>
-                  Banners Gráficos (Canva / Figma)
+                  Banners Gráficos & Configuração de Eventos
                 </h3>
                 <button
                   type="button"
@@ -535,7 +775,7 @@ export default function AdminDashboardPage() {
                       {/* Banner Fields */}
                       <div className="flex-1 w-full space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono text-emerald-400">
+                          <span className="text-[11px] font-mono text-emerald-400 font-bold">
                             Banner #{index + 1}
                           </span>
                           <div className="flex items-center gap-1">
@@ -568,61 +808,118 @@ export default function AdminDashboardPage() {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-[11px] font-bold text-slate-400 mb-0.5">
-                            Título / Identificação do Banner
-                          </label>
-                          <input
-                            type="text"
-                            value={banner.title}
-                            onChange={(e) => handleUpdateBanner(index, 'title', e.target.value)}
-                            placeholder="Ex: Fale no WhatsApp"
-                            className="w-full rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-slate-400 mb-0.5">
-                            Link de Destino
-                          </label>
-                          <input
-                            type="text"
-                            value={banner.destinationUrl}
-                            onChange={(e) => handleUpdateBanner(index, 'destinationUrl', e.target.value)}
-                            placeholder="https://wa.me/55..."
-                            className="w-full rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500 font-mono text-[11px]"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           <div>
                             <label className="block text-[11px] font-bold text-slate-400 mb-0.5">
-                              Evento Meta CAPI
-                            </label>
-                            <select
-                              value={banner.trackingEvent || 'Contact'}
-                              onChange={(e) => handleUpdateBanner(index, 'trackingEvent', e.target.value)}
-                              className="w-full rounded-lg bg-slate-900 border border-slate-700 px-2 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
-                            >
-                              <option value="Contact">Contact (WhatsApp)</option>
-                              <option value="Schedule">Schedule (Agendamento)</option>
-                              <option value="Lead">Lead (Cadastro/Isca)</option>
-                              <option value="ViewContent">ViewContent (Catálogo)</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold text-slate-400 mb-0.5">
-                              URL da Imagem (Manual)
+                              Título / Nome Comercial
                             </label>
                             <input
                               type="text"
-                              value={banner.imageUrl}
-                              onChange={(e) => handleUpdateBanner(index, 'imageUrl', e.target.value)}
-                              placeholder="/banners/..."
+                              value={banner.title}
+                              onChange={(e) =>
+                                handleUpdateBanner(index, 'title', e.target.value)
+                              }
+                              placeholder="Ex: Fale no WhatsApp"
+                              className="w-full rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 mb-0.5">
+                              Link de Destino
+                            </label>
+                            <input
+                              type="text"
+                              value={banner.destinationUrl}
+                              onChange={(e) =>
+                                handleUpdateBanner(index, 'destinationUrl', e.target.value)
+                              }
+                              placeholder="https://wa.me/55..."
                               className="w-full rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500 font-mono text-[11px]"
                             />
                           </div>
+                        </div>
+
+                        {/* Configuração Detalhada de Eventos Meta */}
+                        <div className="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-300 mb-0.5">
+                                Evento Meta Oficial
+                              </label>
+                              <select
+                                value={banner.trackingEvent || 'Contact'}
+                                onChange={(e) =>
+                                  handleUpdateBanner(
+                                    index,
+                                    'trackingEvent',
+                                    e.target.value as MetaStandardEvent
+                                  )
+                                }
+                                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                              >
+                                <option value="Contact">Contact (WhatsApp / Chat)</option>
+                                <option value="Schedule">Schedule (Agendamento)</option>
+                                <option value="Lead">Lead (Isca / Proposta)</option>
+                                <option value="InitiateCheckout">InitiateCheckout (Checkout)</option>
+                                <option value="ViewContent">ViewContent (Catálogo / Detalhes)</option>
+                                <option value="Custom">Custom (Personalizado)</option>
+                                <option value="None">None (Desativado)</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-300 mb-0.5">
+                                Categoria do Conteúdo
+                              </label>
+                              <input
+                                type="text"
+                                value={banner.eventCategory || 'WhatsApp'}
+                                onChange={(e) =>
+                                  handleUpdateBanner(index, 'eventCategory', e.target.value)
+                                }
+                                placeholder="WhatsApp, Consultoria..."
+                                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-300 mb-0.5">
+                                Valor Estimado (R$)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={banner.eventValue ?? 0}
+                                onChange={(e) =>
+                                  handleUpdateBanner(
+                                    index,
+                                    'eventValue',
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                placeholder="0.00"
+                                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-white outline-none focus:border-emerald-500 font-mono"
+                              />
+                            </div>
+                          </div>
+
+                          {banner.trackingEvent === 'Custom' && (
+                            <div>
+                              <label className="block text-[10px] font-bold text-emerald-400 mb-0.5">
+                                Nome do Evento Customizado
+                              </label>
+                              <input
+                                type="text"
+                                value={banner.customEventName || ''}
+                                onChange={(e) =>
+                                  handleUpdateBanner(index, 'customEventName', e.target.value)
+                                }
+                                placeholder="Ex: Click_Bio_VIP"
+                                className="w-full rounded-lg bg-slate-950 border border-emerald-500/50 px-2 py-1.5 text-xs text-white outline-none font-mono"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -634,7 +931,8 @@ export default function AdminDashboardPage() {
             {/* Bottom Actions */}
             <div className="mt-6 flex items-center justify-between p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
               <span className="text-xs text-slate-400">
-                Página será publicada em: <strong className="text-emerald-400">konverops.tech/{slug || '...'}</strong>
+                Página será publicada em:{' '}
+                <strong className="text-emerald-400">konverops.tech/{slug || '...'}</strong>
               </span>
               <button
                 type="button"
@@ -645,58 +943,69 @@ export default function AdminDashboardPage() {
                 {isSaving ? 'Publicando...' : 'Salvar & Publicar Página'}
               </button>
             </div>
-
           </div>
 
           {/* RIGHT PANEL: LIVE ELEMENTOR CANVAS SMARTPHONE PREVIEW */}
-          <div className="w-full lg:w-5/12 bg-[#060810] p-6 flex flex-col items-center justify-center border-l border-slate-800/80">
+          <div
+            style={{ backgroundColor: pageBgColor }}
+            className="w-full lg:w-5/12 p-6 flex flex-col items-center justify-center border-l border-slate-800/80 transition-colors duration-300"
+          >
             <div className="mb-3 text-center">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center justify-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 Canvas Live Preview (Em Tempo Real)
               </span>
+              {metaPixelId && (
+                <span className="text-[10px] font-mono text-blue-400 mt-1 block">
+                  ● Meta Pixel: {metaPixelId} (Ativo)
+                </span>
+              )}
             </div>
 
             {/* Smartphone Canvas Frame */}
-            <div className="relative w-[340px] bg-white rounded-[38px] shadow-2xl shadow-emerald-950/20 border-[6px] border-slate-900 overflow-hidden pb-6">
-              
+            <div
+              style={{ backgroundColor: cardBgColor }}
+              className="relative w-[340px] rounded-[38px] shadow-2xl shadow-black/40 border-[6px] border-slate-900 overflow-hidden pb-6 transition-colors duration-300"
+            >
               {/* Dynamic Island Notch */}
-              <div className="pt-3 px-5 flex justify-between items-center text-[10px] font-semibold text-slate-800">
+              <div className="pt-3 px-5 flex justify-between items-center text-[10px] font-semibold text-slate-400">
                 <span>9:41</span>
                 <div className="w-16 h-3.5 bg-slate-900 rounded-full"></div>
                 <span>5G</span>
               </div>
 
-              {/* Top Niche Badge */}
-              <div className="flex justify-center mt-3 mb-3">
-                <span
-                  style={{ backgroundColor: badgeBgColor }}
-                  className="px-4 py-1.5 rounded-full text-white font-black text-xs tracking-wider uppercase shadow-md transition-colors"
-                >
-                  {nicheBadge || 'Nicho'}
-                </span>
-              </div>
+              {/* Top Niche Badge - Only shows if showNicheBadge is TRUE */}
+              {showNicheBadge && (
+                <div className="flex justify-center mt-3 mb-3 animate-fadeIn">
+                  <span
+                    style={{ backgroundColor: badgeBgColor }}
+                    className="px-4 py-1.5 rounded-full text-white font-black text-xs tracking-wider uppercase shadow-md transition-colors"
+                  >
+                    {nicheBadge || 'Nicho'}
+                  </span>
+                </div>
+              )}
 
               {/* Banners Feed */}
-              <div className="px-3.5 space-y-2.5">
+              <div className={`px-3.5 space-y-2.5 ${!showNicheBadge ? 'mt-4' : ''}`}>
                 {banners.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                  <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-2xl">
                     Adicione banners no painel ao lado para visualizar aqui
                   </div>
                 ) : (
                   banners.map((b, i) => (
                     <div
                       key={b.id || i}
-                      className="block relative w-full rounded-2xl overflow-hidden shadow-md shadow-black/10 active:scale-95 transition-transform cursor-pointer"
+                      className="block relative w-full rounded-2xl overflow-hidden shadow-md shadow-black/20 active:scale-95 transition-transform cursor-pointer group"
                     >
                       {b.imageUrl ? (
                         <img
                           src={b.imageUrl}
                           alt={b.title}
-                          className="w-full h-auto object-cover block"
+                          className="w-full h-auto object-cover block select-none"
                         />
                       ) : (
-                        <div className="h-20 bg-slate-100 flex items-center justify-center text-xs text-slate-400">
+                        <div className="h-20 bg-slate-800 flex items-center justify-center text-xs text-slate-400">
                           {b.title}
                         </div>
                       )}
@@ -707,14 +1016,12 @@ export default function AdminDashboardPage() {
 
               {/* Footer */}
               <div className="mt-4 text-center">
-                <span className="text-[11px] text-slate-400 font-bold">
+                <span className="text-[11px] text-slate-400 font-bold opacity-80">
                   konverops.tech/{slug || 'cliente'}
                 </span>
               </div>
-
             </div>
           </div>
-
         </div>
       )}
     </div>
