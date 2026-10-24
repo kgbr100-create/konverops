@@ -28,6 +28,20 @@ export default function AdminDashboardPage() {
     fetchProfiles();
   }, []);
 
+  // Open editor if query param exists
+  useEffect(() => {
+    if (typeof window !== 'undefined' && profiles.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const editSlug = params.get('edit');
+      if (editSlug) {
+        const found = profiles.find((p) => p.slug === editSlug);
+        if (found) {
+          handleEditProfile(found);
+        }
+      }
+    }
+  }, [profiles]);
+
   const fetchProfiles = async () => {
     try {
       setLoading(true);
