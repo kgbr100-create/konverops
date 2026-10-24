@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getProfileBySlug, getAllProfileSlugs } from '@/data/profiles';
+import { getClientBySlug } from '@/lib/profiles-store';
+import { getAllProfileSlugs, getProfileBySlug } from '@/data/profiles';
 import BannerLink from '@/components/BannerLink';
+
+export const instant = false;
+
+
 
 interface PageProps {
   params: Promise<{
@@ -16,7 +21,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const profile = getProfileBySlug(slug);
+  const profile = (await getClientBySlug(slug)) || getProfileBySlug(slug);
 
   if (!profile) {
     return {
@@ -25,11 +30,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${profile.name} | ${profile.nicheBadge}`,
-    description: profile.description,
+    title: `${profile.name || profile.nicheBadge} | ${profile.nicheBadge}`,
+    description: profile.description || `Bio Link Oficial de ${profile.name || profile.nicheBadge} na Konverops`,
     openGraph: {
-      title: `${profile.name} | ${profile.nicheBadge}`,
-      description: profile.description,
+      title: `${profile.name || profile.nicheBadge} | ${profile.nicheBadge}`,
+      description: profile.description || `Bio Link Oficial de ${profile.name || profile.nicheBadge} na Konverops`,
       url: `https://www.konverops.tech/${profile.slug}`,
       siteName: 'Konverops Tech',
       locale: 'pt_BR',
@@ -40,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BioProfilePage({ params }: PageProps) {
   const { slug } = await params;
-  const profile = getProfileBySlug(slug);
+  const profile = (await getClientBySlug(slug)) || getProfileBySlug(slug);
 
   if (!profile) {
     notFound();
@@ -63,13 +68,19 @@ export default async function BioProfilePage({ params }: PageProps) {
 
         {/* Feed de Banners Gráficos de Alta Fidelidade */}
         <div className="w-full space-y-3">
-          {profile.banners.map((banner, index) => (
-            <BannerLink
-              key={banner.id}
-              banner={banner}
-              priority={index === 0}
-            />
-          ))}
+          {profile.banners && profile.banners.length > 0 ? (
+            profile.banners.map((banner, index) => (
+              <BannerLink
+                key={banner.id || index}
+                banner={banner}
+                priority={index === 0}
+              />
+            ))
+          ) : (
+            <div className="p-8 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+              Nenhum banner cadastrado ainda neste perfil.
+            </div>
+          )}
         </div>
 
         {/* Rodapé Limpo */}
@@ -80,7 +91,7 @@ export default async function BioProfilePage({ params }: PageProps) {
             rel="noopener noreferrer"
             className="hover:text-emerald-600 transition-colors"
           >
-            {profile.footerUrl}
+            {profile.footerUrl || `konverops.tech/${profile.slug}`}
           </a>
         </footer>
 
