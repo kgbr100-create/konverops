@@ -88,7 +88,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Meta CAPI Dispatch Error:', error);
     return NextResponse.json(
-      { success: false, error: 'Erro ao despachar evento Meta CAPI.' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Erro ao despachar evento Meta CAPI.',
+      },
       { status: 500 }
     );
   }
