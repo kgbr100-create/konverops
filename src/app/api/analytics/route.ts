@@ -1,12 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getClientAnalytics, AnalyticsPeriod } from '@/lib/analytics-store';
 import { getClientBySlug } from '@/lib/profiles-store';
 
-export const dynamic = 'force-dynamic';
-
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get('slug');
     const period = (searchParams.get('period') as AnalyticsPeriod) || '7d';
 
