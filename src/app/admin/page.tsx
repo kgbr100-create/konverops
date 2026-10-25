@@ -32,7 +32,10 @@ export default function AdminDashboardPage() {
   const [analyticsReport, setAnalyticsReport] = useState<AnalyticsReport | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [summaryMetrics, setSummaryMetrics] = useState<
-    Record<string, { views: number; clicks: number; ctr: number }>
+    Record<
+      string,
+      { views: number; uniqueViews: number; clicks: number; uniqueClicks: number; ctr: number }
+    >
   >({});
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,7 +70,6 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (data.success && data.profiles) {
         setProfiles(data.profiles);
-        // Busca métricas resumidas para os cards da lista
         fetchSummaryForProfiles(data.profiles);
       }
     } catch (err) {
@@ -78,7 +80,11 @@ export default function AdminDashboardPage() {
   };
 
   const fetchSummaryForProfiles = async (profs: ClientProfile[]) => {
-    const summaryMap: Record<string, { views: number; clicks: number; ctr: number }> = {};
+    const summaryMap: Record<
+      string,
+      { views: number; uniqueViews: number; clicks: number; uniqueClicks: number; ctr: number }
+    > = {};
+
     await Promise.all(
       profs.map(async (p) => {
         try {
@@ -87,8 +93,10 @@ export default function AdminDashboardPage() {
           if (d.success && d.report) {
             summaryMap[p.slug] = {
               views: d.report.totalViews,
+              uniqueViews: d.report.uniqueViews,
               clicks: d.report.totalClicks,
-              ctr: d.report.ctr,
+              uniqueClicks: d.report.uniqueClicks,
+              ctr: d.report.ctrTotal,
             };
           }
         } catch {
@@ -194,7 +202,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Add new Banner Block
   const handleAddBanner = () => {
     const newBanner: BioBanner = {
       id: `banner-${Date.now()}`,
@@ -210,7 +217,6 @@ export default function AdminDashboardPage() {
     setBanners([...banners, newBanner]);
   };
 
-  // Reordering
   const handleMoveBanner = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= banners.length) return;
@@ -235,7 +241,6 @@ export default function AdminDashboardPage() {
     setBanners(updated);
   };
 
-  // Upload handler for a specific banner
   const triggerImageUpload = (index: number) => {
     setUploadingIndex(index);
     if (fileInputRef.current) {
@@ -253,7 +258,6 @@ export default function AdminDashboardPage() {
       reader.onload = (event) => {
         const rawDataUrl = event.target?.result as string;
 
-        // Otimização e compressão automática via Canvas
         const img = new window.Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -265,7 +269,6 @@ export default function AdminDashboardPage() {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            // Exporta WebP leve (~30KB) com 90% de qualidade cristalina
             const compressed = canvas.toDataURL('image/webp', 0.9);
             handleUpdateBanner(uploadingIndex, 'imageUrl', compressed);
           } else {
@@ -283,7 +286,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Save profile to database
   const handleSaveProfile = async () => {
     if (!slug.trim()) {
       alert('Por favor, informe a URL do cliente (slug). Ex: kelvin ou dra-mariana');
@@ -356,7 +358,7 @@ export default function AdminDashboardPage() {
               </span>
             </h1>
             <p className="text-xs text-slate-400">
-              Gerenciador de Links em Banners com Rastreamento Meta CAPI & Analytics por Período
+              Telemetria de Tráfego Único, Geolocalização, Rastreamento CAPI & Auditoria Anti-Bot
             </p>
           </div>
         </div>
@@ -418,7 +420,7 @@ export default function AdminDashboardPage() {
             <div>
               <h2 className="text-xl font-bold text-white">Clientes Cadastrados</h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Páginas ativas com monitoramento de cliques, visualizações e rastreamento CAPI
+                Páginas ativas com telemetria de visualizações totais/únicas e monitoramento de cliques
               </p>
             </div>
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
@@ -431,7 +433,13 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {profiles.map((p) => {
-                const metrics = summaryMetrics[p.slug] || { views: 0, clicks: 0, ctr: 0 };
+                const metrics = summaryMetrics[p.slug] || {
+                  views: 0,
+                  uniqueViews: 0,
+                  clicks: 0,
+                  uniqueClicks: 0,
+                  ctr: 0,
+                };
                 return (
                   <div
                     key={p.slug}
@@ -471,29 +479,36 @@ export default function AdminDashboardPage() {
                         {p.description || 'Página de bio personalizada.'}
                       </p>
 
-                      <div className="mt-3 py-1.5 px-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-xs font-mono text-emerald-400 truncate flex items-center justify-between">
-                        <span>konverops.tech/{p.slug}</span>
+                      <div className="mt-3 py-1.5 px-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-xs font-mono text-emerald-400 truncate">
+                        konverops.tech/{p.slug}
                       </div>
 
-                      {/* QUICK ANALYTICS METRICS BADGES */}
+                      {/* QUICK METRICS BADGES (TOTAIS E ÚNICOS) */}
                       <div className="mt-3 grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 text-center">
                         <div>
                           <span className="text-[10px] font-medium text-slate-400 block">Views</span>
-                          <strong className="text-xs font-bold text-cyan-400 font-mono">
+                          <strong className="text-xs font-bold text-cyan-400 font-mono block">
                             {metrics.views}
                           </strong>
+                          <span className="text-[9px] text-cyan-300/70 font-mono">
+                            ({metrics.uniqueViews} ún.)
+                          </span>
                         </div>
                         <div>
                           <span className="text-[10px] font-medium text-slate-400 block">Cliques</span>
-                          <strong className="text-xs font-bold text-emerald-400 font-mono">
+                          <strong className="text-xs font-bold text-emerald-400 font-mono block">
                             {metrics.clicks}
                           </strong>
+                          <span className="text-[9px] text-emerald-300/70 font-mono">
+                            ({metrics.uniqueClicks} ún.)
+                          </span>
                         </div>
                         <div>
                           <span className="text-[10px] font-medium text-slate-400 block">CTR</span>
-                          <strong className="text-xs font-bold text-amber-400 font-mono">
+                          <strong className="text-xs font-bold text-amber-400 font-mono block">
                             {metrics.ctr}%
                           </strong>
+                          <span className="text-[9px] text-amber-300/70">conversão</span>
                         </div>
                       </div>
                     </div>
@@ -550,7 +565,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
                 <span className="text-xs font-mono uppercase text-blue-400 font-bold tracking-wider">
-                  Painel de Métricas & Conversão
+                  Telemetria Avançada & Geolocalização
                 </span>
               </div>
               <h2 className="text-2xl font-black text-white flex items-center gap-2">
@@ -568,7 +583,6 @@ export default function AdminDashboardPage() {
 
             {/* Controls: Switch Client + Period Tabs + Refresh */}
             <div className="flex flex-wrap items-center gap-2.5">
-              {/* Client Switcher */}
               <select
                 value={selectedAnalyticsSlug}
                 onChange={(e) => {
@@ -626,86 +640,119 @@ export default function AdminDashboardPage() {
             </div>
           ) : analyticsReport ? (
             <>
-              {/* 4 HERO KPI METRICS CARDS */}
+              {/* 4 HERO KPI METRICS CARDS WITH UNIQUE BADGES */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* KPI 1: Visualizações de Página */}
+                {/* KPI 1: Visualizações de Página (Totais e Únicas) */}
                 <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
                     <span className="text-xs font-bold uppercase tracking-wider">Visualizações</span>
                     <span className="text-xl">👁️</span>
                   </div>
-                  <div className="text-3xl font-black text-cyan-400 font-mono tracking-tight">
-                    {analyticsReport.totalViews.toLocaleString('pt-BR')}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-cyan-400 font-mono tracking-tight">
+                      {analyticsReport.totalViews.toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-xs text-slate-500">totais</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Acessos à página no período selecionado
-                  </p>
+                  <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1">
+                      <span>👤</span> {analyticsReport.uniqueViews.toLocaleString('pt-BR')} únicas
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {analyticsReport.totalViews > 0
+                        ? `${((analyticsReport.uniqueViews / analyticsReport.totalViews) * 100).toFixed(0)}% novos`
+                        : '0%'}
+                    </span>
+                  </div>
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-60"></div>
                 </div>
 
-                {/* KPI 2: Cliques Totais em Banners */}
+                {/* KPI 2: Cliques em Banners (Totais e Únicos) */}
                 <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
                     <span className="text-xs font-bold uppercase tracking-wider">Cliques Totais</span>
                     <span className="text-xl">👆</span>
                   </div>
-                  <div className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
-                    {analyticsReport.totalClicks.toLocaleString('pt-BR')}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
+                      {analyticsReport.totalClicks.toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-xs text-slate-500">totais</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Cliques somados em todos os banners
-                  </p>
+                  <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-emerald-300 flex items-center gap-1">
+                      <span>🎯</span> {analyticsReport.uniqueClicks.toLocaleString('pt-BR')} pessoas únicas
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {analyticsReport.totalClicks > 0
+                        ? `${((analyticsReport.uniqueClicks / analyticsReport.totalClicks) * 100).toFixed(0)}% únicos`
+                        : '0%'}
+                    </span>
+                  </div>
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60"></div>
                 </div>
 
-                {/* KPI 3: Taxa de Conversão (CTR) */}
+                {/* KPI 3: Taxa de Conversão (CTR Total vs Único) */}
                 <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider">CTR Global</span>
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider">Taxa de Conversão</span>
                     <span className="text-xl">🎯</span>
                   </div>
-                  <div className="text-3xl font-black text-amber-400 font-mono tracking-tight">
-                    {analyticsReport.ctr}%
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-amber-400 font-mono tracking-tight">
+                      {analyticsReport.ctrTotal}%
+                    </span>
+                    <span className="text-xs text-slate-500">CTR Geral</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Taxa média de cliques por visualização
-                  </p>
+                  <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-amber-300">
+                      CTR Único: {analyticsReport.ctrUnique}%
+                    </span>
+                    <span className="text-[10px] text-slate-400">conversão real</span>
+                  </div>
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500 opacity-60"></div>
                 </div>
 
                 {/* KPI 4: Banner Campeão */}
                 <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
                     <span className="text-xs font-bold uppercase tracking-wider">Top Elemento</span>
                     <span className="text-xl">🏆</span>
                   </div>
-                  <div className="text-lg font-bold text-white truncate mt-1">
+                  <div className="text-base font-bold text-white truncate mt-0.5">
                     {analyticsReport.topBanner ? analyticsReport.topBanner.title : 'Sem cliques'}
                   </div>
-                  <p className="text-[11px] text-emerald-400 mt-1 font-mono">
-                    {analyticsReport.topBanner
-                      ? `${analyticsReport.topBanner.clicks} clique(s) registrados`
-                      : 'Nenhum clique no período'}
-                  </p>
+                  <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-purple-300">
+                    <span>
+                      {analyticsReport.topBanner
+                        ? `${analyticsReport.topBanner.clicks} cliques totais`
+                        : '-'}
+                    </span>
+                    <span className="text-slate-400">
+                      {analyticsReport.topBanner
+                        ? `(${analyticsReport.topBanner.uniqueClicks} únicos)`
+                        : ''}
+                    </span>
+                  </div>
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-60"></div>
                 </div>
               </div>
 
-              {/* TIMELINE VISUAL DIÁRIA (VIEWS VS CLIQUES) */}
+              {/* TIMELINE VISUAL DIÁRIA (VIEWS TOTAIS/ÚNICAS VS CLIQUES) */}
               <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>📈</span> Curva de Desempenho Diário
+                      <span>📈</span> Desempenho Diário: Visualizações e Cliques
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Visualizações de página versus cliques efetivos no período
+                      Passe o cursor sobre os dias para comparar acessos totais e visitantes únicos
                     </p>
                   </div>
-                  <div className="flex items-center gap-4 text-xs font-semibold">
+                  <div className="flex items-center gap-4 text-xs font-semibold flex-wrap">
                     <div className="flex items-center gap-1.5">
                       <span className="w-3 h-3 rounded bg-cyan-400"></span>
-                      <span className="text-slate-300">Visualizações</span>
+                      <span className="text-slate-300">Views</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-3 h-3 rounded bg-emerald-400"></span>
@@ -718,7 +765,6 @@ export default function AdminDashboardPage() {
                   <div className="p-8 text-center text-slate-500 text-xs">Sem dados históricos.</div>
                 ) : (
                   <div className="pt-4">
-                    {/* Max value calculation */}
                     {(() => {
                       const maxVal = Math.max(
                         ...analyticsReport.daily.map((d) => Math.max(d.views, d.clicks)),
@@ -736,22 +782,26 @@ export default function AdminDashboardPage() {
                                 key={point.date}
                                 className="flex-1 flex flex-col items-center justify-end h-full min-w-[38px] group relative"
                               >
-                                {/* Tooltip */}
-                                <div className="absolute -top-14 bg-slate-950 border border-slate-700 text-white text-[10px] rounded-lg p-2 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                                  <div className="font-bold text-slate-300">{point.date}</div>
-                                  <div className="text-cyan-400">👁️ {point.views} views</div>
-                                  <div className="text-emerald-400">👆 {point.clicks} cliques</div>
+                                {/* Tooltip Rico com Totais e Únicos */}
+                                <div className="absolute -top-16 bg-slate-950 border border-slate-700 text-white text-[10px] rounded-lg p-2.5 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 space-y-0.5">
+                                  <div className="font-bold text-slate-300 border-b border-slate-800 pb-1">
+                                    {point.date}
+                                  </div>
+                                  <div className="text-cyan-400">
+                                    👁️ {point.views} views ({point.uniqueViews} únicas)
+                                  </div>
+                                  <div className="text-emerald-400">
+                                    👆 {point.clicks} cliques ({point.uniqueClicks} únicos)
+                                  </div>
                                   <div className="text-amber-400">🎯 {point.ctr}% CTR</div>
                                 </div>
 
                                 {/* Bars Container */}
                                 <div className="w-full flex items-end justify-center gap-1 h-full">
-                                  {/* Views Bar */}
                                   <div
                                     style={{ height: `${viewHeightPercent}%` }}
                                     className="w-2.5 sm:w-3.5 bg-cyan-500/80 hover:bg-cyan-400 rounded-t-md transition-all shadow-sm"
                                   ></div>
-                                  {/* Clicks Bar */}
                                   <div
                                     style={{ height: `${clickHeightPercent}%` }}
                                     className="w-2.5 sm:w-3.5 bg-emerald-500 hover:bg-emerald-400 rounded-t-md transition-all shadow-sm"
@@ -772,19 +822,19 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* DETAILED METRICS PER BANNER / ELEMENT */}
+              {/* DETAILED METRICS PER BANNER / ELEMENT (TOTAIS E ÚNICOS) */}
               <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>⚡</span> Desempenho por Banner / Elemento Comercial
+                      <span>⚡</span> Desempenho por Banner Comercial
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Monitoramento individual de cliques e taxa de conversão em cada link
+                      Contagem de cliques totais e pessoas únicas em cada elemento
                     </p>
                   </div>
                   <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300">
-                    {analyticsReport.banners.length} elemento(s) monitorados
+                    {analyticsReport.banners.length} elemento(s)
                   </span>
                 </div>
 
@@ -799,8 +849,8 @@ export default function AdminDashboardPage() {
                         <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
                           <th className="pb-3 pl-2">Banner / Elemento</th>
                           <th className="pb-3">Evento Meta</th>
-                          <th className="pb-3">Destino do Link</th>
-                          <th className="pb-3 text-right">Cliques</th>
+                          <th className="pb-3 text-right">Cliques Totais</th>
+                          <th className="pb-3 text-right">Pessoas Únicas</th>
                           <th className="pb-3 pl-6">Participação (%)</th>
                           <th className="pb-3 text-right pr-2">CTR Específico</th>
                         </tr>
@@ -813,7 +863,6 @@ export default function AdminDashboardPage() {
 
                           return (
                             <tr key={item.bannerId} className="hover:bg-slate-800/40 transition-colors">
-                              {/* Title & Preview */}
                               <td className="py-3.5 pl-2 flex items-center gap-3">
                                 <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-mono">
                                   #{index + 1}
@@ -835,7 +884,6 @@ export default function AdminDashboardPage() {
                                 </div>
                               </td>
 
-                              {/* Evento Meta */}
                               <td className="py-3.5">
                                 {bannerMeta?.trackingEvent ? (
                                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25">
@@ -846,24 +894,14 @@ export default function AdminDashboardPage() {
                                 )}
                               </td>
 
-                              {/* Destino */}
-                              <td className="py-3.5 max-w-[200px]">
-                                <a
-                                  href={bannerMeta?.destinationUrl || '#'}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-slate-400 hover:text-emerald-400 truncate block text-[11px] font-mono"
-                                >
-                                  {bannerMeta?.destinationUrl || 'Link interno'}
-                                </a>
-                              </td>
-
-                              {/* Total de Cliques */}
                               <td className="py-3.5 text-right font-mono font-bold text-emerald-400 text-sm">
                                 {item.clicks}
                               </td>
 
-                              {/* % de Participação */}
+                              <td className="py-3.5 text-right font-mono font-bold text-cyan-300 text-sm">
+                                {item.uniqueClicks}
+                              </td>
+
                               <td className="py-3.5 pl-6 min-w-[150px]">
                                 <div className="flex items-center gap-2">
                                   <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -878,7 +916,6 @@ export default function AdminDashboardPage() {
                                 </div>
                               </td>
 
-                              {/* CTR Específico */}
                               <td className="py-3.5 text-right pr-2 font-mono font-bold text-amber-400">
                                 {item.ctr}%
                               </td>
@@ -890,6 +927,206 @@ export default function AdminDashboardPage() {
                   </div>
                 )}
               </div>
+
+              {/* NOVO BLOCO: GEOLOCALIZAÇÃO & ORIGEM DO TRÁFEGO */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* 1. PAÍSES */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                      <span>🌍</span> Origem por País
+                    </h4>
+                    <span className="text-[10px] text-slate-500">Edge Telemetry</span>
+                  </div>
+
+                  {analyticsReport.geo.countries.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      Sem registros geográficos ainda.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {analyticsReport.geo.countries.map((c) => (
+                        <div key={c.code} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1.5 font-medium text-slate-200">
+                              <span>{c.flag}</span> {c.name}
+                            </span>
+                            <span className="font-mono text-slate-400 text-[11px]">
+                              {c.count} ({c.percentage}%)
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${c.percentage}%` }}
+                              className="h-full bg-blue-500 rounded-full"
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. REGIÕES / ESTADOS */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                      <span>📍</span> Regiões & Estados
+                    </h4>
+                    <span className="text-[10px] text-slate-500">Distribuição</span>
+                  </div>
+
+                  {analyticsReport.geo.regions.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      Sem dados de estado ainda.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {analyticsReport.geo.regions.map((r) => (
+                        <div key={r.code} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-medium text-slate-200 truncate max-w-[170px]">
+                              {r.name}
+                            </span>
+                            <span className="font-mono text-slate-400 text-[11px]">
+                              {r.count} ({r.percentage}%)
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${r.percentage}%` }}
+                              className="h-full bg-emerald-500 rounded-full"
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. CIDADES */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                      <span>🏙️</span> Principais Cidades
+                    </h4>
+                    <span className="text-[10px] text-slate-500">Top Acessos</span>
+                  </div>
+
+                  {analyticsReport.geo.cities.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      Sem dados de cidade ainda.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {analyticsReport.geo.cities.map((city) => (
+                        <div key={city.name} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-medium text-slate-200 truncate max-w-[170px]">
+                              {city.name}
+                            </span>
+                            <span className="font-mono text-slate-400 text-[11px]">
+                              {city.count} ({city.percentage}%)
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${city.percentage}%` }}
+                              className="h-full bg-amber-500 rounded-full"
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* NOVO BLOCO: AUDITORIA DE SEGURANÇA & MONITOR DE BOT/ATAQUE */}
+              <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>🛡️</span> Monitor de Segurança & Auditoria Anti-Bot
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Rastreamento de IPs de origem para prevenção de varreduras artificiais e ataques
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {analyticsReport.security.status === 'healthy' ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        Tráfego Saudável
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1.5 animate-pulse">
+                        <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                        Alerta de Tráfego Anômalo
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {analyticsReport.security.warningMessage && (
+                  <div className="mb-4 p-3.5 rounded-xl bg-red-500/15 border border-red-500/30 text-xs text-red-300 font-medium">
+                    {analyticsReport.security.warningMessage}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-2">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Dispersão de Rede
+                    </span>
+                    <div className="text-2xl font-black text-white font-mono">
+                      {analyticsReport.security.totalDistinctIps}
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Endereços IP únicos ativos hoje. Quanto maior a dispersão em relação às views,
+                      mais legítimo e orgânico é o tráfego de usuários reais.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                      IPs Mais Ativos Hoje (Anonimizados)
+                    </span>
+                    {analyticsReport.security.topIps.length === 0 ? (
+                      <div className="text-slate-500 text-xs py-4 text-center">
+                        Nenhum IP registrado hoje.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {analyticsReport.security.topIps.map((entry) => (
+                          <div
+                            key={entry.ip}
+                            className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800"
+                          >
+                            <span className="font-mono text-slate-300 text-xs flex items-center gap-2">
+                              <span>🌐</span> {entry.ip}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-white text-xs">
+                                {entry.count} reqs
+                              </span>
+                              {entry.isSuspicious ? (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                                  Suspeito
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400">
+                                  Normal
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </>
           ) : null}
         </main>
@@ -898,9 +1135,8 @@ export default function AdminDashboardPage() {
       {/* ELEMENTOR CANVAS BUILDER (SPLIT SCREEN) */}
       {view === 'editor' && (
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* LEFT PANEL: Controls, Inputs & Banner Uploads */}
+          {/* LEFT PANEL */}
           <div className="w-full lg:w-7/12 p-6 overflow-y-auto max-h-[calc(100vh-73px)] border-r border-slate-800 bg-[#0a0f1d]/50">
-            {/* Success Notification Bar */}
             {saveSuccessUrl && (
               <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
                 <div>
@@ -1042,7 +1278,6 @@ export default function AdminDashboardPage() {
                   Paleta de Cores da Página
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Cor de Fundo da Tela */}
                   <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <label className="block text-[11px] font-bold text-slate-400 mb-1">
                       Fundo da Tela (Background)
@@ -1061,7 +1296,6 @@ export default function AdminDashboardPage() {
                         className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
                       />
                     </div>
-                    {/* Presets */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {[
                         { name: 'Obsidian', color: '#070b14' },
@@ -1087,7 +1321,6 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Cor do Cartão/Container */}
                   <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
                     <label className="block text-[11px] font-bold text-slate-400 mb-1">
                       Container dos Banners (Card)
@@ -1106,7 +1339,6 @@ export default function AdminDashboardPage() {
                         className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
                       />
                     </div>
-                    {/* Presets */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {[
                         { name: 'Dark Navy', color: '#0a0f1d' },
@@ -1156,9 +1388,6 @@ export default function AdminDashboardPage() {
                       placeholder="Ex: 123456789012345"
                       className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-blue-500 placeholder:text-slate-600"
                     />
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      Dispara PageView e eventos com fbevents.js
-                    </span>
                   </div>
 
                   <div>
@@ -1172,9 +1401,6 @@ export default function AdminDashboardPage() {
                       placeholder="Token EAAB... (Opcional)"
                       className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-blue-500 placeholder:text-slate-600"
                     />
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      Blindagem server-side anti ad-blocker
-                    </span>
                   </div>
 
                   <div>
@@ -1188,9 +1414,6 @@ export default function AdminDashboardPage() {
                       placeholder="Ex: TEST12345 (Opcional)"
                       className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-blue-500 placeholder:text-slate-600"
                     />
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      Depuração ao vivo no Gerenciador da Meta
-                    </span>
                   </div>
                 </div>
               </div>
@@ -1225,7 +1448,6 @@ export default function AdminDashboardPage() {
                       key={banner.id || index}
                       className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all flex flex-col md:flex-row gap-4 items-start"
                     >
-                      {/* Banner Image Preview & Upload Trigger */}
                       <div className="w-full md:w-48 flex-shrink-0 flex flex-col items-center">
                         <div className="relative w-full h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md">
                           {banner.imageUrl ? (
@@ -1249,7 +1471,6 @@ export default function AdminDashboardPage() {
                         </button>
                       </div>
 
-                      {/* Banner Fields */}
                       <div className="flex-1 w-full space-y-2.5">
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-mono text-emerald-400 font-bold">
@@ -1317,7 +1538,6 @@ export default function AdminDashboardPage() {
                           </div>
                         </div>
 
-                        {/* Configuração Detalhada de Eventos Meta */}
                         <div className="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-2">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
@@ -1422,7 +1642,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* RIGHT PANEL: LIVE ELEMENTOR CANVAS SMARTPHONE PREVIEW */}
+          {/* RIGHT PANEL: LIVE CANVAS SMARTPHONE PREVIEW */}
           <div
             style={{ backgroundColor: pageBgColor }}
             className="w-full lg:w-5/12 p-6 flex flex-col items-center justify-center border-l border-slate-800/80 transition-colors duration-300"
@@ -1439,19 +1659,16 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            {/* Smartphone Canvas Frame */}
             <div
               style={{ backgroundColor: cardBgColor }}
               className="relative w-[340px] rounded-[38px] shadow-2xl shadow-black/40 border-[6px] border-slate-900 overflow-hidden pb-6 transition-colors duration-300"
             >
-              {/* Dynamic Island Notch */}
               <div className="pt-3 px-5 flex justify-between items-center text-[10px] font-semibold text-slate-400">
                 <span>9:41</span>
                 <div className="w-16 h-3.5 bg-slate-900 rounded-full"></div>
                 <span>5G</span>
               </div>
 
-              {/* Top Niche Badge - Only shows if showNicheBadge is TRUE */}
               {showNicheBadge && (
                 <div className="flex justify-center mt-3 mb-3 animate-fadeIn">
                   <span
@@ -1463,7 +1680,6 @@ export default function AdminDashboardPage() {
                 </div>
               )}
 
-              {/* Banners Feed */}
               <div className={`px-3.5 space-y-2.5 ${!showNicheBadge ? 'mt-4' : ''}`}>
                 {banners.length === 0 ? (
                   <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-2xl">
@@ -1491,7 +1707,6 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* Footer */}
               <div className="mt-4 text-center">
                 <span className="text-[11px] text-slate-400 font-bold opacity-80">
                   konverops.tech/{slug || 'cliente'}

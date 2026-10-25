@@ -32,7 +32,21 @@ export default function BannerLink({
   metaTestEventCode,
 }: BannerLinkProps) {
   const handleClick = () => {
-    // 1. Registro no Analytics Interno Konverops (Cliques por Elemento)
+    // Identificador persistente de visitante único no navegador
+    let visitorId = '';
+    if (typeof window !== 'undefined' && window.localStorage) {
+      visitorId = localStorage.getItem('konverops_vid') || '';
+      if (!visitorId) {
+        visitorId =
+          'v_' +
+          (typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : Math.random().toString(36).substring(2, 12));
+        localStorage.setItem('konverops_vid', visitorId);
+      }
+    }
+
+    // 1. Registro no Analytics Interno Konverops (Cliques Totais e Únicos)
     if (slug) {
       try {
         fetch('/api/analytics/track', {
@@ -43,6 +57,7 @@ export default function BannerLink({
             slug,
             bannerId: banner.id,
             bannerTitle: banner.title,
+            visitorId,
           }),
           keepalive: true,
         }).catch(() => {});
