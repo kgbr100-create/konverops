@@ -38,6 +38,81 @@ export default function AdminDashboardPage() {
     >
   >({});
 
+  // Password Modal State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+  const [passwordChangeMessage, setPasswordChangeMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      window.location.href = '/admin/login';
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordChangeMessage(null);
+
+    if (newPassword.length < 6) {
+      setPasswordChangeMessage({
+        type: 'error',
+        text: 'A nova senha deve ter no mínimo 6 caracteres.',
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordChangeMessage({
+        type: 'error',
+        text: 'A confirmação de senha não coincide.',
+      });
+      return;
+    }
+
+    try {
+      setPasswordChangeLoading(true);
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPasswordChangeMessage({
+          type: 'success',
+          text: 'Senha de administrador alterada com sucesso!',
+        });
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setPasswordChangeMessage(null);
+        }, 1200);
+      } else {
+        setPasswordChangeMessage({
+          type: 'error',
+          text: data.error || 'Erro ao alterar senha.',
+        });
+      }
+    } catch {
+      setPasswordChangeMessage({
+        type: 'error',
+        text: 'Erro de conexão ao atualizar senha.',
+      });
+    } finally {
+      setPasswordChangeLoading(false);
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
@@ -404,11 +479,31 @@ export default function AdminDashboardPage() {
           {view === 'list' && (
             <button
               onClick={handleCreateNew}
-              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 mr-2"
             >
               + Criar Novo Cliente
             </button>
           )}
+
+          {/* ADMIN USER CONTROLS: CHANGE PASSWORD & LOGOUT */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+            <button
+              type="button"
+              onClick={() => setShowPasswordModal(true)}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors text-xs font-semibold"
+              title="Alterar Senha de Administrador"
+            >
+              🔑
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors text-xs font-semibold flex items-center gap-1"
+              title="Encerrar sessão"
+            >
+              <span>Sair</span> 🚪
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1713,6 +1808,104 @@ export default function AdminDashboardPage() {
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* CHANGE PASSWORD MODAL */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm font-bold border border-emerald-500/20">
+                  🔑
+                </span>
+                <h3 className="text-base font-bold text-white">Alterar Senha do Admin</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordChangeMessage(null);
+                }}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {passwordChangeMessage && (
+              <div
+                className={`mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                  passwordChangeMessage.type === 'success'
+                    ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
+                    : 'bg-red-500/15 border border-red-500/30 text-red-300'
+                }`}
+              >
+                <span>{passwordChangeMessage.type === 'success' ? '✓' : '⚠️'}</span>
+                <span>{passwordChangeMessage.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePasswordSubmit} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                  Senha Atual
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                  Nova Senha (Mínimo 6 dígitos)
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                  Confirme a Nova Senha
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={passwordChangeLoading}
+                  className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold uppercase tracking-wide transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50"
+                >
+                  {passwordChangeLoading ? 'Salvando...' : 'Atualizar Senha'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
