@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getClientBySlug } from '@/lib/profiles-store';
 import { getAllProfileSlugs, getProfileBySlug } from '@/data/profiles';
 import BannerLink from '@/components/BannerLink';
+import PageViewTracker from '@/components/PageViewTracker';
 
 export const instant = false;
 
@@ -86,7 +87,10 @@ export default async function BioProfilePage({ params }: PageProps) {
           style={{ backgroundColor: cardBg }}
           className="w-full max-w-[420px] rounded-[36px] shadow-2xl shadow-black/10 border border-black/5 px-4 pt-5 pb-6 flex flex-col items-center transition-colors duration-300"
         >
-          {/* Niche Badge - Renderiza apenas se showNicheBadge for explicitamente true */}
+          {/* Dynamic Island Notch / Analytics Page View Tracker */}
+        <PageViewTracker slug={profile.slug} />
+
+        {/* Niche Badge - Renderiza apenas se showNicheBadge for explicitamente true */}
           {profile.showNicheBadge && profile.nicheBadge && (
             <div className="flex justify-center mb-3.5">
               <span
@@ -106,6 +110,7 @@ export default async function BioProfilePage({ params }: PageProps) {
                   key={banner.id || index}
                   banner={banner}
                   priority={index === 0}
+                  slug={profile.slug}
                   metaPixelId={profile.metaPixelId}
                   metaAccessToken={profile.metaAccessToken}
                   metaTestEventCode={profile.metaTestEventCode}

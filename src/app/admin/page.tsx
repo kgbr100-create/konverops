@@ -3,15 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { ClientProfile, BioBanner, MetaStandardEvent } from '@/data/profiles';
+import type { AnalyticsReport, AnalyticsPeriod } from '@/lib/analytics-store';
 
 export default function AdminDashboardPage() {
   const [profiles, setProfiles] = useState<ClientProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'list' | 'editor'>('list');
+  const [view, setView] = useState<'list' | 'editor' | 'analytics'>('list');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessUrl, setSaveSuccessUrl] = useState<string | null>(null);
 
-  // Form State
+  // Form State (Editor)
   const [slug, setSlug] = useState('');
   const [showNicheBadge, setShowNicheBadge] = useState(false);
   const [nicheBadge, setNicheBadge] = useState('Engenharia de Vendas');
@@ -25,6 +26,15 @@ export default function AdminDashboardPage() {
   const [description, setDescription] = useState('');
   const [banners, setBanners] = useState<BioBanner[]>([]);
 
+  // Analytics State
+  const [selectedAnalyticsSlug, setSelectedAnalyticsSlug] = useState<string>('kelvin');
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<AnalyticsPeriod>('7d');
+  const [analyticsReport, setAnalyticsReport] = useState<AnalyticsReport | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [summaryMetrics, setSummaryMetrics] = useState<
+    Record<string, { views: number; clicks: number; ctr: number }>
+  >({});
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
@@ -33,16 +43,19 @@ export default function AdminDashboardPage() {
     fetchProfiles();
   }, []);
 
-  // Open editor if query param exists
+  // Open editor or analytics if query param exists
   useEffect(() => {
     if (typeof window !== 'undefined' && profiles.length > 0) {
       const params = new URLSearchParams(window.location.search);
       const editSlug = params.get('edit');
+      const statsSlug = params.get('stats');
       if (editSlug) {
         const found = profiles.find((p) => p.slug === editSlug);
         if (found) {
           handleEditProfile(found);
         }
+      } else if (statsSlug) {
+        handleOpenAnalytics(statsSlug);
       }
     }
   }, [profiles]);
@@ -54,11 +67,63 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (data.success && data.profiles) {
         setProfiles(data.profiles);
+        // Busca métricas resumidas para os cards da lista
+        fetchSummaryForProfiles(data.profiles);
       }
     } catch (err) {
       console.error('Falha ao carregar perfis:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSummaryForProfiles = async (profs: ClientProfile[]) => {
+    const summaryMap: Record<string, { views: number; clicks: number; ctr: number }> = {};
+    await Promise.all(
+      profs.map(async (p) => {
+        try {
+          const res = await fetch(`/api/analytics?slug=${p.slug}&period=all`);
+          const d = await res.json();
+          if (d.success && d.report) {
+            summaryMap[p.slug] = {
+              views: d.report.totalViews,
+              clicks: d.report.totalClicks,
+              ctr: d.report.ctr,
+            };
+          }
+        } catch {
+          // Fallback silencioso
+        }
+      })
+    );
+    setSummaryMetrics(summaryMap);
+  };
+
+  const fetchAnalytics = async (targetSlug: string, period: AnalyticsPeriod = analyticsPeriod) => {
+    try {
+      setLoadingAnalytics(true);
+      const res = await fetch(`/api/analytics?slug=${targetSlug}&period=${period}`);
+      const data = await res.json();
+      if (data.success && data.report) {
+        setAnalyticsReport(data.report);
+      }
+    } catch (err) {
+      console.error('Falha ao carregar métricas:', err);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  const handleOpenAnalytics = (targetSlug: string) => {
+    setSelectedAnalyticsSlug(targetSlug);
+    setView('analytics');
+    fetchAnalytics(targetSlug, analyticsPeriod);
+  };
+
+  const handlePeriodChange = (newPeriod: AnalyticsPeriod) => {
+    setAnalyticsPeriod(newPeriod);
+    if (selectedAnalyticsSlug) {
+      fetchAnalytics(selectedAnalyticsSlug, newPeriod);
     }
   };
 
@@ -124,7 +189,7 @@ export default function AdminDashboardPage() {
       } else {
         alert(data.error || 'Erro ao excluir perfil.');
       }
-    } catch (err) {
+    } catch {
       alert('Erro de conexão ao excluir perfil.');
     }
   };
@@ -257,12 +322,14 @@ export default function AdminDashboardPage() {
       } else {
         alert(data.error || 'Erro ao salvar perfil.');
       }
-    } catch (err) {
+    } catch {
       alert('Erro de conexão ao salvar.');
     } finally {
       setIsSaving(false);
     }
   };
+
+  const currentAnalyticsProfile = profiles.find((p) => p.slug === selectedAnalyticsSlug);
 
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 antialiased font-sans flex flex-col">
@@ -285,17 +352,17 @@ export default function AdminDashboardPage() {
             <h1 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
               Konverops Bio Studio
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Elementor Canvas Engine
+                Analytics & Canvas Engine
               </span>
             </h1>
             <p className="text-xs text-slate-400">
-              Gerenciador de Links em Banners com Rastreamento Meta Ads (Pixel & CAPI Server-Side)
+              Gerenciador de Links em Banners com Rastreamento Meta CAPI & Analytics por Período
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {view === 'editor' ? (
+          {view === 'editor' && (
             <>
               <button
                 onClick={() => setView('list')}
@@ -311,7 +378,28 @@ export default function AdminDashboardPage() {
                 {isSaving ? 'Salvando...' : '✓ Salvar & Publicar'}
               </button>
             </>
-          ) : (
+          )}
+
+          {view === 'analytics' && (
+            <>
+              <button
+                onClick={() => setView('list')}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
+              >
+                ← Voltar aos Clientes
+              </button>
+              {currentAnalyticsProfile && (
+                <button
+                  onClick={() => handleEditProfile(currentAnalyticsProfile)}
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700 transition-colors"
+                >
+                  Editar Canvas ✏️
+                </button>
+              )}
+            </>
+          )}
+
+          {view === 'list' && (
             <button
               onClick={handleCreateNew}
               className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
@@ -323,14 +411,14 @@ export default function AdminDashboardPage() {
       </header>
 
       {/* Main Content Area */}
-      {view === 'list' ? (
-        /* LIST OF ALL CLIENTS */
+      {view === 'list' && (
+        /* LIST OF ALL CLIENTS WITH QUICK ANALYTICS */
         <main className="flex-1 max-w-6xl w-full mx-auto p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-bold text-white">Clientes Cadastrados</h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Páginas ativas de bio link hospedadas na infraestrutura Konverops
+                Páginas ativas com monitoramento de cliques, visualizações e rastreamento CAPI
               </p>
             </div>
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
@@ -342,70 +430,103 @@ export default function AdminDashboardPage() {
             <div className="p-12 text-center text-slate-500 text-sm">Carregando páginas de clientes...</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {profiles.map((p) => (
-                <div
-                  key={p.slug}
-                  className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between group shadow-lg"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      {p.showNicheBadge && p.nicheBadge ? (
-                        <span
-                          style={{ backgroundColor: p.badgeBgColor || '#00b768' }}
-                          className="px-3 py-1 rounded-full text-white font-extrabold text-[11px] uppercase tracking-wider shadow-sm"
-                        >
-                          {p.nicheBadge}
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold text-[10px]">
-                          Pílula Desativada
-                        </span>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        {p.metaPixelId && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                            Meta Pixel
+              {profiles.map((p) => {
+                const metrics = summaryMetrics[p.slug] || { views: 0, clicks: 0, ctr: 0 };
+                return (
+                  <div
+                    key={p.slug}
+                    className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between group shadow-lg"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        {p.showNicheBadge && p.nicheBadge ? (
+                          <span
+                            style={{ backgroundColor: p.badgeBgColor || '#00b768' }}
+                            className="px-3 py-1 rounded-full text-white font-extrabold text-[11px] uppercase tracking-wider shadow-sm"
+                          >
+                            {p.nicheBadge}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold text-[10px]">
+                            Pílula Oculta
                           </span>
                         )}
-                        <span className="text-xs text-slate-500 font-mono">
-                          {p.banners?.length || 0} banner(s)
-                        </span>
+
+                        <div className="flex items-center gap-2">
+                          {p.metaPixelId && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                              Pixel Ativo
+                            </span>
+                          )}
+                          <span className="text-xs text-slate-500 font-mono">
+                            {p.banners?.length || 0} banner(s)
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">
+                        {p.name || p.slug}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                        {p.description || 'Página de bio personalizada.'}
+                      </p>
+
+                      <div className="mt-3 py-1.5 px-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-xs font-mono text-emerald-400 truncate flex items-center justify-between">
+                        <span>konverops.tech/{p.slug}</span>
+                      </div>
+
+                      {/* QUICK ANALYTICS METRICS BADGES */}
+                      <div className="mt-3 grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 text-center">
+                        <div>
+                          <span className="text-[10px] font-medium text-slate-400 block">Views</span>
+                          <strong className="text-xs font-bold text-cyan-400 font-mono">
+                            {metrics.views}
+                          </strong>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-medium text-slate-400 block">Cliques</span>
+                          <strong className="text-xs font-bold text-emerald-400 font-mono">
+                            {metrics.clicks}
+                          </strong>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-medium text-slate-400 block">CTR</span>
+                          <strong className="text-xs font-bold text-amber-400 font-mono">
+                            {metrics.ctr}%
+                          </strong>
+                        </div>
                       </div>
                     </div>
 
-                    <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">
-                      {p.name || p.slug}
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                      {p.description || 'Página de bio personalizada.'}
-                    </p>
+                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-1.5">
+                      <button
+                        onClick={() => handleOpenAnalytics(p.slug)}
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                      >
+                        📊 Métricas
+                      </button>
 
-                    <div className="mt-3 py-1.5 px-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-xs font-mono text-emerald-400 truncate">
-                      konverops.tech/{p.slug}
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                    <a
-                      href={`/${p.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors flex items-center gap-1"
-                    >
-                      Abrir ↗
-                    </a>
-                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleEditProfile(p)}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold border border-emerald-500/30 transition-colors"
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center justify-center gap-1"
                       >
-                        Editar Canvas
+                        Canvas
                       </button>
+
+                      <a
+                        href={`/${p.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition-colors"
+                        title="Abrir página ao vivo"
+                      >
+                        ↗
+                      </a>
+
                       {p.slug !== 'kelvin' && (
                         <button
                           onClick={() => handleDeleteProfile(p.slug)}
-                          className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/30 transition-colors"
+                          className="py-1.5 px-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/30 transition-colors"
                           title="Excluir"
                         >
                           ✕
@@ -413,13 +534,369 @@ export default function AdminDashboardPage() {
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>
-      ) : (
-        /* ELEMENTOR CANVAS BUILDER (SPLIT SCREEN) */
+      )}
+
+      {/* DEDICATED ANALYTICS DASHBOARD VIEW */}
+      {view === 'analytics' && (
+        <main className="flex-1 max-w-6xl w-full mx-auto p-6 space-y-6">
+          {/* Analytics Header & Client / Period Selector */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
+                <span className="text-xs font-mono uppercase text-blue-400 font-bold tracking-wider">
+                  Painel de Métricas & Conversão
+                </span>
+              </div>
+              <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                {currentAnalyticsProfile?.name || selectedAnalyticsSlug}
+                <a
+                  href={`/${selectedAnalyticsSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono text-emerald-400 hover:underline font-normal bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20"
+                >
+                  konverops.tech/{selectedAnalyticsSlug} ↗
+                </a>
+              </h2>
+            </div>
+
+            {/* Controls: Switch Client + Period Tabs + Refresh */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Client Switcher */}
+              <select
+                value={selectedAnalyticsSlug}
+                onChange={(e) => {
+                  setSelectedAnalyticsSlug(e.target.value);
+                  fetchAnalytics(e.target.value, analyticsPeriod);
+                }}
+                className="bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-blue-500"
+              >
+                {profiles.map((p) => (
+                  <option key={p.slug} value={p.slug}>
+                    {p.name || p.slug} ({p.slug})
+                  </option>
+                ))}
+              </select>
+
+              {/* Period Tabs */}
+              <div className="flex items-center bg-slate-950 border border-slate-800 p-1 rounded-xl">
+                {(
+                  [
+                    { id: 'today', label: 'Hoje' },
+                    { id: '7d', label: 'Últimos 7 dias' },
+                    { id: '30d', label: '30 dias' },
+                    { id: 'all', label: 'Vitalício' },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handlePeriodChange(tab.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      analyticsPeriod === tab.id
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Refresh Button */}
+              <button
+                onClick={() => fetchAnalytics(selectedAnalyticsSlug, analyticsPeriod)}
+                disabled={loadingAnalytics}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                title="Atualizar dados"
+              >
+                {loadingAnalytics ? '...' : '↻'}
+              </button>
+            </div>
+          </div>
+
+          {loadingAnalytics && !analyticsReport ? (
+            <div className="p-16 text-center text-slate-500 text-sm">
+              Carregando dados estatísticos em tempo real...
+            </div>
+          ) : analyticsReport ? (
+            <>
+              {/* 4 HERO KPI METRICS CARDS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* KPI 1: Visualizações de Página */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Visualizações</span>
+                    <span className="text-xl">👁️</span>
+                  </div>
+                  <div className="text-3xl font-black text-cyan-400 font-mono tracking-tight">
+                    {analyticsReport.totalViews.toLocaleString('pt-BR')}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Acessos à página no período selecionado
+                  </p>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-60"></div>
+                </div>
+
+                {/* KPI 2: Cliques Totais em Banners */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Cliques Totais</span>
+                    <span className="text-xl">👆</span>
+                  </div>
+                  <div className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
+                    {analyticsReport.totalClicks.toLocaleString('pt-BR')}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Cliques somados em todos os banners
+                  </p>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60"></div>
+                </div>
+
+                {/* KPI 3: Taxa de Conversão (CTR) */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">CTR Global</span>
+                    <span className="text-xl">🎯</span>
+                  </div>
+                  <div className="text-3xl font-black text-amber-400 font-mono tracking-tight">
+                    {analyticsReport.ctr}%
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Taxa média de cliques por visualização
+                  </p>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500 opacity-60"></div>
+                </div>
+
+                {/* KPI 4: Banner Campeão */}
+                <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden group">
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Top Elemento</span>
+                    <span className="text-xl">🏆</span>
+                  </div>
+                  <div className="text-lg font-bold text-white truncate mt-1">
+                    {analyticsReport.topBanner ? analyticsReport.topBanner.title : 'Sem cliques'}
+                  </div>
+                  <p className="text-[11px] text-emerald-400 mt-1 font-mono">
+                    {analyticsReport.topBanner
+                      ? `${analyticsReport.topBanner.clicks} clique(s) registrados`
+                      : 'Nenhum clique no período'}
+                  </p>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-60"></div>
+                </div>
+              </div>
+
+              {/* TIMELINE VISUAL DIÁRIA (VIEWS VS CLIQUES) */}
+              <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>📈</span> Curva de Desempenho Diário
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Visualizações de página versus cliques efetivos no período
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded bg-cyan-400"></span>
+                      <span className="text-slate-300">Visualizações</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded bg-emerald-400"></span>
+                      <span className="text-slate-300">Cliques</span>
+                    </div>
+                  </div>
+                </div>
+
+                {analyticsReport.daily.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500 text-xs">Sem dados históricos.</div>
+                ) : (
+                  <div className="pt-4">
+                    {/* Max value calculation */}
+                    {(() => {
+                      const maxVal = Math.max(
+                        ...analyticsReport.daily.map((d) => Math.max(d.views, d.clicks)),
+                        5
+                      );
+
+                      return (
+                        <div className="flex items-end gap-2 sm:gap-4 h-48 w-full border-b border-slate-800 pb-2 overflow-x-auto">
+                          {analyticsReport.daily.map((point) => {
+                            const viewHeightPercent = Math.max((point.views / maxVal) * 100, 4);
+                            const clickHeightPercent = Math.max((point.clicks / maxVal) * 100, 4);
+
+                            return (
+                              <div
+                                key={point.date}
+                                className="flex-1 flex flex-col items-center justify-end h-full min-w-[38px] group relative"
+                              >
+                                {/* Tooltip */}
+                                <div className="absolute -top-14 bg-slate-950 border border-slate-700 text-white text-[10px] rounded-lg p-2 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                  <div className="font-bold text-slate-300">{point.date}</div>
+                                  <div className="text-cyan-400">👁️ {point.views} views</div>
+                                  <div className="text-emerald-400">👆 {point.clicks} cliques</div>
+                                  <div className="text-amber-400">🎯 {point.ctr}% CTR</div>
+                                </div>
+
+                                {/* Bars Container */}
+                                <div className="w-full flex items-end justify-center gap-1 h-full">
+                                  {/* Views Bar */}
+                                  <div
+                                    style={{ height: `${viewHeightPercent}%` }}
+                                    className="w-2.5 sm:w-3.5 bg-cyan-500/80 hover:bg-cyan-400 rounded-t-md transition-all shadow-sm"
+                                  ></div>
+                                  {/* Clicks Bar */}
+                                  <div
+                                    style={{ height: `${clickHeightPercent}%` }}
+                                    className="w-2.5 sm:w-3.5 bg-emerald-500 hover:bg-emerald-400 rounded-t-md transition-all shadow-sm"
+                                  ></div>
+                                </div>
+
+                                {/* Date Label */}
+                                <span className="text-[10px] text-slate-400 font-medium mt-2 truncate w-full text-center">
+                                  {point.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              {/* DETAILED METRICS PER BANNER / ELEMENT */}
+              <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>⚡</span> Desempenho por Banner / Elemento Comercial
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Monitoramento individual de cliques e taxa de conversão em cada link
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300">
+                    {analyticsReport.banners.length} elemento(s) monitorados
+                  </span>
+                </div>
+
+                {analyticsReport.banners.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
+                    Nenhum clique registrado em banners ainda neste período.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                          <th className="pb-3 pl-2">Banner / Elemento</th>
+                          <th className="pb-3">Evento Meta</th>
+                          <th className="pb-3">Destino do Link</th>
+                          <th className="pb-3 text-right">Cliques</th>
+                          <th className="pb-3 pl-6">Participação (%)</th>
+                          <th className="pb-3 text-right pr-2">CTR Específico</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 font-medium">
+                        {analyticsReport.banners.map((item, index) => {
+                          const bannerMeta = currentAnalyticsProfile?.banners?.find(
+                            (b) => b.id === item.bannerId
+                          );
+
+                          return (
+                            <tr key={item.bannerId} className="hover:bg-slate-800/40 transition-colors">
+                              {/* Title & Preview */}
+                              <td className="py-3.5 pl-2 flex items-center gap-3">
+                                <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-mono">
+                                  #{index + 1}
+                                </span>
+                                {bannerMeta?.imageUrl && (
+                                  <div className="w-16 h-8 rounded-lg overflow-hidden bg-slate-950 border border-slate-700 flex-shrink-0">
+                                    <img
+                                      src={bannerMeta.imageUrl}
+                                      alt={item.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                )}
+                                <div>
+                                  <strong className="text-white block">{item.title}</strong>
+                                  <span className="text-[10px] font-mono text-slate-500">
+                                    ID: {item.bannerId}
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* Evento Meta */}
+                              <td className="py-3.5">
+                                {bannerMeta?.trackingEvent ? (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                                    {bannerMeta.trackingEvent}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px]">-</span>
+                                )}
+                              </td>
+
+                              {/* Destino */}
+                              <td className="py-3.5 max-w-[200px]">
+                                <a
+                                  href={bannerMeta?.destinationUrl || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-slate-400 hover:text-emerald-400 truncate block text-[11px] font-mono"
+                                >
+                                  {bannerMeta?.destinationUrl || 'Link interno'}
+                                </a>
+                              </td>
+
+                              {/* Total de Cliques */}
+                              <td className="py-3.5 text-right font-mono font-bold text-emerald-400 text-sm">
+                                {item.clicks}
+                              </td>
+
+                              {/* % de Participação */}
+                              <td className="py-3.5 pl-6 min-w-[150px]">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div
+                                      style={{ width: `${item.percentage}%` }}
+                                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                                    ></div>
+                                  </div>
+                                  <span className="font-mono text-[11px] text-slate-300 w-10 text-right">
+                                    {item.percentage}%
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* CTR Específico */}
+                              <td className="py-3.5 text-right pr-2 font-mono font-bold text-amber-400">
+                                {item.ctr}%
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : null}
+        </main>
+      )}
+
+      {/* ELEMENTOR CANVAS BUILDER (SPLIT SCREEN) */}
+      {view === 'editor' && (
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* LEFT PANEL: Controls, Inputs & Banner Uploads */}
           <div className="w-full lg:w-7/12 p-6 overflow-y-auto max-h-[calc(100vh-73px)] border-r border-slate-800 bg-[#0a0f1d]/50">
@@ -776,7 +1253,7 @@ export default function AdminDashboardPage() {
                       <div className="flex-1 w-full space-y-2.5">
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-mono text-emerald-400 font-bold">
-                            Banner #{index + 1}
+                            Banner #{index + 1} (ID: {banner.id})
                           </span>
                           <div className="flex items-center gap-1">
                             <button

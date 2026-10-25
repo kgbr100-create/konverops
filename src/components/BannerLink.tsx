@@ -6,6 +6,7 @@ import type { BioBanner } from '@/data/profiles';
 interface BannerLinkProps {
   banner: BioBanner;
   priority?: boolean;
+  slug?: string;
   metaPixelId?: string;
   metaAccessToken?: string;
   metaTestEventCode?: string;
@@ -25,11 +26,31 @@ declare global {
 export default function BannerLink({
   banner,
   priority = false,
+  slug,
   metaPixelId,
   metaAccessToken,
   metaTestEventCode,
 }: BannerLinkProps) {
   const handleClick = () => {
+    // 1. Registro no Analytics Interno Konverops (Cliques por Elemento)
+    if (slug) {
+      try {
+        fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'click',
+            slug,
+            bannerId: banner.id,
+            bannerTitle: banner.title,
+          }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {
+        // Silent catch
+      }
+    }
+
     if (!banner.trackingEvent || banner.trackingEvent === 'None') {
       return;
     }
@@ -52,12 +73,12 @@ export default function BannerLink({
       currency: banner.eventCurrency || 'BRL',
     };
 
-    // 1. Disparo no Navegador (Meta Pixel fbq) com eventID para deduplicação
+    // 2. Disparo no Navegador (Meta Pixel fbq) com eventID para deduplicação
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', eventName, customData, { eventID: eventId });
     }
 
-    // 2. Disparo no Servidor (Meta Conversions API - CAPI) em background
+    // 3. Disparo no Servidor (Meta Conversions API - CAPI) em background
     if (metaPixelId) {
       try {
         fetch('/api/meta-capi', {
@@ -76,7 +97,7 @@ export default function BannerLink({
         }).catch(() => {
           // Silent catch para não interromper navegação do usuário
         });
-      } catch (err) {
+      } catch {
         // Fallback silencioso
       }
     }
