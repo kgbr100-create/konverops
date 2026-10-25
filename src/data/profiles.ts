@@ -7,6 +7,9 @@ export type MetaStandardEvent =
   | 'Custom'
   | 'None';
 
+export type BannerBorderRadius = 'none' | 'sm' | 'md' | 'lg' | 'xl';
+export type BannerBorderStyle = 'none' | 'subtle' | 'glow';
+
 export interface BioBanner {
   id: string;
   title: string;
@@ -28,6 +31,8 @@ export interface ClientProfile {
   badgeBgColor?: string; // e.g. '#00b768'
   pageBgColor?: string; // e.g. '#070b14' ou '#ffffff'
   cardBgColor?: string; // e.g. '#0f172a' ou '#ffffff'
+  bannerBorderRadius?: BannerBorderRadius; // 'none' (0px), 'sm' (10px), 'md' (16px), 'lg' (20px), 'xl' (26px)
+  bannerBorderStyle?: BannerBorderStyle; // 'none', 'subtle' (borda fina elegante), 'glow' (borda esmeralda)
   metaPixelId?: string; // ID do Meta Pixel / Dataset (ex: '123456789012345')
   metaAccessToken?: string; // Token CAPI opcional
   metaTestEventCode?: string; // Código de teste da Meta (ex: 'TEST12345')
@@ -48,6 +53,8 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
     badgeBgColor: '#00b768',
     pageBgColor: '#070b14',
     cardBgColor: '#0a0f1d',
+    bannerBorderRadius: 'md',
+    bannerBorderStyle: 'subtle',
     metaPixelId: '',
     name: 'Kelvin Gonzaga',
     title: 'Fundador & Head of Sales Engineering • Konverops',

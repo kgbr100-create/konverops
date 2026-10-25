@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import type { BioBanner } from '@/data/profiles';
+import type { BioBanner, BannerBorderRadius, BannerBorderStyle } from '@/data/profiles';
 
 interface BannerLinkProps {
   banner: BioBanner;
@@ -10,6 +10,9 @@ interface BannerLinkProps {
   metaPixelId?: string;
   metaAccessToken?: string;
   metaTestEventCode?: string;
+  bannerBorderRadius?: BannerBorderRadius;
+  bannerBorderStyle?: BannerBorderStyle;
+  isLight?: boolean;
 }
 
 declare global {
@@ -30,6 +33,9 @@ export default function BannerLink({
   metaPixelId,
   metaAccessToken,
   metaTestEventCode,
+  bannerBorderRadius = 'md',
+  bannerBorderStyle = 'subtle',
+  isLight = false,
 }: BannerLinkProps) {
   const handleClick = () => {
     // Identificador persistente de visitante único no navegador
@@ -118,13 +124,47 @@ export default function BannerLink({
     }
   };
 
+  const getRadiusClass = (radius?: BannerBorderRadius) => {
+    switch (radius) {
+      case 'none':
+        return 'rounded-none';
+      case 'sm':
+        return 'rounded-lg';
+      case 'lg':
+        return 'rounded-[20px]';
+      case 'xl':
+        return 'rounded-[26px]';
+      case 'md':
+      default:
+        return 'rounded-[16px]'; // 16px - Equilíbrio refinado e moderno sem cortar cantos de texto
+    }
+  };
+
+  const getBorderClass = (style?: BannerBorderStyle, isLightBg?: boolean) => {
+    switch (style) {
+      case 'glow':
+        return 'border border-emerald-500/40 shadow-emerald-500/15';
+      case 'none':
+        return 'border-0';
+      case 'subtle':
+      default:
+        return isLightBg
+          ? 'border border-slate-900/10 shadow-sm'
+          : 'border border-white/10 shadow-md shadow-black/30';
+    }
+  };
+
+  const radiusClass = getRadiusClass(bannerBorderRadius);
+  const borderClass = getBorderClass(bannerBorderStyle, isLight);
+
   return (
     <a
       href={banner.destinationUrl}
       target={banner.target || '_blank'}
       rel="noopener noreferrer"
       onClick={handleClick}
-      className="block relative w-full rounded-[22px] overflow-hidden shadow-lg shadow-black/15 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98] group"
+      className={`block relative w-full ${radiusClass} ${borderClass} overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:border-emerald-500/40 active:scale-[0.98] group`}
+      style={{ isolation: 'isolate' }}
     >
       <Image
         src={banner.imageUrl}
@@ -133,7 +173,7 @@ export default function BannerLink({
         height={192}
         priority={priority}
         unoptimized={banner.imageUrl.startsWith('data:')}
-        className="w-full h-auto object-cover block select-none"
+        className={`w-full h-auto object-cover block select-none ${radiusClass}`}
       />
     </a>
   );

@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import type { ClientProfile, BioBanner, MetaStandardEvent } from '@/data/profiles';
+import ImageCropperModal from '@/components/ImageCropperModal';
+import type {
+  ClientProfile,
+  BioBanner,
+  MetaStandardEvent,
+  BannerBorderRadius,
+  BannerBorderStyle,
+} from '@/data/profiles';
 import type { AnalyticsReport, AnalyticsPeriod } from '@/lib/analytics-store';
 
 function isLightColor(hexColor?: string): boolean {
@@ -46,6 +53,14 @@ export default function AdminDashboardPage() {
   const [metaAccessToken, setMetaAccessToken] = useState('');
   const [metaTestEventCode, setMetaTestEventCode] = useState('');
   const [banners, setBanners] = useState<BioBanner[]>([]);
+  const [bannerBorderRadius, setBannerBorderRadius] = useState<BannerBorderRadius>('md');
+  const [bannerBorderStyle, setBannerBorderStyle] = useState<BannerBorderStyle>('subtle');
+
+  // Cropper Modal State
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState('');
+  const [cropperTargetBannerIndex, setCropperTargetBannerIndex] = useState<number | null>(null);
+  const [cropperTitle, setCropperTitle] = useState('Ajustar e Recortar Banner');
 
   const isLight = isLightColor(pageBgColor);
 
@@ -247,6 +262,8 @@ export default function AdminDashboardPage() {
     setBadgeBgColor('#00b768');
     setPageBgColor('#070b14');
     setCardBgColor('#0a0f1d');
+    setBannerBorderRadius('md');
+    setBannerBorderStyle('subtle');
     setMetaPixelId('');
     setMetaAccessToken('');
     setMetaTestEventCode('');
@@ -279,6 +296,8 @@ export default function AdminDashboardPage() {
     setBadgeBgColor(profile.badgeBgColor || '#00b768');
     setPageBgColor(profile.pageBgColor || '#070b14');
     setCardBgColor(profile.cardBgColor || '#0a0f1d');
+    setBannerBorderRadius(profile.bannerBorderRadius || 'md');
+    setBannerBorderStyle(profile.bannerBorderStyle || 'subtle');
     setMetaPixelId(profile.metaPixelId || '');
     setMetaAccessToken(profile.metaAccessToken || '');
     setMetaTestEventCode(profile.metaTestEventCode || '');
@@ -360,36 +379,41 @@ export default function AdminDashboardPage() {
     if (!file || uploadingIndex === null) return;
 
     try {
+      const targetIdx = uploadingIndex;
       const reader = new FileReader();
       reader.onload = (event) => {
         const rawDataUrl = event.target?.result as string;
-
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const targetWidth = Math.min(img.width, 680);
-          const scale = targetWidth / img.width;
-          canvas.width = targetWidth;
-          canvas.height = img.height * scale;
-
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const compressed = canvas.toDataURL('image/webp', 0.9);
-            handleUpdateBanner(uploadingIndex, 'imageUrl', compressed);
-          } else {
-            handleUpdateBanner(uploadingIndex, 'imageUrl', rawDataUrl);
-          }
-        };
-        img.src = rawDataUrl;
+        if (rawDataUrl) {
+          setCropperImageSrc(rawDataUrl);
+          setCropperTargetBannerIndex(targetIdx);
+          setCropperTitle(`Ajustar e Recortar Banner #${targetIdx + 1}`);
+          setIsCropperOpen(true);
+        }
       };
       reader.readAsDataURL(file);
     } catch (err) {
-      console.error('Erro ao processar imagem:', err);
+      console.error('Erro ao ler imagem local:', err);
       alert('Falha ao processar arquivo de imagem local.');
     } finally {
       setUploadingIndex(null);
     }
+  };
+
+  const handleOpenCropperForBanner = (index: number) => {
+    const banner = banners[index];
+    if (!banner || !banner.imageUrl) return;
+    setCropperImageSrc(banner.imageUrl);
+    setCropperTargetBannerIndex(index);
+    setCropperTitle(`Ajustar e Recortar Banner #${index + 1} (${banner.title})`);
+    setIsCropperOpen(true);
+  };
+
+  const handleCropComplete = (croppedDataUrl: string) => {
+    if (cropperTargetBannerIndex !== null) {
+      handleUpdateBanner(cropperTargetBannerIndex, 'imageUrl', croppedDataUrl);
+    }
+    setIsCropperOpen(false);
+    setCropperTargetBannerIndex(null);
   };
 
   const triggerAvatarUpload = () => {
@@ -462,6 +486,8 @@ export default function AdminDashboardPage() {
         badgeBgColor,
         pageBgColor,
         cardBgColor,
+        bannerBorderRadius,
+        bannerBorderStyle,
         metaPixelId: metaPixelId.trim(),
         metaAccessToken: metaAccessToken.trim(),
         metaTestEventCode: metaTestEventCode.trim(),
@@ -1685,6 +1711,77 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
+              {/* CONFIGURAÇÃO DE BORDAS E ACABAMENTO DOS BANNERS */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <label className="text-xs font-bold text-slate-200 block">
+                      Bordas e Acabamento dos Banners
+                    </label>
+                    <p className="text-[11px] text-slate-400">
+                      Personalize o raio de arredondamento e o estilo de contorno dos banners
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                      Arredondamento dos Cantos (Border Radius)
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'none', label: 'Reto (0px)' },
+                        { id: 'sm', label: 'Sutil (10px)' },
+                        { id: 'md', label: 'Refinado (16px)' },
+                        { id: 'lg', label: 'Moderno (20px)' },
+                        { id: 'xl', label: 'Curvado (26px)' },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setBannerBorderRadius(item.id as BannerBorderRadius)}
+                          className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all text-center ${
+                            bannerBorderRadius === item.id
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-sm'
+                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                      Estilo da Linha de Borda
+                    </label>
+                    <div className="space-y-1.5">
+                      {[
+                        { id: 'subtle', label: 'Sutil Elegante (Hairline 1px)', desc: 'Contraste suave' },
+                        { id: 'glow', label: 'Esmeralda Glow', desc: 'Borda com brilho' },
+                        { id: 'none', label: 'Sem Borda', desc: 'Apenas a imagem' },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setBannerBorderStyle(item.id as BannerBorderStyle)}
+                          className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all text-left flex items-center justify-between ${
+                            bannerBorderStyle === item.id
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 font-bold'
+                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
+                          }`}
+                        >
+                          <span>{item.label}</span>
+                          <span className="text-[10px] text-slate-400 font-normal">{item.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* RASTREAMENTO META ADS & CAPI */}
               <div className="pt-2 border-t border-slate-800/80">
                 <div className="flex items-center justify-between mb-2">
@@ -1783,13 +1880,26 @@ export default function AdminDashboardPage() {
                             </div>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => triggerImageUpload(index)}
-                          className="mt-2 w-full py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center justify-center gap-1"
-                        >
-                          <span>📁</span> Subir Imagem
-                        </button>
+                        <div className="flex items-center gap-1.5 w-full mt-2">
+                          <button
+                            type="button"
+                            onClick={() => triggerImageUpload(index)}
+                            className="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center justify-center gap-1"
+                            title="Subir nova imagem e recortar"
+                          >
+                            <span>📁</span> Subir
+                          </button>
+                          {banner.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenCropperForBanner(index)}
+                              className="py-1.5 px-2.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-xs font-bold border border-emerald-500/30 transition-colors flex items-center justify-center gap-1"
+                              title="Ajustar e Recortar Imagem Atual"
+                            >
+                              <span>✂️</span> Recortar
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex-1 w-full space-y-2.5">
@@ -2070,24 +2180,47 @@ export default function AdminDashboardPage() {
                     Adicione banners no painel ao lado para visualizar aqui
                   </div>
                 ) : (
-                  banners.map((b, i) => (
-                    <div
-                      key={b.id || i}
-                      className="block relative w-full rounded-2xl overflow-hidden shadow-md shadow-black/20 active:scale-95 transition-transform cursor-pointer group"
-                    >
-                      {b.imageUrl ? (
-                        <img
-                          src={b.imageUrl}
-                          alt={b.title}
-                          className="w-full h-auto object-cover block select-none"
-                        />
-                      ) : (
-                        <div className="h-20 bg-slate-800 flex items-center justify-center text-xs text-slate-400">
-                          {b.title}
-                        </div>
-                      )}
-                    </div>
-                  ))
+                  banners.map((b, i) => {
+                    const previewRadiusClass =
+                      bannerBorderRadius === 'none'
+                        ? 'rounded-none'
+                        : bannerBorderRadius === 'sm'
+                        ? 'rounded-lg'
+                        : bannerBorderRadius === 'lg'
+                        ? 'rounded-[20px]'
+                        : bannerBorderRadius === 'xl'
+                        ? 'rounded-[26px]'
+                        : 'rounded-[16px]';
+
+                    const previewBorderClass =
+                      bannerBorderStyle === 'glow'
+                        ? 'border border-emerald-500/40 shadow-emerald-500/15'
+                        : bannerBorderStyle === 'none'
+                        ? 'border-0'
+                        : isLight
+                        ? 'border border-slate-900/10 shadow-sm'
+                        : 'border border-white/10 shadow-md shadow-black/30';
+
+                    return (
+                      <div
+                        key={b.id || i}
+                        className={`block relative w-full ${previewRadiusClass} ${previewBorderClass} overflow-hidden shadow-md shadow-black/20 active:scale-95 transition-all cursor-pointer group`}
+                        style={{ isolation: 'isolate' }}
+                      >
+                        {b.imageUrl ? (
+                          <img
+                            src={b.imageUrl}
+                            alt={b.title}
+                            className={`w-full h-auto object-cover block select-none ${previewRadiusClass}`}
+                          />
+                        ) : (
+                          <div className="h-20 bg-slate-800 flex items-center justify-center text-xs text-slate-400">
+                            {b.title}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
 
@@ -2203,6 +2336,18 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
+      {/* BANNER IMAGE CROPPER MODAL */}
+      <ImageCropperModal
+        isOpen={isCropperOpen}
+        imageSrc={cropperImageSrc}
+        title={cropperTitle}
+        defaultAspectRatio={10 / 3}
+        onClose={() => {
+          setIsCropperOpen(false);
+          setCropperTargetBannerIndex(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

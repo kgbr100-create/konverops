@@ -181,6 +181,9 @@ export default async function BioProfilePage({ params }: PageProps) {
                   metaPixelId={profile.metaPixelId}
                   metaAccessToken={profile.metaAccessToken}
                   metaTestEventCode={profile.metaTestEventCode}
+                  bannerBorderRadius={profile.bannerBorderRadius || 'md'}
+                  bannerBorderStyle={profile.bannerBorderStyle || 'subtle'}
+                  isLight={isLight}
                 />
               ))
             ) : (
