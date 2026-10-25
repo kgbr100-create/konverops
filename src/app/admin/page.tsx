@@ -5,6 +5,24 @@ import Image from 'next/image';
 import type { ClientProfile, BioBanner, MetaStandardEvent } from '@/data/profiles';
 import type { AnalyticsReport, AnalyticsPeriod } from '@/lib/analytics-store';
 
+function isLightColor(hexColor?: string): boolean {
+  if (!hexColor) return false;
+  const hex = hexColor.replace('#', '');
+  if (hex.length === 3) {
+    const r = parseInt(hex[0] + hex[0], 16);
+    const g = parseInt(hex[1] + hex[1], 16);
+    const b = parseInt(hex[2] + hex[2], 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 155;
+  }
+  if (hex.length === 6) {
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 155;
+  }
+  return false;
+}
+
 export default function AdminDashboardPage() {
   const [profiles, setProfiles] = useState<ClientProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +32,11 @@ export default function AdminDashboardPage() {
 
   // Form State (Editor)
   const [slug, setSlug] = useState('');
+  const [showHero, setShowHero] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [showNicheBadge, setShowNicheBadge] = useState(false);
   const [nicheBadge, setNicheBadge] = useState('Engenharia de Vendas');
   const [badgeBgColor, setBadgeBgColor] = useState('#00b768');
@@ -22,9 +45,9 @@ export default function AdminDashboardPage() {
   const [metaPixelId, setMetaPixelId] = useState('');
   const [metaAccessToken, setMetaAccessToken] = useState('');
   const [metaTestEventCode, setMetaTestEventCode] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [banners, setBanners] = useState<BioBanner[]>([]);
+
+  const isLight = isLightColor(pageBgColor);
 
   // Analytics State
   const [selectedAnalyticsSlug, setSelectedAnalyticsSlug] = useState<string>('kelvin');
@@ -115,6 +138,8 @@ export default function AdminDashboardPage() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Load profiles on mount
   useEffect(() => {
@@ -212,6 +237,11 @@ export default function AdminDashboardPage() {
 
   const handleCreateNew = () => {
     setSlug('');
+    setShowHero(true);
+    setAvatarUrl('');
+    setName('');
+    setTitle('');
+    setDescription('');
     setShowNicheBadge(false);
     setNicheBadge('Engenharia de Vendas');
     setBadgeBgColor('#00b768');
@@ -220,8 +250,6 @@ export default function AdminDashboardPage() {
     setMetaPixelId('');
     setMetaAccessToken('');
     setMetaTestEventCode('');
-    setName('');
-    setDescription('');
     setBanners([
       {
         id: `banner-${Date.now()}`,
@@ -241,6 +269,11 @@ export default function AdminDashboardPage() {
 
   const handleEditProfile = (profile: ClientProfile) => {
     setSlug(profile.slug);
+    setShowHero(profile.showHero ?? true);
+    setAvatarUrl(profile.avatarUrl || '');
+    setName(profile.name || '');
+    setTitle(profile.title || '');
+    setDescription(profile.description || '');
     setShowNicheBadge(profile.showNicheBadge ?? false);
     setNicheBadge(profile.nicheBadge || 'Geral');
     setBadgeBgColor(profile.badgeBgColor || '#00b768');
@@ -249,8 +282,6 @@ export default function AdminDashboardPage() {
     setMetaPixelId(profile.metaPixelId || '');
     setMetaAccessToken(profile.metaAccessToken || '');
     setMetaTestEventCode(profile.metaTestEventCode || '');
-    setName(profile.name || '');
-    setDescription(profile.description || '');
     setBanners(profile.banners || []);
     setSaveSuccessUrl(null);
     setView('editor');
@@ -361,6 +392,56 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const triggerAvatarUpload = () => {
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = '';
+      avatarInputRef.current.click();
+    }
+  };
+
+  const onAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const rawDataUrl = event.target?.result as string;
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const minDim = Math.min(img.width, img.height);
+          const startX = (img.width - minDim) / 2;
+          const startY = (img.height - minDim) / 2;
+          const targetSize = Math.min(minDim, 400); // 400x400 max quadrado
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, targetSize, targetSize);
+            const compressed = canvas.toDataURL('image/webp', 0.9);
+            setAvatarUrl(compressed);
+          } else {
+            setAvatarUrl(rawDataUrl);
+          }
+          setIsUploadingAvatar(false);
+        };
+        img.onerror = () => {
+          setIsUploadingAvatar(false);
+          alert('Erro ao carregar a imagem selecionada.');
+        };
+        img.src = rawDataUrl;
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Erro ao processar avatar:', err);
+      setIsUploadingAvatar(false);
+      alert('Falha ao processar arquivo de imagem do avatar.');
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!slug.trim()) {
       alert('Por favor, informe a URL do cliente (slug). Ex: kelvin ou dra-mariana');
@@ -371,6 +452,11 @@ export default function AdminDashboardPage() {
       setIsSaving(true);
       const profileData: ClientProfile = {
         slug: slug.trim().toLowerCase(),
+        showHero,
+        avatarUrl: avatarUrl.trim(),
+        name: name.trim() || slug.trim(),
+        title: title.trim() || `${name.trim() || slug.trim()} • Konverops`,
+        description: description.trim() || `Bio Link Oficial de ${name.trim() || slug.trim()}`,
         showNicheBadge,
         nicheBadge: nicheBadge.trim(),
         badgeBgColor,
@@ -379,9 +465,6 @@ export default function AdminDashboardPage() {
         metaPixelId: metaPixelId.trim(),
         metaAccessToken: metaAccessToken.trim(),
         metaTestEventCode: metaTestEventCode.trim(),
-        name: name.trim() || slug.trim(),
-        title: `${name.trim() || slug.trim()} • Konverops`,
-        description: description.trim() || `Bio Link Oficial de ${name.trim() || slug.trim()}`,
         footerUrl: `konverops.tech/${slug.trim().toLowerCase()}`,
         banners,
       };
@@ -416,6 +499,15 @@ export default function AdminDashboardPage() {
         ref={fileInputRef}
         onChange={onFileChange}
         accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+      />
+
+      {/* Hidden File Input for Avatar Uploads */}
+      <input
+        type="file"
+        ref={avatarInputRef}
+        onChange={onAvatarFileChange}
+        accept="image/png,image/jpeg,image/webp,image/avif"
         className="hidden"
       />
 
@@ -567,10 +659,36 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
 
-                      <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">
-                        {p.name || p.slug}
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                      <div className="flex items-center gap-3">
+                        {p.avatarUrl ? (
+                          <div className="w-11 h-11 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 flex-shrink-0 shadow-md">
+                            <img
+                              src={p.avatarUrl}
+                              alt={p.name || p.slug}
+                              className="w-full h-full object-cover rounded-full bg-slate-900"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-11 h-11 rounded-full bg-slate-800 text-emerald-400 font-black flex items-center justify-center text-xs flex-shrink-0 border border-slate-700">
+                            {(p.name || p.slug).substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="overflow-hidden">
+                          <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5 truncate">
+                            <span>{p.name || p.slug}</span>
+                            <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-slate-950 text-[9px] font-black inline-flex items-center justify-center flex-shrink-0">
+                              ✓
+                            </span>
+                          </h3>
+                          {p.title && (
+                            <p className="text-[11px] font-semibold text-emerald-400/90 truncate">
+                              {p.title}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-400 mt-2 line-clamp-2">
                         {p.description || 'Página de bio personalizada.'}
                       </p>
 
@@ -1259,7 +1377,7 @@ export default function AdminDashboardPage() {
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
                   1
                 </span>
-                Identificação e Aparência da Página
+                Identificação & Seção Hero (Apresentação do Cliente)
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1283,7 +1401,7 @@ export default function AdminDashboardPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Nome do Cliente / Empresa
+                    Nome do Cliente / Especialista
                   </label>
                   <input
                     type="text"
@@ -1293,6 +1411,114 @@ export default function AdminDashboardPage() {
                     className="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600"
                   />
                 </div>
+              </div>
+
+              {/* TOGGLE HERO SECTION */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-slate-200 block">
+                      Exibir Seção Hero no Topo (Foto + Bio + CTA)
+                    </label>
+                    <p className="text-[11px] text-slate-400">
+                      {showHero
+                        ? 'Ativa: Exibe foto/logo com anel gradiente, nome verificado, especialidade e texto de chamada para os banners.'
+                        : 'Desativada: Oculta o topo e inicia a página diretamente nos banners.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHero(!showHero)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      showHero ? 'bg-emerald-500' : 'bg-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        showHero ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {showHero && (
+                  <div className="mt-3 p-4 bg-slate-950/70 rounded-xl border border-slate-800 space-y-3.5 animate-fadeIn">
+                    {/* Upload de Avatar / Foto de Perfil */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="relative group flex-shrink-0">
+                        {avatarUrl ? (
+                          <div className="w-16 h-16 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 shadow-md">
+                            <img
+                              src={avatarUrl}
+                              alt="Avatar"
+                              className="w-full h-full object-cover rounded-full bg-slate-900"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center text-slate-500 text-xs text-center bg-slate-900">
+                            Sem Foto
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={triggerAvatarUpload}
+                            disabled={isUploadingAvatar}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1.5"
+                          >
+                            <span>📷</span> {isUploadingAvatar ? 'Processando...' : avatarUrl ? 'Trocar Foto / Logo' : 'Subir Foto de Perfil / Logo'}
+                          </button>
+                          {avatarUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setAvatarUrl('')}
+                              className="px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold transition-colors"
+                            >
+                              Remover
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Corte 1:1 quadrado automático em alta resolução com compressão WebP de carregamento ultra rápido.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Cargo / Especialidade */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                        Cargo / Especialidade / Nicho Principal
+                      </label>
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Ex: Fundador & Head of Sales Engineering • Konverops"
+                        className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600"
+                      />
+                    </div>
+
+                    {/* Descrição & CTA */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                        Texto de Apresentação & Chamada para os Banners (CTA)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Ex: Engenharia de Vendas B2B & Infraestrutura Web de Ultra Performance. Selecione uma das opções abaixo para falar diretamente comigo no WhatsApp ou agendar um diagnóstico."
+                        className="w-full rounded-xl bg-slate-900 border border-slate-700 p-3 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600 leading-relaxed resize-none"
+                      />
+                      <span className="text-[10px] text-slate-500 mt-1 block">
+                        Dica: Descreva quem é a empresa/expert e oriente o visitante a clicar nos banners abaixo.
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* TOGGLE PÍLULA DE NICHO */}
@@ -1740,9 +1966,9 @@ export default function AdminDashboardPage() {
           {/* RIGHT PANEL: LIVE CANVAS SMARTPHONE PREVIEW */}
           <div
             style={{ backgroundColor: pageBgColor }}
-            className="w-full lg:w-5/12 p-6 flex flex-col items-center justify-center border-l border-slate-800/80 transition-colors duration-300"
+            className="w-full lg:w-5/12 p-6 flex flex-col items-center justify-start border-l border-slate-800/80 transition-colors duration-300 overflow-y-auto max-h-[calc(100vh-73px)]"
           >
-            <div className="mb-3 text-center">
+            <div className="mb-4 text-center">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center justify-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 Canvas Live Preview (Em Tempo Real)
@@ -1754,30 +1980,93 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
+            {/* SMARTPHONE DEVICE CONTAINER */}
             <div
-              style={{ backgroundColor: cardBgColor }}
-              className="relative w-[340px] rounded-[38px] shadow-2xl shadow-black/40 border-[6px] border-slate-900 overflow-hidden pb-6 transition-colors duration-300"
+              style={{ backgroundColor: pageBgColor }}
+              className="relative w-[340px] max-w-full rounded-[42px] shadow-2xl shadow-black/70 border-[8px] border-slate-900 overflow-hidden pb-6 transition-colors duration-300 flex flex-col items-center"
             >
-              <div className="pt-3 px-5 flex justify-between items-center text-[10px] font-semibold text-slate-400">
+              {/* STATUS BAR */}
+              <div
+                className={`w-full pt-3 px-6 flex justify-between items-center text-[10px] font-semibold ${
+                  isLight ? 'text-slate-700' : 'text-slate-400'
+                }`}
+              >
                 <span>9:41</span>
                 <div className="w-16 h-3.5 bg-slate-900 rounded-full"></div>
                 <span>5G</span>
               </div>
 
-              {showNicheBadge && (
-                <div className="flex justify-center mt-3 mb-3 animate-fadeIn">
-                  <span
-                    style={{ backgroundColor: badgeBgColor }}
-                    className="px-4 py-1.5 rounded-full text-white font-black text-xs tracking-wider uppercase shadow-md transition-colors"
+              {/* SEÇÃO HERO DO CLIENTE NO SMARTPHONE */}
+              {showHero && (
+                <div className="w-full px-4 pt-4 pb-2 flex flex-col items-center text-center animate-fadeIn">
+                  {/* Avatar / Foto com Anel Gradiente */}
+                  {avatarUrl && (
+                    <div className="relative mb-2.5">
+                      <div className="w-20 h-20 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 shadow-md shadow-emerald-500/20">
+                        <img
+                          src={avatarUrl}
+                          alt={name || slug}
+                          className="w-full h-full object-cover rounded-full bg-slate-900 select-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pílula de Nicho (se ativada) */}
+                  {showNicheBadge && nicheBadge && (
+                    <div className="mb-2">
+                      <span
+                        style={{ backgroundColor: badgeBgColor || '#00b768' }}
+                        className="px-3.5 py-0.5 rounded-full text-white font-black text-[10px] tracking-wider uppercase shadow-sm"
+                      >
+                        {nicheBadge}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Nome do Cliente com Selo Verificado */}
+                  <h2
+                    className={`text-base font-black ${
+                      isLight ? 'text-slate-900' : 'text-white'
+                    } tracking-tight flex items-center justify-center gap-1`}
                   >
-                    {nicheBadge || 'Nicho'}
-                  </span>
+                    <span>{name || slug || 'Nome do Cliente'}</span>
+                    <span
+                      className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-500 text-slate-950 text-[8px] font-black shadow-sm"
+                      title="Verificado"
+                    >
+                      ✓
+                    </span>
+                  </h2>
+
+                  {/* Cargo / Especialidade */}
+                  {title && (
+                    <p
+                      className={`text-[11px] font-bold ${
+                        isLight ? 'text-emerald-700' : 'text-emerald-400'
+                      } mt-0.5 tracking-tight`}
+                    >
+                      {title}
+                    </p>
+                  )}
+
+                  {/* Descrição & CTA */}
+                  {description && (
+                    <p
+                      className={`text-[11px] ${
+                        isLight ? 'text-slate-600' : 'text-slate-300'
+                      } max-w-[280px] mt-1.5 leading-snug font-normal`}
+                    >
+                      {description}
+                    </p>
+                  )}
                 </div>
               )}
 
-              <div className={`px-3.5 space-y-2.5 ${!showNicheBadge ? 'mt-4' : ''}`}>
+              {/* BANNERS FEED COM APROVEITAMENTO TOTAL DE LARGURA (SEM CONTAINER ARTIFICIAL RESTRITIVO) */}
+              <div className={`w-full px-3.5 space-y-2.5 ${!showHero ? 'mt-4' : 'mt-2'}`}>
                 {banners.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-2xl">
+                  <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-700/60 rounded-2xl mx-1">
                     Adicione banners no painel ao lado para visualizar aqui
                   </div>
                 ) : (
@@ -1802,8 +2091,13 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
+              {/* RODAPÉ DO SMARTPHONE */}
               <div className="mt-4 text-center">
-                <span className="text-[11px] text-slate-400 font-bold opacity-80">
+                <span
+                  className={`text-[10px] ${
+                    isLight ? 'text-slate-500' : 'text-slate-500'
+                  } font-bold opacity-80`}
+                >
                   konverops.tech/{slug || 'cliente'}
                 </span>
               </div>

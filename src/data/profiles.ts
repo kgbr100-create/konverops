@@ -22,6 +22,7 @@ export interface BioBanner {
 
 export interface ClientProfile {
   slug: string;
+  showHero?: boolean;
   showNicheBadge?: boolean;
   nicheBadge?: string;
   badgeBgColor?: string; // e.g. '#00b768'
@@ -41,6 +42,7 @@ export interface ClientProfile {
 export const CLIENT_PROFILES: Record<string, ClientProfile> = {
   kelvin: {
     slug: 'kelvin',
+    showHero: true,
     showNicheBadge: false,
     nicheBadge: 'Engenharia de Vendas',
     badgeBgColor: '#00b768',
@@ -49,7 +51,7 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
     metaPixelId: '',
     name: 'Kelvin Gonzaga',
     title: 'Fundador & Head of Sales Engineering • Konverops',
-    description: 'Infraestrutura Web de Ultra Performance (Next.js) & Escala de Mídia com Rastreamento Server-Side First-Party (Meta CAPI).',
+    description: 'Engenharia de Vendas B2B & Infraestrutura Web de Ultra Performance. Selecione uma das opções abaixo para falar diretamente comigo no WhatsApp ou agendar um diagnóstico.',
     avatarUrl: '/banners/assets/founder_portrait.jpg',
     footerUrl: 'konverops.tech/kelvin',
     banners: [
