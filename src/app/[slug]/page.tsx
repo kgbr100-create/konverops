@@ -77,9 +77,11 @@ export default async function BioProfilePage({ params }: PageProps) {
   const pageBg = profile.pageBgColor || '#070b14';
   const isLight = isLightColor(pageBg);
 
-  const nameColor = isLight ? 'text-slate-900' : 'text-white';
-  const roleColor = isLight ? 'text-emerald-700' : 'text-emerald-400';
-  const descColor = isLight ? 'text-slate-600' : 'text-slate-300';
+  const nameColor = profile.nameColor || (isLight ? '#0f172a' : '#ffffff');
+  const roleColor = profile.titleColor || (isLight ? '#047857' : '#34d399');
+  const descColor = profile.descriptionColor || (isLight ? '#475569' : '#cbd5e1');
+  const badgeBg = profile.badgeBgColor || '#00b768';
+  const badgeTextColor = profile.badgeTextColor || '#ffffff';
   const footerColor = isLight
     ? 'text-slate-500 hover:text-slate-800'
     : 'text-slate-500 hover:text-slate-300';
@@ -157,8 +159,8 @@ export default async function BioProfilePage({ params }: PageProps) {
               {profile.showNicheBadge && profile.nicheBadge && (
                 <div className="mb-2">
                   <span
-                    style={{ backgroundColor: profile.badgeBgColor || '#00b768' }}
-                    className="px-4 py-1 rounded-full text-white font-black text-[11px] tracking-wider uppercase shadow-md shadow-emerald-500/20"
+                    style={{ backgroundColor: badgeBg, color: badgeTextColor }}
+                    className="px-4 py-1 rounded-full font-black text-[11px] tracking-wider uppercase shadow-md shadow-emerald-500/20"
                   >
                     {profile.nicheBadge}
                   </span>
@@ -166,7 +168,10 @@ export default async function BioProfilePage({ params }: PageProps) {
               )}
 
               {/* Nome do Cliente com Selo de Verificado */}
-              <h1 className={`text-xl sm:text-2xl font-black ${nameColor} tracking-tight flex items-center justify-center gap-1.5`}>
+              <h1
+                style={{ color: nameColor }}
+                className="text-xl sm:text-2xl font-black tracking-tight flex items-center justify-center gap-1.5"
+              >
                 <span>{profile.name || profile.slug}</span>
                 <span
                   className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black shadow-sm"
@@ -178,14 +183,20 @@ export default async function BioProfilePage({ params }: PageProps) {
 
               {/* Cargo / Título Profissional */}
               {profile.title && (
-                <p className={`text-xs sm:text-sm font-bold ${roleColor} mt-1 tracking-tight whitespace-pre-line break-words`}>
+                <p
+                  style={{ color: roleColor }}
+                  className="text-xs sm:text-sm font-bold mt-1 tracking-tight whitespace-pre-line break-words"
+                >
                   {profile.title}
                 </p>
               )}
 
               {/* Bio & Chamada para Ação nos Banners */}
               {profile.description && (
-                <p className={`text-xs sm:text-sm ${descColor} max-w-sm mt-2.5 leading-relaxed font-normal whitespace-pre-line break-words`}>
+                <p
+                  style={{ color: descColor }}
+                  className="text-xs sm:text-sm max-w-sm mt-2.5 leading-relaxed font-normal whitespace-pre-line break-words"
+                >
                   {profile.description}
                 </p>
               )}

@@ -31,6 +31,10 @@ export interface ClientProfile {
   showNicheBadge?: boolean;
   nicheBadge?: string;
   badgeBgColor?: string; // e.g. '#00b768'
+  badgeTextColor?: string; // e.g. '#ffffff'
+  nameColor?: string; // e.g. '#ffffff'
+  titleColor?: string; // e.g. '#34d399'
+  descriptionColor?: string; // e.g. '#cbd5e1'
   bgType?: PageBgType; // 'color' ou 'image'
   bgImageUrl?: string; // Imagem de fundo personalizada
   bgOpacity?: number; // 0.05 a 1.0 (opacidade da imagem de fundo)
@@ -59,6 +63,10 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
     showNicheBadge: false,
     nicheBadge: 'Engenharia de Vendas',
     badgeBgColor: '#00b768',
+    badgeTextColor: '#ffffff',
+    nameColor: '#ffffff',
+    titleColor: '#34d399',
+    descriptionColor: '#cbd5e1',
     bgType: 'color',
     bgImageUrl: '',
     bgOpacity: 0.45,

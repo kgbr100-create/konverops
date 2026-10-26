@@ -49,6 +49,10 @@ export default function AdminDashboardPage() {
   const [showNicheBadge, setShowNicheBadge] = useState(false);
   const [nicheBadge, setNicheBadge] = useState('Engenharia de Vendas');
   const [badgeBgColor, setBadgeBgColor] = useState('#00b768');
+  const [badgeTextColor, setBadgeTextColor] = useState('#ffffff');
+  const [nameColor, setNameColor] = useState('#ffffff');
+  const [titleColor, setTitleColor] = useState('#34d399');
+  const [descriptionColor, setDescriptionColor] = useState('#cbd5e1');
   const [pageBgColor, setPageBgColor] = useState('#070b14');
   const [cardBgColor, setCardBgColor] = useState('#0a0f1d');
   const [metaPixelId, setMetaPixelId] = useState('');
@@ -272,6 +276,10 @@ export default function AdminDashboardPage() {
     setShowNicheBadge(false);
     setNicheBadge('Engenharia de Vendas');
     setBadgeBgColor('#00b768');
+    setBadgeTextColor('#ffffff');
+    setNameColor('#ffffff');
+    setTitleColor('#34d399');
+    setDescriptionColor('#cbd5e1');
     setPageBgColor('#070b14');
     setCardBgColor('#0a0f1d');
     setBannerBorderRadius('md');
@@ -312,6 +320,11 @@ export default function AdminDashboardPage() {
     setShowNicheBadge(profile.showNicheBadge ?? false);
     setNicheBadge(profile.nicheBadge || 'Geral');
     setBadgeBgColor(profile.badgeBgColor || '#00b768');
+    setBadgeTextColor(profile.badgeTextColor || '#ffffff');
+    const isProfileLight = isLightColor(profile.pageBgColor);
+    setNameColor(profile.nameColor || (isProfileLight ? '#0f172a' : '#ffffff'));
+    setTitleColor(profile.titleColor || (isProfileLight ? '#047857' : '#34d399'));
+    setDescriptionColor(profile.descriptionColor || (isProfileLight ? '#475569' : '#cbd5e1'));
     setPageBgColor(profile.pageBgColor || '#070b14');
     setCardBgColor(profile.cardBgColor || '#0a0f1d');
     setBannerBorderRadius(profile.bannerBorderRadius || 'md');
@@ -552,6 +565,10 @@ export default function AdminDashboardPage() {
         showNicheBadge,
         nicheBadge: nicheBadge.trim(),
         badgeBgColor,
+        badgeTextColor,
+        nameColor,
+        titleColor,
+        descriptionColor,
         pageBgColor,
         cardBgColor,
         bannerBorderRadius,
@@ -1626,6 +1643,150 @@ export default function AdminDashboardPage() {
                         Dica: Pressione Enter para criar quebras de linha ou parágrafos. O texto na página final respeitará a formatação exata.
                       </span>
                     </div>
+
+                    {/* PALETA DE CORES DA TIPOGRAFIA (HERO) */}
+                    <div className="pt-3 border-t border-slate-800/80">
+                      <div className="mb-2.5">
+                        <label className="text-xs font-bold text-slate-200 block">
+                          Tonalidade & Cores dos Textos (Hero)
+                        </label>
+                        <p className="text-[11px] text-slate-400">
+                          Personalize individualmente a cor do nome, cargo e texto de apresentação
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {/* 1. Cor do Nome */}
+                        <div className="p-2.5 bg-slate-900/70 rounded-xl border border-slate-800">
+                          <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Nome do Cliente / Expert
+                          </label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <input
+                              type="color"
+                              value={nameColor}
+                              onChange={(e) => setNameColor(e.target.value)}
+                              className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer"
+                            />
+                            <input
+                              type="text"
+                              value={nameColor}
+                              onChange={(e) => setNameColor(e.target.value)}
+                              className="w-20 rounded-lg bg-slate-950 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {[
+                              { label: 'Branco', color: '#ffffff' },
+                              { label: 'Obsidian', color: '#0f172a' },
+                              { label: 'Esmeralda', color: '#10b981' },
+                              { label: 'Ciano', color: '#38bdf8' },
+                              { label: 'Âmbar', color: '#f59e0b' },
+                            ].map((preset) => (
+                              <button
+                                key={preset.color}
+                                type="button"
+                                onClick={() => setNameColor(preset.color)}
+                                className={`w-5 h-5 rounded-full border transition-transform ${
+                                  nameColor.toLowerCase() === preset.color.toLowerCase()
+                                    ? 'border-white scale-110 shadow-sm'
+                                    : 'border-slate-700/80 hover:scale-105'
+                                }`}
+                                style={{ backgroundColor: preset.color }}
+                                title={preset.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 2. Cor do Cargo / Especialidade */}
+                        <div className="p-2.5 bg-slate-900/70 rounded-xl border border-slate-800">
+                          <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Cargo / Especialidade
+                          </label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <input
+                              type="color"
+                              value={titleColor}
+                              onChange={(e) => setTitleColor(e.target.value)}
+                              className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer"
+                            />
+                            <input
+                              type="text"
+                              value={titleColor}
+                              onChange={(e) => setTitleColor(e.target.value)}
+                              className="w-20 rounded-lg bg-slate-950 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {[
+                              { label: 'Menta', color: '#34d399' },
+                              { label: 'Azul Tech', color: '#38bdf8' },
+                              { label: 'Lavanda', color: '#a78bfa' },
+                              { label: 'Dourado', color: '#fbbf24' },
+                              { label: 'Branco', color: '#ffffff' },
+                              { label: 'Slate', color: '#94a3b8' },
+                            ].map((preset) => (
+                              <button
+                                key={preset.color}
+                                type="button"
+                                onClick={() => setTitleColor(preset.color)}
+                                className={`w-5 h-5 rounded-full border transition-transform ${
+                                  titleColor.toLowerCase() === preset.color.toLowerCase()
+                                    ? 'border-white scale-110 shadow-sm'
+                                    : 'border-slate-700/80 hover:scale-105'
+                                }`}
+                                style={{ backgroundColor: preset.color }}
+                                title={preset.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 3. Cor do Texto de Apresentação / CTA */}
+                        <div className="p-2.5 bg-slate-900/70 rounded-xl border border-slate-800">
+                          <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Apresentação & CTA
+                          </label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <input
+                              type="color"
+                              value={descriptionColor}
+                              onChange={(e) => setDescriptionColor(e.target.value)}
+                              className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer"
+                            />
+                            <input
+                              type="text"
+                              value={descriptionColor}
+                              onChange={(e) => setDescriptionColor(e.target.value)}
+                              className="w-20 rounded-lg bg-slate-950 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {[
+                              { label: 'Cinza Suave', color: '#cbd5e1' },
+                              { label: 'Slate Neutro', color: '#94a3b8' },
+                              { label: 'Branco Puro', color: '#ffffff' },
+                              { label: 'Carvão', color: '#334155' },
+                              { label: 'Ouro Suave', color: '#fef08a' },
+                            ].map((preset) => (
+                              <button
+                                key={preset.color}
+                                type="button"
+                                onClick={() => setDescriptionColor(preset.color)}
+                                className={`w-5 h-5 rounded-full border transition-transform ${
+                                  descriptionColor.toLowerCase() === preset.color.toLowerCase()
+                                    ? 'border-white scale-110 shadow-sm'
+                                    : 'border-slate-700/80 hover:scale-105'
+                                }`}
+                                style={{ backgroundColor: preset.color }}
+                                title={preset.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1659,7 +1820,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {showNicheBadge && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 p-3 bg-slate-950/60 rounded-xl border border-slate-800 animate-fadeIn">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mt-3 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 animate-fadeIn">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-400 mb-1">
                         Texto da Pílula de Nicho
@@ -1674,28 +1835,66 @@ export default function AdminDashboardPage() {
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                        Cor da Pílula
+                        Fundo da Pílula
                       </label>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-1.5">
                         <input
                           type="color"
                           value={badgeBgColor}
                           onChange={(e) => setBadgeBgColor(e.target.value)}
-                          className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
+                          className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer"
                         />
-                        <div className="flex items-center gap-1.5">
-                          {['#00b768', '#0748b3', '#8b5cf6', '#d97706', '#dc2626'].map((color) => (
-                            <button
-                              key={color}
-                              type="button"
-                              onClick={() => setBadgeBgColor(color)}
-                              style={{ backgroundColor: color }}
-                              className={`w-5 h-5 rounded-full border-2 transition-transform ${
-                                badgeBgColor === color ? 'border-white scale-110' : 'border-transparent'
-                              }`}
-                            />
-                          ))}
-                        </div>
+                        <input
+                          type="text"
+                          value={badgeBgColor}
+                          onChange={(e) => setBadgeBgColor(e.target.value)}
+                          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {['#00b768', '#0748b3', '#8b5cf6', '#d97706', '#dc2626'].map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setBadgeBgColor(color)}
+                            style={{ backgroundColor: color }}
+                            className={`w-4 h-4 rounded-full border-2 transition-transform ${
+                              badgeBgColor === color ? 'border-white scale-110' : 'border-transparent'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                        Cor do Texto do Nicho
+                      </label>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <input
+                          type="color"
+                          value={badgeTextColor}
+                          onChange={(e) => setBadgeTextColor(e.target.value)}
+                          className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={badgeTextColor}
+                          onChange={(e) => setBadgeTextColor(e.target.value)}
+                          className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {['#ffffff', '#0f172a', '#042f2e', '#fef08a'].map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setBadgeTextColor(color)}
+                            style={{ backgroundColor: color }}
+                            className={`w-4 h-4 rounded-full border-2 transition-transform ${
+                              badgeTextColor === color ? 'border-emerald-400 scale-110' : 'border-transparent'
+                            }`}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -1954,39 +2153,56 @@ export default function AdminDashboardPage() {
                     </div>
 
                     {/* Paleta Base de Contraste Subjacente */}
-                    <div className="pt-2 border-t border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <span className="text-[11px] font-bold text-slate-300 block">
+                        <span className="text-[11px] font-bold text-slate-200 block">
                           Cor Base de Leitura (Overlay de Contraste)
                         </span>
-                        <span className="text-[10px] text-slate-500">
-                          Garante que o texto continue legível caso a imagem seja muito clara
+                        <span className="text-[10px] text-slate-400">
+                          Define a tonalidade do fundo e do filtro de contraste para máxima legibilidade
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {[
-                          { name: 'Obsidian', color: '#070b14' },
-                          { name: 'Slate', color: '#0f172a' },
-                          { name: 'Branco', color: '#ffffff' },
-                          { name: 'Esmeralda', color: '#052e16' },
-                        ].map((item) => (
-                          <button
-                            key={item.color}
-                            type="button"
-                            onClick={() => setPageBgColor(item.color)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-colors flex items-center gap-1 bg-slate-900 ${
-                              pageBgColor === item.color
-                                ? 'border-emerald-500 text-emerald-300'
-                                : 'border-slate-700 text-slate-300 hover:border-slate-500'
-                            }`}
-                          >
-                            <span
-                              className="w-2.5 h-2.5 rounded-full border border-black/20"
-                              style={{ backgroundColor: item.color }}
-                            />
-                            {item.name}
-                          </button>
-                        ))}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="color"
+                            value={pageBgColor}
+                            onChange={(e) => setPageBgColor(e.target.value)}
+                            className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={pageBgColor}
+                            onChange={(e) => setPageBgColor(e.target.value)}
+                            className="w-20 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {[
+                            { name: 'Obsidian', color: '#070b14' },
+                            { name: 'Slate', color: '#0f172a' },
+                            { name: 'Branco', color: '#ffffff' },
+                            { name: 'Esmeralda', color: '#052e16' },
+                            { name: 'Carvão', color: '#18181b' },
+                          ].map((item) => (
+                            <button
+                              key={item.color}
+                              type="button"
+                              onClick={() => setPageBgColor(item.color)}
+                              className={`px-2 py-1 rounded text-[10px] font-medium border transition-colors flex items-center gap-1 bg-slate-900 ${
+                                pageBgColor === item.color
+                                  ? 'border-emerald-500 text-emerald-300 shadow-sm'
+                                  : 'border-slate-700 text-slate-300 hover:border-slate-500'
+                              }`}
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/20"
+                                style={{ backgroundColor: item.color }}
+                              />
+                              {item.name}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2523,8 +2739,8 @@ export default function AdminDashboardPage() {
                   {showNicheBadge && nicheBadge && (
                     <div className="mb-2">
                       <span
-                        style={{ backgroundColor: badgeBgColor || '#00b768' }}
-                        className="px-3.5 py-0.5 rounded-full text-white font-black text-[10px] tracking-wider uppercase shadow-sm"
+                        style={{ backgroundColor: badgeBgColor || '#00b768', color: badgeTextColor || '#ffffff' }}
+                        className="px-3.5 py-0.5 rounded-full font-black text-[10px] tracking-wider uppercase shadow-sm"
                       >
                         {nicheBadge}
                       </span>
@@ -2533,9 +2749,8 @@ export default function AdminDashboardPage() {
 
                   {/* Nome do Cliente com Selo Verificado */}
                   <h2
-                    className={`text-base font-black ${
-                      isLight ? 'text-slate-900' : 'text-white'
-                    } tracking-tight flex items-center justify-center gap-1`}
+                    style={{ color: nameColor || (isLight ? '#0f172a' : '#ffffff') }}
+                    className="text-base font-black tracking-tight flex items-center justify-center gap-1"
                   >
                     <span>{name || slug || 'Nome do Cliente'}</span>
                     <span
@@ -2549,9 +2764,8 @@ export default function AdminDashboardPage() {
                   {/* Cargo / Especialidade */}
                   {title && (
                     <p
-                      className={`text-[11px] font-bold ${
-                        isLight ? 'text-emerald-700' : 'text-emerald-400'
-                      } mt-0.5 tracking-tight whitespace-pre-line break-words`}
+                      style={{ color: titleColor || (isLight ? '#047857' : '#34d399') }}
+                      className="text-[11px] font-bold mt-0.5 tracking-tight whitespace-pre-line break-words"
                     >
                       {title}
                     </p>
@@ -2560,9 +2774,8 @@ export default function AdminDashboardPage() {
                   {/* Descrição & CTA */}
                   {description && (
                     <p
-                      className={`text-[11px] ${
-                        isLight ? 'text-slate-600' : 'text-slate-300'
-                      } max-w-[280px] mt-1.5 leading-snug font-normal whitespace-pre-line break-words`}
+                      style={{ color: descriptionColor || (isLight ? '#475569' : '#cbd5e1') }}
+                      className="text-[11px] max-w-[280px] mt-1.5 leading-snug font-normal whitespace-pre-line break-words"
                     >
                       {description}
                     </p>
