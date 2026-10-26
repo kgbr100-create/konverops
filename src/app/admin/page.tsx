@@ -1616,14 +1616,14 @@ export default function AdminDashboardPage() {
                         Texto de Apresentação & Chamada para os Banners (CTA)
                       </label>
                       <textarea
-                        rows={3}
+                        rows={4}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Ex: Engenharia de Vendas B2B & Infraestrutura Web de Ultra Performance. Selecione uma das opções abaixo para falar diretamente comigo no WhatsApp ou agendar um diagnóstico."
-                        className="w-full rounded-xl bg-slate-900 border border-slate-700 p-3 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600 leading-relaxed resize-none"
+                        placeholder="Ex: Engenharia de Vendas B2B & Infraestrutura Web de Ultra Performance.&#10;&#10;Selecione uma das opções abaixo para falar diretamente comigo no WhatsApp ou agendar um diagnóstico."
+                        className="w-full rounded-xl bg-slate-900 border border-slate-700 p-3 text-xs text-white outline-none focus:border-emerald-500 placeholder:text-slate-600 leading-relaxed resize-y min-h-[96px]"
                       />
                       <span className="text-[10px] text-slate-500 mt-1 block">
-                        Dica: Descreva quem é a empresa/expert e oriente o visitante a clicar nos banners abaixo.
+                        Dica: Pressione Enter para criar quebras de linha ou parágrafos. O texto na página final respeitará a formatação exata.
                       </span>
                     </div>
                   </div>
@@ -2551,7 +2551,7 @@ export default function AdminDashboardPage() {
                     <p
                       className={`text-[11px] font-bold ${
                         isLight ? 'text-emerald-700' : 'text-emerald-400'
-                      } mt-0.5 tracking-tight`}
+                      } mt-0.5 tracking-tight whitespace-pre-line break-words`}
                     >
                       {title}
                     </p>
@@ -2562,7 +2562,7 @@ export default function AdminDashboardPage() {
                     <p
                       className={`text-[11px] ${
                         isLight ? 'text-slate-600' : 'text-slate-300'
-                      } max-w-[280px] mt-1.5 leading-snug font-normal`}
+                      } max-w-[280px] mt-1.5 leading-snug font-normal whitespace-pre-line break-words`}
                     >
                       {description}
                     </p>

@@ -178,14 +178,14 @@ export default async function BioProfilePage({ params }: PageProps) {
 
               {/* Cargo / Título Profissional */}
               {profile.title && (
-                <p className={`text-xs sm:text-sm font-bold ${roleColor} mt-1 tracking-tight`}>
+                <p className={`text-xs sm:text-sm font-bold ${roleColor} mt-1 tracking-tight whitespace-pre-line break-words`}>
                   {profile.title}
                 </p>
               )}
 
               {/* Bio & Chamada para Ação nos Banners */}
               {profile.description && (
-                <p className={`text-xs sm:text-sm ${descColor} max-w-sm mt-2.5 leading-relaxed font-normal`}>
+                <p className={`text-xs sm:text-sm ${descColor} max-w-sm mt-2.5 leading-relaxed font-normal whitespace-pre-line break-words`}>
                   {profile.description}
                 </p>
               )}
