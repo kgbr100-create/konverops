@@ -7,6 +7,7 @@ export interface ImageCropperModalProps {
   imageSrc: string;
   title?: string;
   defaultAspectRatio?: number; // width / height, e.g. 640 / 192 = 3.333
+  mode?: 'banner' | 'background' | 'avatar';
   onClose: () => void;
   onCropComplete: (croppedDataUrl: string) => void;
 }
@@ -18,22 +19,31 @@ interface AspectOption {
   height: number;
 }
 
-const ASPECT_OPTIONS: AspectOption[] = [
+const BANNER_ASPECT_OPTIONS: AspectOption[] = [
   { label: 'Padrão 10:3 (640×192)', ratio: 10 / 3, width: 1280, height: 384 },
   { label: 'Panorâmico 3:1 (600×200)', ratio: 3 / 1, width: 1200, height: 400 },
   { label: 'Card Alto 16:9 (640×360)', ratio: 16 / 9, width: 1280, height: 720 },
   { label: 'Livre / Original', ratio: 0, width: 1280, height: 384 },
 ];
 
+const BACKGROUND_ASPECT_OPTIONS: AspectOption[] = [
+  { label: 'Vertical 9:16 (720×1280)', ratio: 9 / 16, width: 720, height: 1280 },
+  { label: 'Tela Cheia 9:19.5 (720×1560)', ratio: 9 / 19.5, width: 720, height: 1560 },
+  { label: 'Retrato 3:4 (720×960)', ratio: 3 / 4, width: 720, height: 960 },
+  { label: 'Livre / Original', ratio: 0, width: 720, height: 1280 },
+];
+
 export default function ImageCropperModal({
   isOpen,
   imageSrc,
-  title = 'Ajustar e Recortar Banner Comercial',
+  title = 'Ajustar e Recortar Imagem',
   defaultAspectRatio = 10 / 3,
+  mode = 'banner',
   onClose,
   onCropComplete,
 }: ImageCropperModalProps) {
-  const [selectedAspect, setSelectedAspect] = useState<AspectOption>(ASPECT_OPTIONS[0]);
+  const currentPresets = mode === 'background' ? BACKGROUND_ASPECT_OPTIONS : BANNER_ASPECT_OPTIONS;
+  const [selectedAspect, setSelectedAspect] = useState<AspectOption>(currentPresets[0]);
   const [zoom, setZoom] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -56,15 +66,16 @@ export default function ImageCropperModal({
 
   // Atualiza aspecto padrão se especificado
   useEffect(() => {
+    const presets = mode === 'background' ? BACKGROUND_ASPECT_OPTIONS : BANNER_ASPECT_OPTIONS;
     if (defaultAspectRatio) {
-      const match = ASPECT_OPTIONS.find(
+      const match = presets.find(
         (opt) => Math.abs(opt.ratio - defaultAspectRatio) < 0.05
       );
-      if (match) {
-        setSelectedAspect(match);
-      }
+      setSelectedAspect(match || presets[0]);
+    } else {
+      setSelectedAspect(presets[0]);
     }
-  }, [defaultAspectRatio]);
+  }, [defaultAspectRatio, mode]);
 
   // Carrega imagem e extrai dimensões naturais
   useEffect(() => {
@@ -92,18 +103,30 @@ export default function ImageCropperModal({
   const updateCropBoxSize = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.clientWidth - 32;
-    const maxBoxW = Math.min(containerW, 540);
+    const containerH = 340;
     const ratio =
       selectedAspect.ratio > 0
         ? selectedAspect.ratio
         : naturalSize.width > 0 && naturalSize.height > 0
         ? naturalSize.width / naturalSize.height
+        : mode === 'background'
+        ? 9 / 16
         : 10 / 3;
 
-    const boxW = maxBoxW;
-    const boxH = Math.min(boxW / ratio, 260);
-    setCropBox({ width: boxW, height: boxH });
-  }, [selectedAspect, naturalSize]);
+    let boxW = 0;
+    let boxH = 0;
+
+    if (ratio >= 1) {
+      boxW = Math.min(containerW, 540);
+      boxH = Math.min(boxW / ratio, 260);
+    } else {
+      // Retrato / Vertical
+      boxH = Math.min(containerH - 40, 280);
+      boxW = Math.min(boxH * ratio, containerW);
+      boxH = boxW / ratio;
+    }
+    setCropBox({ width: Math.round(boxW), height: Math.round(boxH) });
+  }, [selectedAspect, naturalSize, mode]);
 
   useEffect(() => {
     if (isOpen && imageLoaded) {
@@ -254,7 +277,7 @@ export default function ImageCropperModal({
                 {title}
               </h3>
               <p className="text-xs text-slate-400">
-                Arraste para enquadrar e use o zoom para calibrar a visibilidade do banner
+                Arraste para enquadrar e use o zoom e rotação para calibrar a imagem
               </p>
             </div>
           </div>
@@ -269,7 +292,7 @@ export default function ImageCropperModal({
         {/* Aspect Ratio Selector Pills */}
         <div className="px-5 pt-3 pb-1 flex items-center gap-2 overflow-x-auto text-xs">
           <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap">Proporção:</span>
-          {ASPECT_OPTIONS.map((opt) => (
+          {currentPresets.map((opt) => (
             <button
               key={opt.label}
               type="button"

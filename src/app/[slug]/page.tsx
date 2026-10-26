@@ -107,12 +107,35 @@ export default async function BioProfilePage({ params }: PageProps) {
       {/* Analytics Page View Tracker */}
       <PageViewTracker slug={profile.slug} />
 
+      {/* Background Image Layer (se ativado no admin) */}
+      {profile.bgType === 'image' && profile.bgImageUrl && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-all duration-300"
+            style={{
+              backgroundImage: `url(${profile.bgImageUrl})`,
+              filter: `blur(${profile.bgBlur ?? 0}px)`,
+              opacity: profile.bgOpacity ?? 0.45,
+              transform: 'scale(1.08)',
+            }}
+          />
+          {/* Overlay suave para calibrar contraste e legibilidade com a paleta do cliente */}
+          <div
+            className="absolute inset-0 transition-colors duration-300"
+            style={{
+              backgroundColor: pageBg,
+              opacity: Math.max(0, 1 - (profile.bgOpacity ?? 0.45)),
+            }}
+          />
+        </div>
+      )}
+
       {/* Main Page Layout (Container Artificial Removido - Banners com Máximo Impacto) */}
       <main
-        style={{ backgroundColor: pageBg }}
-        className="min-h-screen flex flex-col items-center py-8 px-3.5 sm:px-5 antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-black"
+        style={{ backgroundColor: profile.bgType === 'image' ? 'transparent' : pageBg }}
+        className="min-h-screen relative flex flex-col items-center py-8 px-3.5 sm:px-5 antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-black"
       >
-        <div className="w-full max-w-[480px] flex flex-col items-center">
+        <div className="w-full max-w-[480px] flex flex-col items-center relative z-10">
           
           {/* SEÇÃO HERO DE TOPO (Foto/Logo + Nome + Cargo + Descrição/CTA) */}
           {profile.showHero !== false && (

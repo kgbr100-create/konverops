@@ -10,6 +10,7 @@ export type MetaStandardEvent =
 export type BannerBorderRadius = 'none' | 'sm' | 'md' | 'lg' | 'xl';
 export type BannerBorderStyle = 'none' | 'subtle' | 'glow';
 export type BannerShadow = 'none' | 'bottom' | 'top' | 'full' | 'subtle';
+export type PageBgType = 'color' | 'image';
 
 export interface BioBanner {
   id: string;
@@ -30,6 +31,10 @@ export interface ClientProfile {
   showNicheBadge?: boolean;
   nicheBadge?: string;
   badgeBgColor?: string; // e.g. '#00b768'
+  bgType?: PageBgType; // 'color' ou 'image'
+  bgImageUrl?: string; // Imagem de fundo personalizada
+  bgOpacity?: number; // 0.05 a 1.0 (opacidade da imagem de fundo)
+  bgBlur?: number; // 0 a 30 (blur em pixels)
   pageBgColor?: string; // e.g. '#070b14' ou '#ffffff'
   cardBgColor?: string; // e.g. '#0f172a' ou '#ffffff'
   bannerBorderRadius?: BannerBorderRadius; // 'none' (0px), 'sm' (10px), 'md' (16px), 'lg' (20px), 'xl' (26px)
@@ -54,6 +59,10 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
     showNicheBadge: false,
     nicheBadge: 'Engenharia de Vendas',
     badgeBgColor: '#00b768',
+    bgType: 'color',
+    bgImageUrl: '',
+    bgOpacity: 0.45,
+    bgBlur: 0,
     pageBgColor: '#070b14',
     cardBgColor: '#0a0f1d',
     bannerBorderRadius: 'md',

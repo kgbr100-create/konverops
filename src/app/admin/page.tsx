@@ -10,6 +10,7 @@ import type {
   BannerBorderRadius,
   BannerBorderStyle,
   BannerShadow,
+  PageBgType,
 } from '@/data/profiles';
 import type { AnalyticsReport, AnalyticsPeriod } from '@/lib/analytics-store';
 
@@ -59,11 +60,19 @@ export default function AdminDashboardPage() {
   const [bannerShadow, setBannerShadow] = useState<BannerShadow>('bottom');
   const [bannerElevation, setBannerElevation] = useState<boolean>(true);
 
-  // Cropper Modal State
+  // Background Customization State (Cor Sólida vs Imagem com Opacidade & Blur)
+  const [bgType, setBgType] = useState<PageBgType>('color');
+  const [bgImageUrl, setBgImageUrl] = useState<string>('');
+  const [bgOpacity, setBgOpacity] = useState<number>(0.45);
+  const [bgBlur, setBgBlur] = useState<number>(0);
+  const bgImageInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Cropper Modal State (Banners Comerciais & Imagens de Fundo)
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [cropperImageSrc, setCropperImageSrc] = useState('');
   const [cropperTargetBannerIndex, setCropperTargetBannerIndex] = useState<number | null>(null);
   const [cropperTitle, setCropperTitle] = useState('Ajustar e Recortar Banner');
+  const [cropperMode, setCropperMode] = useState<'banner' | 'background'>('banner');
 
   const isLight = isLightColor(pageBgColor);
 
@@ -269,6 +278,10 @@ export default function AdminDashboardPage() {
     setBannerBorderStyle('subtle');
     setBannerShadow('bottom');
     setBannerElevation(true);
+    setBgType('color');
+    setBgImageUrl('');
+    setBgOpacity(0.45);
+    setBgBlur(0);
     setMetaPixelId('');
     setMetaAccessToken('');
     setMetaTestEventCode('');
@@ -305,6 +318,10 @@ export default function AdminDashboardPage() {
     setBannerBorderStyle(profile.bannerBorderStyle || 'subtle');
     setBannerShadow(profile.bannerShadow || 'bottom');
     setBannerElevation(profile.bannerElevation ?? true);
+    setBgType(profile.bgType || 'color');
+    setBgImageUrl(profile.bgImageUrl || '');
+    setBgOpacity(profile.bgOpacity ?? 0.45);
+    setBgBlur(profile.bgBlur ?? 0);
     setMetaPixelId(profile.metaPixelId || '');
     setMetaAccessToken(profile.metaAccessToken || '');
     setMetaTestEventCode(profile.metaTestEventCode || '');
@@ -393,6 +410,7 @@ export default function AdminDashboardPage() {
         if (rawDataUrl) {
           setCropperImageSrc(rawDataUrl);
           setCropperTargetBannerIndex(targetIdx);
+          setCropperMode('banner');
           setCropperTitle(`Ajustar e Recortar Banner #${targetIdx + 1}`);
           setIsCropperOpen(true);
         }
@@ -411,12 +429,55 @@ export default function AdminDashboardPage() {
     if (!banner || !banner.imageUrl) return;
     setCropperImageSrc(banner.imageUrl);
     setCropperTargetBannerIndex(index);
+    setCropperMode('banner');
     setCropperTitle(`Ajustar e Recortar Banner #${index + 1} (${banner.title})`);
     setIsCropperOpen(true);
   };
 
+  const triggerBgImageUpload = () => {
+    if (bgImageInputRef.current) {
+      bgImageInputRef.current.value = '';
+      bgImageInputRef.current.click();
+    }
+  };
+
+  const onBgImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const rawDataUrl = event.target?.result as string;
+        if (rawDataUrl) {
+          setCropperImageSrc(rawDataUrl);
+          setCropperTargetBannerIndex(null);
+          setCropperMode('background');
+          setCropperTitle('Ajustar e Recortar Imagem de Fundo (9:16)');
+          setIsCropperOpen(true);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Erro ao ler imagem de fundo:', err);
+      alert('Falha ao processar arquivo de imagem local.');
+    }
+  };
+
+  const handleOpenCropperForBackground = () => {
+    if (!bgImageUrl) return;
+    setCropperImageSrc(bgImageUrl);
+    setCropperTargetBannerIndex(null);
+    setCropperMode('background');
+    setCropperTitle('Ajustar e Recortar Imagem de Fundo');
+    setIsCropperOpen(true);
+  };
+
   const handleCropComplete = (croppedDataUrl: string) => {
-    if (cropperTargetBannerIndex !== null) {
+    if (cropperMode === 'background') {
+      setBgImageUrl(croppedDataUrl);
+      setBgType('image');
+    } else if (cropperTargetBannerIndex !== null) {
       handleUpdateBanner(cropperTargetBannerIndex, 'imageUrl', croppedDataUrl);
     }
     setIsCropperOpen(false);
@@ -497,6 +558,10 @@ export default function AdminDashboardPage() {
         bannerBorderStyle,
         bannerShadow,
         bannerElevation,
+        bgType,
+        bgImageUrl: bgImageUrl.trim(),
+        bgOpacity,
+        bgBlur,
         metaPixelId: metaPixelId.trim(),
         metaAccessToken: metaAccessToken.trim(),
         metaTestEventCode: metaTestEventCode.trim(),
@@ -542,6 +607,15 @@ export default function AdminDashboardPage() {
         type="file"
         ref={avatarInputRef}
         onChange={onAvatarFileChange}
+        accept="image/png,image/jpeg,image/webp,image/avif"
+        className="hidden"
+      />
+
+      {/* Hidden File Input for Background Image Uploads */}
+      <input
+        type="file"
+        ref={bgImageInputRef}
+        onChange={onBgImageFileChange}
         accept="image/png,image/jpeg,image/webp,image/avif"
         className="hidden"
       />
@@ -1628,96 +1702,295 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* PERSONALIZAÇÃO DE CORES DA PÁGINA */}
+              {/* PERSONALIZAÇÃO DE FUNDO E CORES DA PÁGINA */}
               <div className="pt-2 border-t border-slate-800/80">
-                <label className="text-xs font-bold text-slate-200 block mb-2">
-                  Paleta de Cores da Página
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-                    <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                      Fundo da Tela (Background)
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-200 block">
+                      Fundo da Página & Estilo Visual
                     </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="color"
-                        value={pageBgColor}
-                        onChange={(e) => setPageBgColor(e.target.value)}
-                        className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={pageBgColor}
-                        onChange={(e) => setPageBgColor(e.target.value)}
-                        className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {[
-                        { name: 'Obsidian', color: '#070b14' },
-                        { name: 'Slate', color: '#0f172a' },
-                        { name: 'Branco', color: '#ffffff' },
-                        { name: 'Neve', color: '#f8fafc' },
-                        { name: 'Cinza', color: '#eef2f6' },
-                        { name: 'Esmeralda', color: '#052e16' },
-                      ].map((item) => (
-                        <button
-                          key={item.color}
-                          type="button"
-                          onClick={() => setPageBgColor(item.color)}
-                          className="px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700 hover:border-slate-500 transition-colors flex items-center gap-1 bg-slate-900 text-slate-300"
-                        >
-                          <span
-                            className="w-2.5 h-2.5 rounded-full border border-black/20"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          {item.name}
-                        </button>
-                      ))}
-                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Escolha entre uma paleta de cores sólida ou uma imagem de background personalizada
+                    </p>
                   </div>
-
-                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-                    <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                      Container dos Banners (Card)
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="color"
-                        value={cardBgColor}
-                        onChange={(e) => setCardBgColor(e.target.value)}
-                        className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={cardBgColor}
-                        onChange={(e) => setCardBgColor(e.target.value)}
-                        className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {[
-                        { name: 'Dark Navy', color: '#0a0f1d' },
-                        { name: 'Branco', color: '#ffffff' },
-                        { name: 'Dark Slate', color: '#1e293b' },
-                        { name: 'Black', color: '#020408' },
-                      ].map((item) => (
-                        <button
-                          key={item.color}
-                          type="button"
-                          onClick={() => setCardBgColor(item.color)}
-                          className="px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700 hover:border-slate-500 transition-colors flex items-center gap-1 bg-slate-900 text-slate-300"
-                        >
-                          <span
-                            className="w-2.5 h-2.5 rounded-full border border-black/20"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          {item.name}
-                        </button>
-                      ))}
-                    </div>
+                  {/* Seletor de Tipo de Fundo: Cor vs Imagem */}
+                  <div className="flex items-center gap-1 p-1 bg-slate-950/80 rounded-xl border border-slate-800/80 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setBgType('color')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        bgType === 'color'
+                          ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <span>🎨</span>
+                      <span>Paleta de Cores</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBgType('image')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        bgType === 'image'
+                          ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <span>🖼️</span>
+                      <span>Imagem de Fundo</span>
+                    </button>
                   </div>
                 </div>
+
+                {/* PAINEL SE COR SÓLIDA SELECIONADA */}
+                {bgType === 'color' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                        Fundo da Tela (Background)
+                      </label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="color"
+                          value={pageBgColor}
+                          onChange={(e) => setPageBgColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={pageBgColor}
+                          onChange={(e) => setPageBgColor(e.target.value)}
+                          className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {[
+                          { name: 'Obsidian', color: '#070b14' },
+                          { name: 'Slate', color: '#0f172a' },
+                          { name: 'Branco', color: '#ffffff' },
+                          { name: 'Neve', color: '#f8fafc' },
+                          { name: 'Cinza', color: '#eef2f6' },
+                          { name: 'Esmeralda', color: '#052e16' },
+                        ].map((item) => (
+                          <button
+                            key={item.color}
+                            type="button"
+                            onClick={() => setPageBgColor(item.color)}
+                            className="px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700 hover:border-slate-500 transition-colors flex items-center gap-1 bg-slate-900 text-slate-300"
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-black/20"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                        Container dos Banners (Card)
+                      </label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="color"
+                          value={cardBgColor}
+                          onChange={(e) => setCardBgColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg bg-transparent border-0 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={cardBgColor}
+                          onChange={(e) => setCardBgColor(e.target.value)}
+                          className="w-24 rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs text-white font-mono"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {[
+                          { name: 'Dark Navy', color: '#0a0f1d' },
+                          { name: 'Branco', color: '#ffffff' },
+                          { name: 'Dark Slate', color: '#1e293b' },
+                          { name: 'Black', color: '#020408' },
+                        ].map((item) => (
+                          <button
+                            key={item.color}
+                            type="button"
+                            onClick={() => setCardBgColor(item.color)}
+                            className="px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700 hover:border-slate-500 transition-colors flex items-center gap-1 bg-slate-900 text-slate-300"
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-black/20"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* PAINEL SE IMAGEM DE FUNDO SELECIONADA */
+                  <div className="p-4 bg-slate-950/70 rounded-2xl border border-slate-800 space-y-4">
+                    {/* Linha de Upload e Ações */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                      <div className="flex items-center gap-3">
+                        {bgImageUrl ? (
+                          <div className="relative w-16 h-24 rounded-xl overflow-hidden border-2 border-emerald-500/50 shadow-md shadow-emerald-500/10 flex-shrink-0 bg-slate-900 group">
+                            <img
+                              src={bgImageUrl}
+                              alt="Background preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <span className="text-[10px] text-white font-bold">9:16</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-16 h-24 rounded-xl border-2 border-dashed border-slate-700 bg-slate-900/60 flex flex-col items-center justify-center text-slate-500 flex-shrink-0">
+                            <span className="text-lg">🖼️</span>
+                            <span className="text-[9px] font-bold mt-1">9:16</span>
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-200">
+                            {bgImageUrl ? 'Imagem de Fundo Definida' : 'Nenhuma Imagem de Fundo Definida'}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            Suba fotos verticais de alta qualidade (1080×1920 ou 9:16)
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <button
+                          type="button"
+                          onClick={triggerBgImageUpload}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5"
+                        >
+                          <span>📁</span>
+                          <span>{bgImageUrl ? 'Substituir Imagem' : 'Subir Imagem'}</span>
+                        </button>
+                        {bgImageUrl && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleOpenCropperForBackground}
+                              className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold border border-slate-700 hover:border-emerald-500/40 transition-colors flex items-center gap-1.5"
+                            >
+                              <span>✂️</span>
+                              <span>Recortar</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setBgImageUrl('');
+                                setBgType('color');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-medium border border-slate-800 transition-colors"
+                            >
+                              Remover
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Controles de Calibração: Opacidade e Borrão */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Slider 1: Transparência / Opacidade */}
+                      <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                            <span>👁️</span>
+                            <span>Visibilidade da Imagem</span>
+                          </label>
+                          <span className="text-xs font-mono font-bold text-emerald-400">
+                            {Math.round(bgOpacity * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.10"
+                          max="1.00"
+                          step="0.05"
+                          value={bgOpacity}
+                          onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                        />
+                        <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                          <span>Sutil (10%)</span>
+                          <span>Recomendado (40%-55%)</span>
+                          <span>Forte (100%)</span>
+                        </div>
+                      </div>
+
+                      {/* Slider 2: Borrão / Blur */}
+                      <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                            <span>🌫️</span>
+                            <span>Efeito de Borrão (Blur)</span>
+                          </label>
+                          <span className="text-xs font-mono font-bold text-emerald-400">
+                            {bgBlur}px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="30"
+                          step="1"
+                          value={bgBlur}
+                          onChange={(e) => setBgBlur(parseInt(e.target.value, 10))}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                        />
+                        <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                          <span>Nítido (0px)</span>
+                          <span>Suave (8px-14px)</span>
+                          <span>Intenso (30px)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Paleta Base de Contraste Subjacente */}
+                    <div className="pt-2 border-t border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[11px] font-bold text-slate-300 block">
+                          Cor Base de Leitura (Overlay de Contraste)
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          Garante que o texto continue legível caso a imagem seja muito clara
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {[
+                          { name: 'Obsidian', color: '#070b14' },
+                          { name: 'Slate', color: '#0f172a' },
+                          { name: 'Branco', color: '#ffffff' },
+                          { name: 'Esmeralda', color: '#052e16' },
+                        ].map((item) => (
+                          <button
+                            key={item.color}
+                            type="button"
+                            onClick={() => setPageBgColor(item.color)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-colors flex items-center gap-1 bg-slate-900 ${
+                              pageBgColor === item.color
+                                ? 'border-emerald-500 text-emerald-300'
+                                : 'border-slate-700 text-slate-300 hover:border-slate-500'
+                            }`}
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-black/20"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* CONFIGURAÇÃO DE BORDAS, SOMBRAS E ELEVAÇÃO DOS BANNERS */}
@@ -2192,10 +2465,34 @@ export default function AdminDashboardPage() {
 
             {/* SMARTPHONE DEVICE CONTAINER */}
             <div
-              style={{ backgroundColor: pageBgColor }}
+              style={{ backgroundColor: bgType === 'image' ? 'transparent' : pageBgColor }}
               className="relative w-[340px] max-w-full rounded-[42px] shadow-2xl shadow-black/70 border-[8px] border-slate-900 overflow-hidden pb-6 transition-colors duration-300 flex flex-col items-center"
             >
-              {/* STATUS BAR */}
+              {/* Camada de Background Image dentro do Smartphone Preview */}
+              {bgType === 'image' && bgImageUrl && (
+                <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-all duration-300"
+                    style={{
+                      backgroundImage: `url(${bgImageUrl})`,
+                      filter: `blur(${bgBlur}px)`,
+                      opacity: bgOpacity,
+                      transform: 'scale(1.08)',
+                    }}
+                  />
+                  {/* Overlay suave para calibrar contraste com a paleta do cliente */}
+                  <div
+                    className="absolute inset-0 transition-colors duration-300"
+                    style={{
+                      backgroundColor: pageBgColor,
+                      opacity: Math.max(0, 1 - bgOpacity),
+                    }}
+                  />
+                </div>
+              )}
+
+              <div className="w-full flex flex-col items-center relative z-10">
+                {/* STATUS BAR */}
               <div
                 className={`w-full pt-3 px-6 flex justify-between items-center text-[10px] font-semibold ${
                   isLight ? 'text-slate-700' : 'text-slate-400'
@@ -2360,7 +2657,8 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
       {/* CHANGE PASSWORD MODAL */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -2459,12 +2757,13 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
-      {/* BANNER IMAGE CROPPER MODAL */}
+      {/* BANNER / BACKGROUND IMAGE CROPPER MODAL */}
       <ImageCropperModal
         isOpen={isCropperOpen}
         imageSrc={cropperImageSrc}
         title={cropperTitle}
-        defaultAspectRatio={10 / 3}
+        mode={cropperMode}
+        defaultAspectRatio={cropperMode === 'background' ? 9 / 16 : 10 / 3}
         onClose={() => {
           setIsCropperOpen(false);
           setCropperTargetBannerIndex(null);
