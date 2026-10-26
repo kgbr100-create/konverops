@@ -1,7 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import type { BioBanner, BannerBorderRadius, BannerBorderStyle } from '@/data/profiles';
+import type {
+  BioBanner,
+  BannerBorderRadius,
+  BannerBorderStyle,
+  BannerShadow,
+} from '@/data/profiles';
 
 interface BannerLinkProps {
   banner: BioBanner;
@@ -12,6 +17,8 @@ interface BannerLinkProps {
   metaTestEventCode?: string;
   bannerBorderRadius?: BannerBorderRadius;
   bannerBorderStyle?: BannerBorderStyle;
+  bannerShadow?: BannerShadow;
+  bannerElevation?: boolean;
   isLight?: boolean;
 }
 
@@ -35,6 +42,8 @@ export default function BannerLink({
   metaTestEventCode,
   bannerBorderRadius = 'md',
   bannerBorderStyle = 'subtle',
+  bannerShadow = 'bottom',
+  bannerElevation = true,
   isLight = false,
 }: BannerLinkProps) {
   const handleClick = () => {
@@ -143,19 +152,73 @@ export default function BannerLink({
   const getBorderClass = (style?: BannerBorderStyle, isLightBg?: boolean) => {
     switch (style) {
       case 'glow':
-        return 'border border-emerald-500/40 shadow-emerald-500/15';
+        return 'border border-emerald-500/40';
       case 'none':
         return 'border-0';
       case 'subtle':
       default:
+        return isLightBg ? 'border border-slate-900/10' : 'border border-white/10';
+    }
+  };
+
+  const getShadowClass = (shadow?: BannerShadow, isLightBg?: boolean) => {
+    switch (shadow) {
+      case 'none':
+        return 'shadow-none';
+      case 'bottom':
         return isLightBg
-          ? 'border border-slate-900/10 shadow-sm'
-          : 'border border-white/10 shadow-md shadow-black/30';
+          ? 'shadow-[0_12px_20px_-5px_rgba(0,0,0,0.08)]'
+          : 'shadow-[0_14px_24px_-6px_rgba(0,0,0,0.55)]';
+      case 'top':
+        return isLightBg
+          ? 'shadow-[0_-10px_18px_-4px_rgba(0,0,0,0.08)]'
+          : 'shadow-[0_-12px_22px_-5px_rgba(0,0,0,0.45)]';
+      case 'subtle':
+        return isLightBg
+          ? 'shadow-sm shadow-slate-300/60'
+          : 'shadow-sm shadow-black/30';
+      case 'full':
+      default:
+        return isLightBg
+          ? 'shadow-md shadow-slate-300/80'
+          : 'shadow-lg shadow-black/40';
+    }
+  };
+
+  const getHoverClass = (
+    elevation?: boolean,
+    shadow?: BannerShadow,
+    isLightBg?: boolean
+  ) => {
+    if (elevation === false) {
+      return 'transition-all duration-200';
+    }
+
+    switch (shadow) {
+      case 'none':
+        return 'transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] shadow-none hover:shadow-none';
+      case 'bottom':
+        return isLightBg
+          ? 'transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_28px_-6px_rgba(0,0,0,0.12)] active:scale-[0.98]'
+          : 'transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_32px_-6px_rgba(0,0,0,0.7)] active:scale-[0.98]';
+      case 'top':
+        return isLightBg
+          ? 'transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_-14px_24px_-4px_rgba(0,0,0,0.12)] active:scale-[0.98]'
+          : 'transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_-16px_28px_-5px_rgba(0,0,0,0.6)] active:scale-[0.98]';
+      case 'subtle':
+        return isLightBg
+          ? 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99]'
+          : 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/50 active:scale-[0.99]';
+      case 'full':
+      default:
+        return 'transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]';
     }
   };
 
   const radiusClass = getRadiusClass(bannerBorderRadius);
   const borderClass = getBorderClass(bannerBorderStyle, isLight);
+  const shadowClass = getShadowClass(bannerShadow, isLight);
+  const hoverClass = getHoverClass(bannerElevation, bannerShadow, isLight);
 
   return (
     <a
@@ -163,7 +226,7 @@ export default function BannerLink({
       target={banner.target || '_blank'}
       rel="noopener noreferrer"
       onClick={handleClick}
-      className={`block relative w-full ${radiusClass} ${borderClass} overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:border-emerald-500/40 active:scale-[0.98] group`}
+      className={`block relative w-full ${radiusClass} ${borderClass} ${shadowClass} ${hoverClass} overflow-hidden group`}
       style={{ isolation: 'isolate' }}
     >
       <Image

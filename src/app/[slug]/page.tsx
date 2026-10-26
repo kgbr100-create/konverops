@@ -183,6 +183,8 @@ export default async function BioProfilePage({ params }: PageProps) {
                   metaTestEventCode={profile.metaTestEventCode}
                   bannerBorderRadius={profile.bannerBorderRadius || 'md'}
                   bannerBorderStyle={profile.bannerBorderStyle || 'subtle'}
+                  bannerShadow={profile.bannerShadow || 'bottom'}
+                  bannerElevation={profile.bannerElevation ?? true}
                   isLight={isLight}
                 />
               ))

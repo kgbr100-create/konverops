@@ -9,6 +9,7 @@ import type {
   MetaStandardEvent,
   BannerBorderRadius,
   BannerBorderStyle,
+  BannerShadow,
 } from '@/data/profiles';
 import type { AnalyticsReport, AnalyticsPeriod } from '@/lib/analytics-store';
 
@@ -55,6 +56,8 @@ export default function AdminDashboardPage() {
   const [banners, setBanners] = useState<BioBanner[]>([]);
   const [bannerBorderRadius, setBannerBorderRadius] = useState<BannerBorderRadius>('md');
   const [bannerBorderStyle, setBannerBorderStyle] = useState<BannerBorderStyle>('subtle');
+  const [bannerShadow, setBannerShadow] = useState<BannerShadow>('bottom');
+  const [bannerElevation, setBannerElevation] = useState<boolean>(true);
 
   // Cropper Modal State
   const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -264,6 +267,8 @@ export default function AdminDashboardPage() {
     setCardBgColor('#0a0f1d');
     setBannerBorderRadius('md');
     setBannerBorderStyle('subtle');
+    setBannerShadow('bottom');
+    setBannerElevation(true);
     setMetaPixelId('');
     setMetaAccessToken('');
     setMetaTestEventCode('');
@@ -298,6 +303,8 @@ export default function AdminDashboardPage() {
     setCardBgColor(profile.cardBgColor || '#0a0f1d');
     setBannerBorderRadius(profile.bannerBorderRadius || 'md');
     setBannerBorderStyle(profile.bannerBorderStyle || 'subtle');
+    setBannerShadow(profile.bannerShadow || 'bottom');
+    setBannerElevation(profile.bannerElevation ?? true);
     setMetaPixelId(profile.metaPixelId || '');
     setMetaAccessToken(profile.metaAccessToken || '');
     setMetaTestEventCode(profile.metaTestEventCode || '');
@@ -488,6 +495,8 @@ export default function AdminDashboardPage() {
         cardBgColor,
         bannerBorderRadius,
         bannerBorderStyle,
+        bannerShadow,
+        bannerElevation,
         metaPixelId: metaPixelId.trim(),
         metaAccessToken: metaAccessToken.trim(),
         metaTestEventCode: metaTestEventCode.trim(),
@@ -1711,72 +1720,163 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* CONFIGURAÇÃO DE BORDAS E ACABAMENTO DOS BANNERS */}
+              {/* CONFIGURAÇÃO DE BORDAS, SOMBRAS E ELEVAÇÃO DOS BANNERS */}
               <div className="pt-2 border-t border-slate-800/80">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <label className="text-xs font-bold text-slate-200 block">
-                      Bordas e Acabamento dos Banners
+                      Bordas, Sombras & Efeito de Elevação dos Banners
                     </label>
                     <p className="text-[11px] text-slate-400">
-                      Personalize o raio de arredondamento e o estilo de contorno dos banners
+                      Personalize bordas, sombras e elimine marcas falsas em banners com recortes/pop-out
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
-                      Arredondamento dos Cantos (Border Radius)
-                    </label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: 'none', label: 'Reto (0px)' },
-                        { id: 'sm', label: 'Sutil (10px)' },
-                        { id: 'md', label: 'Refinado (16px)' },
-                        { id: 'lg', label: 'Moderno (20px)' },
-                        { id: 'xl', label: 'Curvado (26px)' },
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setBannerBorderRadius(item.id as BannerBorderRadius)}
-                          className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all text-center ${
-                            bannerBorderRadius === item.id
-                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-sm'
-                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
-                          }`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 space-y-4">
+                  {/* Linha 1: Cantos e Linha de Borda */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                        Arredondamento dos Cantos
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { id: 'none', label: 'Reto (0px)' },
+                          { id: 'sm', label: 'Sutil (10px)' },
+                          { id: 'md', label: 'Refinado (16px)' },
+                          { id: 'lg', label: 'Moderno (20px)' },
+                          { id: 'xl', label: 'Curvado (26px)' },
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setBannerBorderRadius(item.id as BannerBorderRadius)}
+                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all text-center ${
+                              bannerBorderRadius === item.id
+                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-sm'
+                                : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                        Estilo da Linha de Borda
+                      </label>
+                      <div className="space-y-1.5">
+                        {[
+                          { id: 'subtle', label: 'Sutil Elegante (Hairline 1px)', desc: 'Contraste suave' },
+                          { id: 'glow', label: 'Esmeralda Glow', desc: 'Borda com brilho' },
+                          { id: 'none', label: 'Sem Borda', desc: 'Zero contorno (ideal para pop-out)' },
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setBannerBorderStyle(item.id as BannerBorderStyle)}
+                            className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all text-left flex items-center justify-between ${
+                              bannerBorderStyle === item.id
+                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 font-bold'
+                                : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
+                            }`}
+                          >
+                            <span>{item.label}</span>
+                            <span className="text-[10px] text-slate-400 font-normal">{item.desc}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
-                      Estilo da Linha de Borda
-                    </label>
-                    <div className="space-y-1.5">
-                      {[
-                        { id: 'subtle', label: 'Sutil Elegante (Hairline 1px)', desc: 'Contraste suave' },
-                        { id: 'glow', label: 'Esmeralda Glow', desc: 'Borda com brilho' },
-                        { id: 'none', label: 'Sem Borda', desc: 'Apenas a imagem' },
-                      ].map((item) => (
+                  {/* Linha 2: Efeito de Sombra e Elevação (Hover) */}
+                  <div className="pt-3 border-t border-slate-800/70 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[11px] font-bold text-slate-300">
+                          Posicionamento da Sombra
+                        </label>
+                        <span className="text-[10px] text-emerald-400 font-mono">
+                          {bannerShadow === 'none' ? 'Flat / Pop-out' : bannerShadow}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {[
+                          { id: 'none', label: '🚫 Sem Sombra', desc: 'Flat (sem caixa falsa)' },
+                          { id: 'bottom', label: '⬇️ Somente Embaixo', desc: 'Topo 100% limpo' },
+                          { id: 'top', label: '⬆️ Somente no Topo', desc: 'Sombra superior' },
+                          { id: 'full', label: '🔄 Sombra Completa', desc: 'Em toda a volta' },
+                          { id: 'subtle', label: '✨ Sombra Suave', desc: 'Profundidade leve' },
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setBannerShadow(item.id as BannerShadow)}
+                            className={`py-2 px-2.5 rounded-lg text-xs font-semibold border transition-all text-left flex flex-col justify-between ${
+                              bannerShadow === item.id
+                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-sm'
+                                : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
+                            }`}
+                          >
+                            <span className="truncate">{item.label}</span>
+                            <span
+                              className={`text-[10px] mt-0.5 ${
+                                bannerShadow === item.id
+                                  ? 'text-slate-900/80 font-medium'
+                                  : 'text-slate-500'
+                              }`}
+                            >
+                              {item.desc}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                        Efeito de Elevação ao Passar o Mouse (Hover Lift)
+                      </label>
+                      <div className="space-y-2">
                         <button
-                          key={item.id}
                           type="button"
-                          onClick={() => setBannerBorderStyle(item.id as BannerBorderStyle)}
-                          className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all text-left flex items-center justify-between ${
-                            bannerBorderStyle === item.id
+                          onClick={() => setBannerElevation(true)}
+                          className={`w-full p-2.5 rounded-lg text-xs font-semibold border transition-all text-left flex items-center justify-between ${
+                            bannerElevation
                               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 font-bold'
                               : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
                           }`}
                         >
-                          <span>{item.label}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">{item.desc}</span>
+                          <div>
+                            <span className="block font-bold">Elemento Elevado (Flutuante)</span>
+                            <span className="text-[10px] text-slate-400">
+                              O banner levanta levemente (-translate-y) ao passar o mouse ou tocar.
+                            </span>
+                          </div>
+                          {bannerElevation && <span className="text-emerald-400 font-bold text-sm">✓</span>}
                         </button>
-                      ))}
+
+                        <button
+                          type="button"
+                          onClick={() => setBannerElevation(false)}
+                          className={`w-full p-2.5 rounded-lg text-xs font-semibold border transition-all text-left flex items-center justify-between ${
+                            !bannerElevation
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 font-bold'
+                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'
+                          }`}
+                        >
+                          <div>
+                            <span className="block font-bold">Elemento Estático (100% Fixo)</span>
+                            <span className="text-[10px] text-slate-400">
+                              Sem movimento vertical ou projeção de sombra extra ao interagir.
+                            </span>
+                          </div>
+                          {!bannerElevation && <span className="text-emerald-400 font-bold text-sm">✓</span>}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2194,17 +2294,40 @@ export default function AdminDashboardPage() {
 
                     const previewBorderClass =
                       bannerBorderStyle === 'glow'
-                        ? 'border border-emerald-500/40 shadow-emerald-500/15'
+                        ? 'border border-emerald-500/40'
                         : bannerBorderStyle === 'none'
                         ? 'border-0'
                         : isLight
-                        ? 'border border-slate-900/10 shadow-sm'
-                        : 'border border-white/10 shadow-md shadow-black/30';
+                        ? 'border border-slate-900/10'
+                        : 'border border-white/10';
+
+                    const previewShadowClass =
+                      bannerShadow === 'none'
+                        ? 'shadow-none'
+                        : bannerShadow === 'bottom'
+                        ? isLight
+                          ? 'shadow-[0_12px_20px_-5px_rgba(0,0,0,0.08)]'
+                          : 'shadow-[0_14px_24px_-6px_rgba(0,0,0,0.55)]'
+                        : bannerShadow === 'top'
+                        ? isLight
+                          ? 'shadow-[0_-10px_18px_-4px_rgba(0,0,0,0.08)]'
+                          : 'shadow-[0_-12px_22px_-5px_rgba(0,0,0,0.45)]'
+                        : bannerShadow === 'subtle'
+                        ? isLight
+                          ? 'shadow-sm shadow-slate-300/60'
+                          : 'shadow-sm shadow-black/30'
+                        : isLight
+                        ? 'shadow-md shadow-slate-300/80'
+                        : 'shadow-lg shadow-black/40';
+
+                    const previewHoverClass = bannerElevation
+                      ? 'active:scale-95 hover:-translate-y-1 transition-all'
+                      : 'active:scale-100 transition-none';
 
                     return (
                       <div
                         key={b.id || i}
-                        className={`block relative w-full ${previewRadiusClass} ${previewBorderClass} overflow-hidden shadow-md shadow-black/20 active:scale-95 transition-all cursor-pointer group`}
+                        className={`block relative w-full ${previewRadiusClass} ${previewBorderClass} ${previewShadowClass} ${previewHoverClass} overflow-hidden cursor-pointer group`}
                         style={{ isolation: 'isolate' }}
                       >
                         {b.imageUrl ? (
