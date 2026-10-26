@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getClientAnalytics, AnalyticsPeriod } from '@/lib/analytics-store';
 import { getClientBySlug } from '@/lib/profiles-store';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
