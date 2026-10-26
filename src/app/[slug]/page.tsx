@@ -111,19 +111,28 @@ export default async function BioProfilePage({ params }: PageProps) {
 
       {/* Background Image Layer (se ativado no admin) */}
       {profile.bgType === 'image' && profile.bgImageUrl && (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div
+          className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+          style={{
+            height: '100lvh',
+            minHeight: '-webkit-fill-available',
+          }}
+        >
           <div
-            className="absolute inset-0 bg-cover bg-center transition-all duration-300"
+            className="absolute -inset-4 bg-cover bg-center"
             style={{
               backgroundImage: `url(${profile.bgImageUrl})`,
               filter: `blur(${profile.bgBlur ?? 0}px)`,
               opacity: profile.bgOpacity ?? 0.45,
-              transform: 'scale(1.08)',
+              transform: 'scale(1.1) translate3d(0, 0, 0)',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
             }}
           />
           {/* Overlay suave para calibrar contraste e legibilidade com a paleta do cliente */}
           <div
-            className="absolute inset-0 transition-colors duration-300"
+            className="absolute inset-0"
             style={{
               backgroundColor: pageBg,
               opacity: Math.max(0, 1 - (profile.bgOpacity ?? 0.45)),
