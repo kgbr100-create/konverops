@@ -1,15 +1,33 @@
 import { AutomationRule } from './types';
 
-const UPSTASH_URL =
-  process.env.UPSTASH_REDIS_REST_URL || 'https://unique-ladybird-238762.upstash.io';
-const UPSTASH_TOKEN =
-  process.env.UPSTASH_REDIS_REST_TOKEN ||
-  'gQAAAAAAA6SqAQIgcDJhNWRkZTM5N2E1ODQ0NTIxYmM4YjA0ZjgzNDU3NTc2YQ';
-
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 const REDIS_RULES_KEY = 'konverops:instagram:rules';
 
 /** Regras padrão pré-configuradas para o ecossistema Kit Autismo / Konverops */
 export const DEFAULT_RULES: AutomationRule[] = [
+  {
+    id: 'regra-saudacao',
+    name: 'Saudação / Início',
+    keywords: [
+      'oi',
+      'ola',
+      'opa',
+      'bom dia',
+      'boa tarde',
+      'boa noite',
+      'e ai',
+      'fala',
+      'teste',
+      'testando',
+      'comecar',
+      'iniciar',
+      'tudo bem',
+    ],
+    replyText: `Olá! Seja muito bem-vindo(a) ao Kit Autismo. 💙\n\nNossa automação oficial está 100% ativa para te apoiar:\n\n👉 Responda "LINK" para receber o material completo e atividades adaptadas;\n👉 Responda "DIREITOS" para o guia de cobertura de planos e SUS;\n👉 Responda "ALIMENTACAO" para estratégias de seletividade alimentar;\n👉 Responda "ROTINA" para os quadros visuais de previsibilidade;\n\nSe você tiver uma dúvida específica, pode escrever aqui que nossa equipe acolherá com carinho!`,
+    linkUrl: 'https://kitautismo.com',
+    active: true,
+  },
   {
     id: 'regra-link-geral',
     name: 'Link Geral / Materiais',
@@ -67,28 +85,31 @@ export function normalizeText(text: string): string {
 }
 
 /**
- * Carrega as regras ativas (do Redis se existirem, ou o fallback padrão).
+ * Carrega as regras ativas (do Redis se disponível e configurado, ou fallback padrão instantâneo).
  */
 export async function getActiveRules(): Promise<AutomationRule[]> {
-  try {
-    const res = await fetch(UPSTASH_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(['GET', REDIS_RULES_KEY]),
-      cache: 'no-store',
-    });
-    const json = await res.json();
-    if (json && json.result) {
-      const parsed = typeof json.result === 'string' ? JSON.parse(json.result) : json.result;
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.filter((r) => r.active);
+  if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
+    try {
+      const res = await fetch(UPSTASH_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(['GET', REDIS_RULES_KEY]),
+        cache: 'no-store',
+        signal: AbortSignal.timeout(1000),
+      });
+      const json = await res.json();
+      if (json && json.result) {
+        const parsed = typeof json.result === 'string' ? JSON.parse(json.result) : json.result;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((r) => r.active);
+        }
       }
+    } catch (err) {
+      console.warn('Falha ao carregar regras do Redis, usando regras padrão:', err);
     }
-  } catch (err) {
-    console.warn('Falha ao carregar regras do Redis, usando regras padrão:', err);
   }
   return DEFAULT_RULES.filter((r) => r.active);
 }
@@ -107,18 +128,17 @@ export async function matchRule(rawText: string): Promise<AutomationRule | null>
   for (const rule of rules) {
     for (const kw of rule.keywords) {
       const normKw = normalizeText(kw);
-      // Se a palavra exata está presente ou se o texto completo é a palavra-chave
       if (words.includes(normKw) || normalized === normKw) {
         return rule;
       }
     }
   }
 
-  // 2. Busca substring se palavra tiver pelo menos 4 caracteres (ex: 'materiais' -> 'material')
+  // 2. Busca substring se palavra tiver pelo menos 3 caracteres (ex: 'oi', 'link', 'rotina')
   for (const rule of rules) {
     for (const kw of rule.keywords) {
       const normKw = normalizeText(kw);
-      if (normKw.length >= 4 && normalized.includes(normKw)) {
+      if (normKw.length >= 3 && normalized.includes(normKw)) {
         return rule;
       }
     }

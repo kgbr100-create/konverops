@@ -134,6 +134,11 @@ async function handleMessagingItem(item: InstagramMessagingItem): Promise<void> 
       keywordMatched: 'fallback_story_reply',
       isStoryReply: true,
     });
+  } else {
+    // Resposta padrão caso nenhuma palavra-chave específica seja acionada
+    const defaultReply =
+      'Olá! Seja muito bem-vindo(a) ao Kit Autismo. 💙\n\nNossa automação está 100% ativa para te apoiar:\n\n👉 Para receber nossos materiais e guias exclusivos, responda com a palavra "LINK";\n👉 Para orientações sobre terapias e cobertura de planos/SUS, responda "DIREITOS";\n👉 Para dicas e apoio na seletividade alimentar, responda "ALIMENTACAO";\n👉 Para quadros de rotinas e previsibilidade, responda "ROTINA";\n\nQualquer dúvida, nossa equipe acolherá com muito carinho!';
+    await sendDirectMessage(senderId, defaultReply);
   }
 }
 
