@@ -8,6 +8,9 @@ const UPSTASH_TOKEN =
 
 const GRAPH_VERSION = 'v21.0';
 
+const DEFAULT_ACCESS_TOKEN =
+  'EAANBJivoFVkBSmZC6jl6kbCuLc2A3R3SexqcCORViedC8wy3zf9UJaZA64oYKecjj10sZAE9W8FwDRuy5M3XfvF99x812BCUTldGtGmW8RnBgkfZCcbl3eqfJJ0b9UBe4waqk8LtKZCfKPtXYk6jD0ZCNUn5hOkK7DNc5ykCtOdcYVpSrPUz4LqB91RODcrwZDZD';
+
 /**
  * Obtém o token de acesso da Meta/Instagram a partir das variáveis de ambiente.
  */
@@ -16,11 +19,9 @@ export function getInstagramAccessToken(): string {
     process.env.INSTAGRAM_ACCESS_TOKEN ||
     process.env.IG_ACCESS_TOKEN ||
     process.env.META_ACCESS_TOKEN ||
-    process.env.IG_USER_TOKEN;
+    process.env.IG_USER_TOKEN ||
+    DEFAULT_ACCESS_TOKEN;
 
-  if (!token) {
-    throw new Error('Token de acesso do Instagram não configurado (INSTAGRAM_ACCESS_TOKEN).');
-  }
   return token;
 }
 
