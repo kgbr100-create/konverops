@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getActiveRules, DEFAULT_RULES } from '@/lib/instagram/rules';
 import { verifySessionToken } from '@/lib/auth';
 
-const UPSTASH_URL =
-  process.env.UPSTASH_REDIS_REST_URL || 'https://unique-ladybird-238762.upstash.io';
-const UPSTASH_TOKEN =
-  process.env.UPSTASH_REDIS_REST_TOKEN ||
-  'gQAAAAAAA6SqAQIgcDJhNWRkZTM5N2E1ODQ0NTIxYmM4YjA0ZjgzNDU3NTc2YQ';
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const ADMIN_SECRET =
   process.env.ADMIN_SECRET || 'konverops-admin-auth-secret-key-2026-kelvin';
@@ -28,35 +25,38 @@ export async function GET() {
   try {
     const rules = await getActiveRules();
 
-    // Busca métricas recentes do Redis
     let recentLogs = [];
     let totalAllTime = 0;
-    try {
-      const res = await fetch(`${UPSTASH_URL}/pipeline`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${UPSTASH_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([
-          ['LRANGE', 'konverops:ig:logs:recent', 0, 19],
-          ['GET', 'konverops:ig:metrics:all_time:total'],
-        ]),
-        cache: 'no-store',
-      });
-      const json = await res.json();
-      if (Array.isArray(json)) {
-        recentLogs = (json[0]?.result || []).map((item: string) => {
-          try {
-            return JSON.parse(item);
-          } catch {
-            return item;
-          }
+
+    if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
+      try {
+        const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${UPSTASH_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([
+            ['LRANGE', 'konverops:ig:logs:recent', 0, 19],
+            ['GET', 'konverops:ig:metrics:all_time:total'],
+          ]),
+          cache: 'no-store',
+          signal: AbortSignal.timeout(1000),
         });
-        totalAllTime = parseInt(json[1]?.result || '0', 10);
+        const json = await res.json();
+        if (Array.isArray(json)) {
+          recentLogs = (json[0]?.result || []).map((item: string) => {
+            try {
+              return JSON.parse(item);
+            } catch {
+              return item;
+            }
+          });
+          totalAllTime = parseInt(json[1]?.result || '0', 10);
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar logs/métricas:', err);
       }
-    } catch (err) {
-      console.warn('Erro ao carregar logs/métricas:', err);
     }
 
     return NextResponse.json({
@@ -92,20 +92,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Salva no Redis
-    await fetch(UPSTASH_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify([
-        'SET',
-        'konverops:instagram:rules',
-        JSON.stringify(rules),
-      ]),
-      cache: 'no-store',
-    });
+    if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
+      try {
+        await fetch(UPSTASH_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${UPSTASH_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([
+            'SET',
+            'konverops:instagram:rules',
+            JSON.stringify(rules),
+          ]),
+          cache: 'no-store',
+          signal: AbortSignal.timeout(2000),
+        });
+      } catch (err) {
+        console.warn('Aviso: falha ao persistir regras no Upstash Redis:', err);
+      }
+    }
 
     return NextResponse.json({
       success: true,
