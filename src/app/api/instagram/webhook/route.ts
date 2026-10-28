@@ -55,7 +55,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Payload JSON inválido' }, { status: 400 });
     }
 
-    if (body.object !== 'instagram') {
+    console.log('[Meta Webhook Incoming]', JSON.stringify(body));
+
+    if (body.object !== 'instagram' && body.object !== 'page') {
       return NextResponse.json({ received: true }, { status: 200 });
     }
 

@@ -9,7 +9,9 @@ const UPSTASH_TOKEN =
 const GRAPH_VERSION = 'v21.0';
 
 const DEFAULT_ACCESS_TOKEN =
-  'EAANBJivoFVkBSmZC6jl6kbCuLc2A3R3SexqcCORViedC8wy3zf9UJaZA64oYKecjj10sZAE9W8FwDRuy5M3XfvF99x812BCUTldGtGmW8RnBgkfZCcbl3eqfJJ0b9UBe4waqk8LtKZCfKPtXYk6jD0ZCNUn5hOkK7DNc5ykCtOdcYVpSrPUz4LqB91RODcrwZDZD';
+  'EAANBJivoFVkBS5wN57Gi0q5KAmhSgH7UFe6oRycCNw5M3BIL02HcZBVb6QF23HXDIKttAt6eEL5jpTpJncJDb4BqAxtVa12O8Jw3wRv74hQKUGTqPPZCK3FzrppURt8atZCvamHPBadQNbcQD3sZBloNnjQ67X110BFGZCFfefKLZA9N1DbKdj3FZBUFDW6HpOOyjVeuEY8z9PbW7cZCizAkvquusnFB9Oi2qaVo60jbmiwZD';
+
+const DEFAULT_IG_USER_ID = '17841449325469220';
 
 /**
  * Obtém o token de acesso da Meta/Instagram a partir das variáveis de ambiente.
@@ -39,6 +41,7 @@ export async function isMessageAlreadyProcessed(mid: string): Promise<boolean> {
       },
       body: JSON.stringify(['GET', `konverops:ig:mid:${mid}`]),
       cache: 'no-store',
+      signal: AbortSignal.timeout(2000),
     });
     const json = await res.json();
     return json.result !== null;
@@ -62,6 +65,7 @@ export async function markMessageAsProcessed(mid: string): Promise<void> {
       },
       body: JSON.stringify(['SET', `konverops:ig:mid:${mid}`, '1', 'EX', 172800]), // 48h
       cache: 'no-store',
+      signal: AbortSignal.timeout(2000),
     });
   } catch (err) {
     console.warn('Erro ao marcar mid no Redis:', err);
@@ -117,6 +121,7 @@ export async function trackInstagramInteraction(data: {
       },
       body: JSON.stringify(commands),
       cache: 'no-store',
+      signal: AbortSignal.timeout(2000),
     });
   } catch (err) {
     console.warn('Erro ao registrar métricas de automação no Redis:', err);
@@ -132,12 +137,16 @@ export async function sendDirectMessage(
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     const token = getInstagramAccessToken();
+    const igUserId =
+      process.env.INSTAGRAM_USER_ID || process.env.IG_USER_ID || DEFAULT_IG_USER_ID;
+
     const payload: InstagramSendMessagePayload = {
       recipient: { id: recipientId },
       message: { text },
     };
 
-    const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/me/messages`, {
+    // Tentativa 1: Endpoint canônico /{igUserId}/messages
+    let res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${igUserId}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -146,7 +155,25 @@ export async function sendDirectMessage(
       body: JSON.stringify(payload),
     });
 
-    const json = await res.json();
+    let json = await res.json();
+
+    // Fallback caso necessário: /me/messages
+    if (!res.ok || json.error) {
+      console.warn(`Tentativa em /${igUserId}/messages falhou, testando /me/messages:`, json.error);
+      const fallbackRes = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/me/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const fallbackJson = await fallbackRes.json();
+      if (fallbackRes.ok && !fallbackJson.error) {
+        res = fallbackRes;
+        json = fallbackJson;
+      }
+    }
 
     if (!res.ok || json.error) {
       const errorMsg = json.error ? JSON.stringify(json.error) : `Status ${res.status}`;
@@ -171,12 +198,15 @@ export async function sendPrivateReplyToComment(
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     const token = getInstagramAccessToken();
+    const igUserId =
+      process.env.INSTAGRAM_USER_ID || process.env.IG_USER_ID || DEFAULT_IG_USER_ID;
+
     const payload = {
       recipient: { comment_id: commentId },
       message: { text },
     };
 
-    const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/me/messages`, {
+    let res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${igUserId}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -185,7 +215,23 @@ export async function sendPrivateReplyToComment(
       body: JSON.stringify(payload),
     });
 
-    const json = await res.json();
+    let json = await res.json();
+
+    if (!res.ok || json.error) {
+      const fallbackRes = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/me/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const fallbackJson = await fallbackRes.json();
+      if (fallbackRes.ok && !fallbackJson.error) {
+        res = fallbackRes;
+        json = fallbackJson;
+      }
+    }
 
     if (!res.ok || json.error) {
       const errorMsg = json.error ? JSON.stringify(json.error) : `Status ${res.status}`;
