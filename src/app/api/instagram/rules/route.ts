@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveRules, DEFAULT_RULES } from '@/lib/instagram/rules';
+import { verifySessionToken } from '@/lib/auth';
 
 const UPSTASH_URL =
   process.env.UPSTASH_REDIS_REST_URL || 'https://unique-ladybird-238762.upstash.io';
@@ -9,6 +10,19 @@ const UPSTASH_TOKEN =
 
 const ADMIN_SECRET =
   process.env.ADMIN_SECRET || 'konverops-admin-auth-secret-key-2026-kelvin';
+
+async function isAuthorized(request: NextRequest): Promise<boolean> {
+  const authHeader = request.headers.get('authorization') || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (token === ADMIN_SECRET) return true;
+
+  const sessionCookie = request.cookies.get('konverops_admin_session')?.value;
+  if (sessionCookie) {
+    const session = await verifySessionToken(sessionCookie);
+    if (session.valid) return true;
+  }
+  return false;
+}
 
 export async function GET() {
   try {
@@ -61,10 +75,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization') || '';
-    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-
-    if (token !== ADMIN_SECRET) {
+    if (!(await isAuthorized(request))) {
       return NextResponse.json(
         { success: false, error: 'Acesso não autorizado.' },
         { status: 401 }

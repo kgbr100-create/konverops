@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import ImageCropperModal from '@/components/ImageCropperModal';
 import type {
@@ -702,6 +703,18 @@ export default function AdminDashboardPage() {
               + Criar Novo Cliente
             </button>
           )}
+
+          <Link
+            href="/admin/instagram"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-emerald-500/20 hover:from-pink-500/30 hover:to-emerald-500/30 text-white text-xs font-bold border border-purple-500/30 transition-all flex items-center gap-1.5 shadow-md shadow-purple-500/10 mr-1"
+            title="Automações de Instagram (ManyChat Engine)"
+          >
+            <span className="text-pink-400">⚡</span>
+            <span>Instagram Automations</span>
+            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Live
+            </span>
+          </Link>
 
           {/* ADMIN USER CONTROLS: CHANGE PASSWORD & LOGOUT */}
           <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">

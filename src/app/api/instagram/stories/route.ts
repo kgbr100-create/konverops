@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { publishStory } from '@/lib/instagram/stories';
+import { verifySessionToken } from '@/lib/auth';
 
 const ADMIN_SECRET =
   process.env.ADMIN_SECRET || 'konverops-admin-auth-secret-key-2026-kelvin';
 
+async function isAuthorized(request: NextRequest): Promise<boolean> {
+  const authHeader = request.headers.get('authorization') || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (token === ADMIN_SECRET) return true;
+
+  const sessionCookie = request.cookies.get('konverops_admin_session')?.value;
+  if (sessionCookie) {
+    const session = await verifySessionToken(sessionCookie);
+    if (session.valid) return true;
+  }
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Autenticação simples por Bearer token ou header de API key
-    const authHeader = request.headers.get('authorization') || '';
-    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-
-    if (token !== ADMIN_SECRET) {
+    if (!(await isAuthorized(request))) {
       return NextResponse.json(
         { success: false, error: 'Acesso não autorizado.' },
         { status: 401 }
