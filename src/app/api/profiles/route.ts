@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getClientsRecord, saveClientProfile, deleteClientProfile } from '@/lib/profiles-store';
 import type { ClientProfile } from '@/data/profiles';
 
@@ -41,6 +42,14 @@ export async function POST(request: Request) {
 
     await saveClientProfile(profileToSave);
 
+    try {
+      revalidatePath(`/${normalizedSlug}`);
+      revalidatePath('/[slug]', 'page');
+      revalidatePath('/admin');
+    } catch (revalErr) {
+      console.warn('Aviso: falha ao revalidar cache:', revalErr);
+    }
+
     return NextResponse.json({ success: true, profile: profileToSave });
   } catch (error) {
     console.error('Error saving profile:', error);
@@ -76,6 +85,14 @@ export async function DELETE(request: Request) {
         { success: false, error: 'Perfil não encontrado.' },
         { status: 404 }
       );
+    }
+
+    try {
+      revalidatePath(`/${slug}`);
+      revalidatePath('/[slug]', 'page');
+      revalidatePath('/admin');
+    } catch (revalErr) {
+      console.warn('Aviso: falha ao revalidar cache:', revalErr);
     }
 
     return NextResponse.json({ success: true, deletedSlug: slug });

@@ -798,6 +798,47 @@ export default function AdminDashboardPage() {
                 ← Voltar aos Clientes
               </button>
               <button
+                type="button"
+                onClick={() => {
+                  const currentData = {
+                    slug: slug.trim().toLowerCase(),
+                    showHero,
+                    avatarUrl: avatarUrl.trim(),
+                    name: name.trim() || slug.trim(),
+                    title: title.trim(),
+                    description: description.trim(),
+                    showNicheBadge,
+                    nicheBadge: nicheBadge.trim(),
+                    badgeBgColor,
+                    badgeTextColor,
+                    nameColor,
+                    titleColor,
+                    descriptionColor,
+                    pageBgColor,
+                    cardBgColor,
+                    bannerBorderRadius,
+                    bannerBorderStyle,
+                    bannerShadow,
+                    bannerElevation,
+                    bgType,
+                    bgImageUrl: bgImageUrl.trim(),
+                    bgOpacity,
+                    bgBlur,
+                    metaPixelId: metaPixelId.trim(),
+                    metaAccessToken: metaAccessToken.trim(),
+                    metaTestEventCode: metaTestEventCode.trim(),
+                    footerUrl: `konverops.tech/${slug.trim().toLowerCase()}`,
+                    banners,
+                  };
+                  navigator.clipboard.writeText(JSON.stringify(currentData, null, 2));
+                  alert('Configuração JSON do cliente copiada com sucesso!');
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
+                title="Copiar JSON da configuração atual"
+              >
+                📋 Copiar JSON
+              </button>
+              <button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
                 className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black tracking-wide uppercase transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
