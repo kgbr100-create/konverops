@@ -1,10 +1,13 @@
-const UPSTASH_URL =
-  process.env.UPSTASH_REDIS_REST_URL || 'https://unique-ladybird-238762.upstash.io';
-const UPSTASH_TOKEN =
-  process.env.UPSTASH_REDIS_REST_TOKEN ||
-  'gQAAAAAAA6SqAQIgcDJhNWRkZTM5N2E1ODQ0NTIxYmM4YjA0ZjgzNDU3NTc2YQ';
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const isRedisConfigured = Boolean(
+  UPSTASH_URL &&
+  UPSTASH_TOKEN &&
+  !UPSTASH_URL.includes('unique-ladybird-238762')
+);
 
 async function redisPipeline(commands: (string | number)[][]): Promise<any[]> {
+  if (!isRedisConfigured) return [];
   try {
     const res = await fetch(`${UPSTASH_URL}/pipeline`, {
       method: 'POST',
@@ -14,11 +17,12 @@ async function redisPipeline(commands: (string | number)[][]): Promise<any[]> {
       },
       body: JSON.stringify(commands),
       cache: 'no-store',
+      signal: AbortSignal.timeout(1200),
     });
+    if (!res.ok) return [];
     const json = await res.json();
     return Array.isArray(json) ? json.map((item) => item.result) : [];
   } catch (error) {
-    console.error('Redis Pipeline Error:', error);
     return [];
   }
 }

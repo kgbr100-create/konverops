@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 192" width="640" height="192">
+  <defs>
+    <linearGradient id="bgKit" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0369a1"/>
+      <stop offset="60%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#082f49"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="192" rx="16" fill="url(#bgKit)" stroke="#38bdf8" stroke-width="1.5"/>
+  <rect x="0" y="0" width="8" height="192" rx="4" fill="#38bdf8"/>
+
+  <g transform="translate(36, 42)">
+    <rect x="0" y="0" width="140" height="22" rx="6" fill="#ffffff" fill-opacity="0.2"/>
+    <text x="8" y="15" fill="#ffffff" font-family="system-ui, sans-serif" font-size="11" font-weight="700" letter-spacing="1">MATERIAIS ESTRUTURADOS</text>
+    <text x="0" y="52" fill="#ffffff" font-family="system-ui, sans-serif" font-size="24" font-weight="800">Kit de Atividades Adaptadas</text>
+    <text x="0" y="78" fill="#e0f2fe" font-family="system-ui, sans-serif" font-size="13" font-weight="500">Cadernos de alfabetização, estímulo sensorial e desenvolvimento TEA</text>
+    <g transform="translate(0, 94)">
+      <rect width="180" height="28" rx="6" fill="#ffffff"/>
+      <text x="14" y="18" fill="#0369a1" font-family="system-ui, sans-serif" font-size="12" font-weight="800">Acessar Atividades 🧩</text>
+    </g>
+  </g>
+</svg>

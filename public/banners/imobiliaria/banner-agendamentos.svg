@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 192" width="640" height="192">
+  <defs>
+    <linearGradient id="bgImob1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f291e"/>
+      <stop offset="60%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#051f14"/>
+    </linearGradient>
+    <linearGradient id="greenImob" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="192" rx="16" fill="url(#bgImob1)" stroke="#166534" stroke-width="1.5"/>
+  <rect x="0" y="0" width="8" height="192" rx="4" fill="url(#greenImob)"/>
+
+  <!-- Key / House Icon -->
+  <g opacity="0.15" transform="translate(480, 25)">
+    <polygon points="50,10 10,45 90,45" fill="#ffffff"/>
+    <rect x="22" y="45" width="56" height="45" fill="#ffffff"/>
+  </g>
+
+  <!-- Content -->
+  <g transform="translate(36, 42)">
+    <rect x="0" y="0" width="130" height="22" rx="6" fill="#22c55e" fill-opacity="0.18"/>
+    <text x="8" y="15" fill="#86efac" font-family="system-ui, sans-serif" font-size="11" font-weight="700" letter-spacing="1">EXPERIÊNCIA EXCLUSIVA</text>
+    <text x="0" y="52" fill="#ffffff" font-family="system-ui, sans-serif" font-size="24" font-weight="800">Agendamentos e Visitas</text>
+    <text x="0" y="78" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="13" font-weight="500">Agende sua visita para conhecer os imóveis de alto padrão disponíveis</text>
+    <g transform="translate(0, 94)">
+      <rect width="165" height="28" rx="6" fill="url(#greenImob)"/>
+      <text x="14" y="18" fill="#ffffff" font-family="system-ui, sans-serif" font-size="12" font-weight="700">Agendar Visita 🔑</text>
+    </g>
+  </g>
+</svg>

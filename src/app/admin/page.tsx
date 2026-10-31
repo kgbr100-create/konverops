@@ -169,6 +169,7 @@ export default function AdminDashboardPage() {
   };
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const backupInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -200,15 +201,116 @@ export default function AdminDashboardPage() {
       setLoading(true);
       const res = await fetch('/api/profiles');
       const data = await res.json();
-      if (data.success && data.profiles) {
-        setProfiles(data.profiles);
-        fetchSummaryForProfiles(data.profiles);
+      let activeProfiles: ClientProfile[] =
+        data.success && data.profiles ? data.profiles : [];
+
+      // Blindagem & Sincronização Automática com LocalStorage
+      if (typeof window !== 'undefined') {
+        const localBackupRaw = localStorage.getItem('konverops_bio_profiles_backup');
+        if (localBackupRaw) {
+          try {
+            const localProfiles: ClientProfile[] = JSON.parse(localBackupRaw);
+            if (Array.isArray(localProfiles) && localProfiles.length > 0) {
+              const missingOnServer = localProfiles.filter(
+                (lp) =>
+                  !activeProfiles.some(
+                    (sp) => sp.slug.toLowerCase() === lp.slug.toLowerCase()
+                  )
+              );
+              if (missingOnServer.length > 0) {
+                console.log(
+                  'Restaurando perfis locais para o servidor Konverops:',
+                  missingOnServer
+                );
+                for (const p of missingOnServer) {
+                  try {
+                    await fetch('/api/profiles', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(p),
+                    });
+                    activeProfiles.push(p);
+                  } catch (e) {
+                    console.error('Falha ao restaurar perfil:', p.slug, e);
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Erro ao processar backup local do navegador:', e);
+          }
+        }
+        localStorage.setItem(
+          'konverops_bio_profiles_backup',
+          JSON.stringify(activeProfiles)
+        );
       }
+
+      setProfiles(activeProfiles);
+      fetchSummaryForProfiles(activeProfiles);
     } catch (err) {
       console.error('Falha ao carregar perfis:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExportBackup = () => {
+    try {
+      const dataStr =
+        'data:text/json;charset=utf-8,' +
+        encodeURIComponent(JSON.stringify(profiles, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute(
+        'download',
+        `konverops-bio-studio-backup-${new Date().toISOString().slice(0, 10)}.json`
+      );
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch (e) {
+      alert('Falha ao exportar backup de clientes.');
+    }
+  };
+
+  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const raw = event.target?.result as string;
+        const imported: ClientProfile[] = JSON.parse(raw);
+        if (Array.isArray(imported) && imported.length > 0) {
+          if (
+            !confirm(
+              `Deseja restaurar/importar ${imported.length} perfil(is) de clientes para o Bio Studio?`
+            )
+          ) {
+            return;
+          }
+          setLoading(true);
+          for (const prof of imported) {
+            await fetch('/api/profiles', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(prof),
+            });
+          }
+          alert('Backup importado com sucesso!');
+          await fetchProfiles();
+        } else {
+          alert('Arquivo de backup inválido.');
+        }
+      } catch {
+        alert('Erro ao processar arquivo JSON de backup.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const fetchSummaryForProfiles = async (profs: ClientProfile[]) => {
@@ -353,6 +455,18 @@ export default function AdminDashboardPage() {
       });
       const data = await res.json();
       if (data.success) {
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('konverops_bio_profiles_backup');
+            if (raw) {
+              const list: ClientProfile[] = JSON.parse(raw);
+              const filtered = list.filter(
+                (p) => p.slug.toLowerCase() !== slugToDelete.toLowerCase()
+              );
+              localStorage.setItem('konverops_bio_profiles_backup', JSON.stringify(filtered));
+            }
+          } catch {}
+        }
         await fetchProfiles();
         if (slug === slugToDelete) {
           setView('list');
@@ -595,6 +709,23 @@ export default function AdminDashboardPage() {
 
       const data = await res.json();
       if (data.success) {
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('konverops_bio_profiles_backup');
+            const list: ClientProfile[] = raw ? JSON.parse(raw) : [];
+            const idx = list.findIndex(
+              (p) => p.slug.toLowerCase() === profileData.slug.toLowerCase()
+            );
+            if (idx >= 0) {
+              list[idx] = profileData;
+            } else {
+              list.push(profileData);
+            }
+            localStorage.setItem('konverops_bio_profiles_backup', JSON.stringify(list));
+          } catch (e) {
+            console.warn('Erro ao sincronizar com localStorage:', e);
+          }
+        }
         setSaveSuccessUrl(`https://www.konverops.tech/${profileData.slug}`);
         await fetchProfiles();
       } else {
@@ -696,12 +827,37 @@ export default function AdminDashboardPage() {
           )}
 
           {view === 'list' && (
-            <button
-              onClick={handleCreateNew}
-              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 mr-2"
-            >
-              + Criar Novo Cliente
-            </button>
+            <div className="flex items-center gap-2 mr-2">
+              <input
+                type="file"
+                ref={backupInputRef}
+                onChange={handleImportBackup}
+                accept=".json,application/json"
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                title="Exportar todos os clientes em arquivo JSON de backup"
+                className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>💾 Exportar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => backupInputRef.current?.click()}
+                title="Restaurar clientes a partir de um arquivo JSON"
+                className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>📥 Importar</span>
+              </button>
+              <button
+                onClick={handleCreateNew}
+                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
+              >
+                + Criar Novo Cliente
+              </button>
+            </div>
           )}
 
           <Link

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 192" width="640" height="192">
+  <defs>
+    <linearGradient id="bgWpp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22"/>
+      <stop offset="60%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#021f18"/>
+    </linearGradient>
+    <linearGradient id="greenAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <filter id="glowGreen" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#22c55e" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="640" height="192" rx="16" fill="url(#bgWpp)" stroke="#065f46" stroke-width="1.5"/>
+  <rect x="0" y="0" width="8" height="192" rx="4" fill="url(#greenAccent)"/>
+
+  <!-- WhatsApp Icon in background -->
+  <g opacity="0.12" transform="translate(470, 30)">
+    <circle cx="60" cy="60" r="54" fill="#25D366"/>
+  </g>
+
+  <!-- Content -->
+  <g transform="translate(36, 42)">
+    <rect x="0" y="0" width="140" height="22" rx="6" fill="#22c55e" fill-opacity="0.18"/>
+    <text x="8" y="15" fill="#86efac" font-family="system-ui, sans-serif" font-size="11" font-weight="700" letter-spacing="1">RESPOSTA IMEDIATA</text>
+    <text x="0" y="52" fill="#ffffff" font-family="system-ui, sans-serif" font-size="24" font-weight="800">Falar com Consultor no WhatsApp</text>
+    <text x="0" y="78" fill="#a7f3d0" font-family="system-ui, sans-serif" font-size="13" font-weight="500">Tire dúvidas sobre modelos, fotos detalhadas e proposta online</text>
+    <g transform="translate(0, 94)">
+      <rect width="170" height="28" rx="6" fill="url(#greenAccent)" filter="url(#glowGreen)"/>
+      <text x="14" y="18" fill="#ffffff" font-family="system-ui, sans-serif" font-size="12" font-weight="700">Chamar no WhatsApp 💬</text>
+    </g>
+  </g>
+</svg>

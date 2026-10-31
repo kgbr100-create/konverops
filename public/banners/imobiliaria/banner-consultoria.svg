@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 192" width="640" height="192">
+  <defs>
+    <linearGradient id="bgCons" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="60%" stop-color="#2e1065"/>
+      <stop offset="100%" stop-color="#0f0728"/>
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="192" rx="16" fill="url(#bgCons)" stroke="#581c87" stroke-width="1.5"/>
+  <rect x="0" y="0" width="8" height="192" rx="4" fill="url(#goldAccent)"/>
+
+  <g transform="translate(36, 42)">
+    <rect x="0" y="0" width="130" height="22" rx="6" fill="#eab308" fill-opacity="0.18"/>
+    <text x="8" y="15" fill="#fde047" font-family="system-ui, sans-serif" font-size="11" font-weight="700" letter-spacing="1">INVESTIMENTOS</text>
+    <text x="0" y="52" fill="#ffffff" font-family="system-ui, sans-serif" font-size="24" font-weight="800">Consultoria Imobiliária</text>
+    <text x="0" y="78" fill="#e9d5ff" font-family="system-ui, sans-serif" font-size="13" font-weight="500">Análise de rentabilidade e valuation para investidores de alta renda</text>
+    <g transform="translate(0, 94)">
+      <rect width="180" height="28" rx="6" fill="url(#goldAccent)"/>
+      <text x="14" y="18" fill="#0f172a" font-family="system-ui, sans-serif" font-size="12" font-weight="800">Agendar Consultoria 💼</text>
+    </g>
+  </g>
+</svg>
