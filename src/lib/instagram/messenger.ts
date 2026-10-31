@@ -5,9 +5,9 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const GRAPH_VERSION = 'v21.0';
 
-// Token definitivo SYSTEM_USER do Business Manager (expires_at: 0, nunca expira)
+// Token definitivo SYSTEM_USER do Business Manager (expires_at: 0, nunca expira, 15 escopos completos)
 export const PERMANENT_SYSTEM_USER_TOKEN =
-  'EAANBJivoFVkBSmZC6jl6kbCuLc2A3R3SexqcCORViedC8wy3zf9UJaZA64oYKecjj10sZAE9W8FwDRuy5M3XfvF99x812BCUTldGtGmW8RnBgkfZCcbl3eqfJJ0b9UBe4waqk8LtKZCfKPtXYk6jD0ZCNUn5hOkK7DNc5ykCtOdcYVpSrPUz4LqB91RODcrwZDZD';
+  'EAANBJivoFVkBS8wiSJcopuEOq3yZAGL1Rs1WoZB6T1eAwMghjvD1nNz31nUZAUR6ikG35ZCFKaKtk1onYVrOfKzc7ot7MGE6zIyElU2n1nvmXNvZBUejyqUZBYR2wPnZA1IHsaUhdy911mt0lOtEhsIhGNl5CEEqWWPceG7y3mze2d2qhGZBKlkqPkJtXiNE8AZDZD';
 
 export const DEFAULT_IG_USER_ID = '17841449325469220';
 export const DEFAULT_PAGE_ID = '107217145361448';
@@ -16,7 +16,7 @@ export const DEFAULT_PAGE_ID = '107217145361448';
 const inMemoryProcessedMids = new Set<string>();
 
 /**
- * Obtém o token de acesso da Meta/Instagram priorizando o token permanente SYSTEM_USER.
+ * Obtém o token de acesso da Meta/Instagram priorizando o token permanente SYSTEM_USER com 15 escopos.
  */
 export function getInstagramAccessToken(): string {
   const envToken =
@@ -25,8 +25,12 @@ export function getInstagramAccessToken(): string {
     process.env.IG_ACCESS_TOKEN ||
     process.env.META_ACCESS_TOKEN;
 
-  // Se a variável de ambiente contiver o token antigo expirado (BS3Dj7Fo...), força o token permanente
-  if (!envToken || envToken.includes('BS3Dj7FoGFHa6yOMdMiz')) {
+  // Se a variável de ambiente contiver tokens antigos ou sem escopo de DM, força o token permanente atualizado
+  if (
+    !envToken ||
+    envToken.includes('BS3Dj7FoGFHa6yOMdMiz') ||
+    envToken.includes('BSmZC6jl6kbCuLc2A3R3')
+  ) {
     return PERMANENT_SYSTEM_USER_TOKEN;
   }
 
