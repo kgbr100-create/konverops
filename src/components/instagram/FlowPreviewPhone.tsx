@@ -7,7 +7,7 @@ import {
   DEFAULT_FOLLOW_GATE_TEXT,
   DEFAULT_PUBLIC_REPLY_VARIATIONS,
   DEFAULT_TWO_STEP_PROMPT_TEXT,
-} from '@/lib/instagram/rules';
+} from '@/lib/instagram/constants';
 
 export type PhonePreviewTab = 'entry' | 'comments' | 'dm_flow' | 'retry_gate';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   AutomationRule,
@@ -16,7 +16,7 @@ import {
   DEFAULT_PUBLIC_REPLY_VARIATIONS,
   DEFAULT_TWO_STEP_PROMPT_TEXT,
   TWO_STEP_TEMPLATES,
-} from '@/lib/instagram/rules';
+} from '@/lib/instagram/constants';
 import FlowPreviewPhone from '@/components/instagram/FlowPreviewPhone';
 
 interface InstagramMediaItem {
@@ -113,17 +113,55 @@ export default function InstagramFlowStudioV3() {
   // Feedback de cópia
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
-  // Carrega regras e métricas
+  const rulesBackupInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Carrega regras e métricas com auto-recuperação do LocalStorage
   const fetchRules = async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/instagram/rules');
       const data = await res.json();
-      if (data.success) {
-        setRules(data.rules || []);
-        if (data.metrics) {
-          setMetrics(data.metrics);
+      let activeRulesList: AutomationRule[] =
+        data.success && Array.isArray(data.rules) ? data.rules : [];
+
+      // Blindagem & Sincronização Automática com LocalStorage do Navegador
+      if (typeof window !== 'undefined') {
+        const localBackupRaw = localStorage.getItem('konverops_flow_rules_backup');
+        if (localBackupRaw) {
+          try {
+            const localRules: AutomationRule[] = JSON.parse(localBackupRaw);
+            if (Array.isArray(localRules) && localRules.length > 0) {
+              let hasDifferences = false;
+              // Preserva o estado exato (ativo/pausado) que o usuário escolheu
+              const merged = activeRulesList.map((serverRule) => {
+                const localMatch = localRules.find((lr) => lr.id === serverRule.id);
+                if (localMatch && localMatch.active !== serverRule.active) {
+                  hasDifferences = true;
+                  return { ...serverRule, active: localMatch.active };
+                }
+                return serverRule;
+              });
+
+              if (hasDifferences) {
+                console.log('Sincronizando estado das regras do localStorage com o servidor:', merged);
+                activeRulesList = merged;
+                await fetch('/api/instagram/rules', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ rules: merged }),
+                });
+              }
+            }
+          } catch (e) {
+            console.warn('Erro ao processar backup de regras do localStorage:', e);
+          }
         }
+        localStorage.setItem('konverops_flow_rules_backup', JSON.stringify(activeRulesList));
+      }
+
+      setRules(activeRulesList);
+      if (data.metrics) {
+        setMetrics(data.metrics);
       }
     } catch (err) {
       console.error('Erro ao carregar regras de automação:', err);
@@ -230,10 +268,14 @@ export default function InstagramFlowStudioV3() {
     });
   }, [rules, categoryFilter]);
 
-  // Salva lista de regras no backend (Upstash Redis)
+  // Salva lista de regras no backend (Memória + Disco Local + Redis) e espelha no LocalStorage
   const saveRulesToBackend = async (newRulesList: AutomationRule[]) => {
     try {
       setSaving(true);
+      // Salva imediatamente no localStorage do navegador para persistência instantânea
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('konverops_flow_rules_backup', JSON.stringify(newRulesList));
+      }
       const res = await fetch('/api/instagram/rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -251,6 +293,54 @@ export default function InstagramFlowStudioV3() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleExportRulesBackup = () => {
+    try {
+      const dataStr =
+        'data:text/json;charset=utf-8,' +
+        encodeURIComponent(JSON.stringify(rules, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute(
+        'download',
+        `konverops-fluxos-backup-${new Date().toISOString().slice(0, 10)}.json`
+      );
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch {
+      alert('Falha ao exportar backup de regras.');
+    }
+  };
+
+  const handleImportRulesBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const raw = event.target?.result as string;
+        const imported: AutomationRule[] = JSON.parse(raw);
+        if (Array.isArray(imported) && imported.length > 0) {
+          if (
+            !confirm(
+              `Deseja restaurar/importar ${imported.length} fluxo(s) de automação para o Flow Studio?`
+            )
+          ) {
+            return;
+          }
+          await saveRulesToBackend(imported);
+          alert('Fluxos importados com sucesso!');
+        } else {
+          alert('Arquivo de backup inválido.');
+        }
+      } catch {
+        alert('Erro ao processar arquivo JSON de backup.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   // Toggle ativo/inativo de um fluxo
@@ -833,6 +923,29 @@ export default function InstagramFlowStudioV3() {
               >
                 ← Bio Studio
               </Link>
+              <input
+                type="file"
+                ref={rulesBackupInputRef}
+                onChange={handleImportRulesBackup}
+                accept=".json,application/json"
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={handleExportRulesBackup}
+                title="Exportar todos os fluxos em arquivo JSON de backup"
+                className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>💾 Exportar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => rulesBackupInputRef.current?.click()}
+                title="Restaurar fluxos a partir de um arquivo JSON"
+                className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
+              >
+                <span>📥 Importar</span>
+              </button>
               <button
                 type="button"
                 onClick={handleCreateStoryPollRule}

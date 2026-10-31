@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllRules } from '@/lib/instagram/rules';
+import { getAllRules, saveAllRules } from '@/lib/instagram/rules';
 import { verifySessionToken } from '@/lib/auth';
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
@@ -108,26 +108,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
-      try {
-        await fetch(UPSTASH_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${UPSTASH_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify([
-            'SET',
-            'konverops:instagram:rules',
-            JSON.stringify(rules),
-          ]),
-          cache: 'no-store',
-          signal: AbortSignal.timeout(2000),
-        });
-      } catch (err) {
-        console.warn('Aviso: falha ao persistir regras no Upstash Redis:', err);
-      }
-    }
+    // Persistência robusta (Memória + Disco Local + Redis)
+    await saveAllRules(rules);
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import { AutomationRule, KeywordMatchMode, TriggerChannel } from './types';
+
+// Cache em memória para instâncias serverless aquecidas
+const g = globalThis as unknown as { _konverops_instagram_rules_cache?: AutomationRule[] };
 
 const UPSTASH_URL =
   process.env.KV_REST_API_URL ||
@@ -8,60 +13,50 @@ const UPSTASH_TOKEN =
   process.env.UPSTASH_REDIS_REST_TOKEN;
 const REDIS_RULES_KEY = 'konverops:instagram:rules';
 
-export const DEFAULT_PUBLIC_REPLY_VARIATIONS: string[] = [
-  'Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!',
-  'Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!',
-  'Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!',
-  'Prontinho! Acabei de mandar o material no seu Direct! 💙✨',
-];
+const RULES_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'instagram-rules.json');
 
-export const DEFAULT_FOLLOW_GATE_TEXT =
-  'Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:';
+function readLocalRulesJson(): AutomationRule[] | null {
+  try {
+    if (fs.existsSync(RULES_FILE_PATH)) {
+      const raw = fs.readFileSync(RULES_FILE_PATH, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    // Ignora silenciosamente em ambientes somente leitura
+  }
+  return null;
+}
 
-export const DEFAULT_FOLLOW_GATE_RETRY_TEXT =
-  'Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em "Abrir @kit.autismo", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:';
+function writeLocalRulesJson(rules: AutomationRule[]): void {
+  try {
+    const dir = path.dirname(RULES_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(RULES_FILE_PATH, JSON.stringify(rules, null, 2), 'utf-8');
+  } catch (err) {
+    // Ignora silenciosamente se o filesystem for somente leitura
+  }
+}
 
-export const DEFAULT_TWO_STEP_PROMPT_TEXT =
-  'Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:';
+import {
+  DEFAULT_PUBLIC_REPLY_VARIATIONS,
+  DEFAULT_FOLLOW_GATE_TEXT,
+  DEFAULT_FOLLOW_GATE_RETRY_TEXT,
+  DEFAULT_TWO_STEP_PROMPT_TEXT,
+  TWO_STEP_TEMPLATES,
+} from './constants';
 
-/** Templates rápidos de 2 Etapas (Opening DM) para não ficar engessado em "Guia" */
-export const TWO_STEP_TEMPLATES = [
-  {
-    id: 'material',
-    label: '🎁 Material / Kit Prático',
-    promptText:
-      'Oi{nome}! 💙 Separei o material prático que você pediu no nosso post!\n\nToque no botão abaixo para receber o acesso completo aqui no seu Direct:',
-    buttonTitle: '🎁 Liberar Material',
-  },
-  {
-    id: 'tutorial',
-    label: '🎬 Tutorial / Passo a Passo',
-    promptText:
-      'Oi{nome}! 💙 Preparei o tutorial passo a passo que você comentou no post!\n\nToque no botão abaixo para assistir e aplicar hoje mesmo:',
-    buttonTitle: '🎬 Ver Tutorial',
-  },
-  {
-    id: 'guia',
-    label: '📄 Guia / PDF Visual',
-    promptText:
-      'Oi{nome}! 💙 Seu Guia Visual já está separado aqui pra você!\n\nToque no botão abaixo para abrir o guia completo no seu Direct:',
-    buttonTitle: '📄 Abrir meu Guia',
-  },
-  {
-    id: 'aula',
-    label: '▶️ Aula / Vídeo Exclusivo',
-    promptText:
-      'Oi{nome}! 💙 Que bom ver seu comentário! Separei o link da aula exclusiva pra você.\n\nToque no botão abaixo para liberar o vídeo:',
-    buttonTitle: '▶️ Assistir Aula',
-  },
-  {
-    id: 'link',
-    label: '🔗 Link Direto / Ferramenta',
-    promptText:
-      'Oi{nome}! 💙 Aqui está o acesso que você pediu nos comentários!\n\nToque no botão abaixo para eu te enviar o link oficial:',
-    buttonTitle: '🔗 Receber o Link',
-  },
-];
+export {
+  DEFAULT_PUBLIC_REPLY_VARIATIONS,
+  DEFAULT_FOLLOW_GATE_TEXT,
+  DEFAULT_FOLLOW_GATE_RETRY_TEXT,
+  DEFAULT_TWO_STEP_PROMPT_TEXT,
+  TWO_STEP_TEMPLATES,
+};
 
 const LEGACY_POLL_IDS = new Set([
   'regra-enquete-story-a',
@@ -424,10 +419,55 @@ export function hydrateRule(r: AutomationRule, def?: AutomationRule): Automation
 }
 
 /**
- * Carrega todas as regras (ativas e inativas) mesclando o Redis com a arquitetura v3.0 (OpenReply + ChatbotX).
- * Migra automaticamente as 3 regras antigas soltas (A, B, C) para o fluxo único de Enquete de Story.
+ * Persiste a lista completa de regras de automação em cache de memória, arquivo local e Redis.
+ */
+export async function saveAllRules(newRules: AutomationRule[]): Promise<void> {
+  // 1. Atualiza cache em memória imediato
+  g._konverops_instagram_rules_cache = newRules;
+
+  // 2. Persiste em disco localmente
+  writeLocalRulesJson(newRules);
+
+  // 3. Persiste no Redis se configurado
+  if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
+    try {
+      await fetch(UPSTASH_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([
+          'SET',
+          REDIS_RULES_KEY,
+          JSON.stringify(newRules),
+        ]),
+        cache: 'no-store',
+        signal: AbortSignal.timeout(1500),
+      });
+    } catch (err) {
+      console.warn('Aviso: falha ao persistir regras no Upstash Redis (usando arquivo local):', err);
+    }
+  }
+}
+
+/**
+ * Carrega todas as regras (ativas e inativas) mesclando memória, disco local, Redis e defaults.
  */
 export async function getAllRules(): Promise<AutomationRule[]> {
+  // 1. Tenta cache em memória primeiro (0ms)
+  if (Array.isArray(g._konverops_instagram_rules_cache) && g._konverops_instagram_rules_cache.length > 0) {
+    return g._konverops_instagram_rules_cache;
+  }
+
+  // 2. Tenta arquivo local em disco
+  const fileRules = readLocalRulesJson();
+  if (fileRules) {
+    g._konverops_instagram_rules_cache = fileRules;
+    return fileRules;
+  }
+
+  // 3. Tenta Redis se configurado
   if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
     try {
       const res = await fetch(UPSTASH_URL, {
@@ -449,20 +489,28 @@ export async function getAllRules(): Promise<AutomationRule[]> {
           const filteredParsed = parsed.filter((r) => !LEGACY_POLL_IDS.has(r.id));
           const existingIds = new Set(filteredParsed.map((r) => r.id));
 
-          return [
+          const result = [
             ...DEFAULT_RULES.filter((d) => !existingIds.has(d.id)).map((d) => hydrateRule(d, d)),
             ...filteredParsed.map((r) => {
               const def = DEFAULT_RULES.find((d) => d.id === r.id);
               return hydrateRule(r, def);
             }),
           ];
+          g._konverops_instagram_rules_cache = result;
+          writeLocalRulesJson(result);
+          return result;
         }
       }
     } catch (err) {
       console.warn('Falha ao carregar regras do Redis, usando regras padrão:', err);
     }
   }
-  return DEFAULT_RULES.map((d) => hydrateRule(d, d));
+
+  // 4. Fallback padrão: hidrata DEFAULT_RULES e persiste localmente
+  const defaults = DEFAULT_RULES.map((d) => hydrateRule(d, d));
+  g._konverops_instagram_rules_cache = defaults;
+  writeLocalRulesJson(defaults);
+  return defaults;
 }
 
 /**
