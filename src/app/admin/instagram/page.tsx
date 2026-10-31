@@ -287,11 +287,11 @@ export default function InstagramManyChatDashboard() {
                 Konverops Flow Studio
               </h1>
               <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border border-pink-500/30">
-                ManyChat Engine
+                OpenReply + ChatbotX Engine
               </span>
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Webhook Ativo na Vercel
+                Token Perpétuo + Reconciliador 10m Ativo
               </span>
             </div>
             <p className="text-xs text-slate-400">
@@ -513,21 +513,39 @@ export default function InstagramManyChatDashboard() {
                           </div>
                         </div>
 
-                        {/* Link de Destino */}
-                        {rule.linkUrl && (
-                          <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono bg-emerald-500/5 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
-                            <span>🔗</span>
-                            <span className="truncate flex-1">{rule.linkUrl}</span>
-                            <a
-                              href={rule.linkUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[10px] uppercase font-bold text-slate-400 hover:text-emerald-400"
-                            >
-                              Testar ↗
-                            </a>
+                        {/* Link de Destino & Badges OpenReply */}
+                        <div className="space-y-2">
+                          {rule.linkUrl && (
+                            <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono bg-emerald-500/5 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
+                              <span>🔘</span>
+                              <span className="font-sans font-bold text-white bg-emerald-500/20 px-2 py-0.5 rounded text-[11px]">
+                                {rule.buttonTitle || 'Acessar Material'}
+                              </span>
+                              <span className="truncate flex-1">{rule.linkUrl}</span>
+                              <a
+                                href={rule.linkUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[10px] uppercase font-bold text-slate-400 hover:text-emerald-400"
+                              >
+                                Testar ↗
+                              </a>
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {rule.publicReplyEnabled !== false && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                💬 Resposta Pública no Comentário Ativa
+                              </span>
+                            )}
+                            {rule.exactMessageMatch && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                                🎯 Match Exato (Enquete Story)
+                              </span>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
 
                       {/* Ações */}
@@ -964,17 +982,60 @@ export default function InstagramManyChatDashboard() {
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
-                  Link de Destino / Redirecionamento (Opcional):
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
+                    Texto do Botão Nativo (máx 20 chars):
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={20}
+                    value={editingRule.buttonTitle || ''}
+                    onChange={(e) =>
+                      setEditingRule({ ...editingRule, buttonTitle: e.target.value })
+                    }
+                    placeholder="Ex: Ver Quadro de Rotina"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
+                    Link do Botão (URL):
+                  </label>
+                  <input
+                    type="url"
+                    value={editingRule.linkUrl || ''}
+                    onChange={(e) => setEditingRule({ ...editingRule, linkUrl: e.target.value })}
+                    placeholder="https://kitautismo.com/rotina"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-1">
+                <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={editingRule.publicReplyEnabled !== false}
+                    onChange={(e) =>
+                      setEditingRule({ ...editingRule, publicReplyEnabled: e.target.checked })
+                    }
+                    className="rounded border-slate-700 bg-slate-950 text-emerald-500"
+                  />
+                  <span>💬 Responder também publicamente no comentário do post</span>
                 </label>
-                <input
-                  type="url"
-                  value={editingRule.linkUrl || ''}
-                  onChange={(e) => setEditingRule({ ...editingRule, linkUrl: e.target.value })}
-                  placeholder="https://kitautismo.com/guia"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
-                />
+
+                <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editingRule.exactMessageMatch)}
+                    onChange={(e) =>
+                      setEditingRule({ ...editingRule, exactMessageMatch: e.target.checked })
+                    }
+                    className="rounded border-slate-700 bg-slate-950 text-amber-500"
+                  />
+                  <span>🎯 Exigir mensagem exata (ex: letra A, B ou C)</span>
+                </label>
               </div>
             </div>
 
