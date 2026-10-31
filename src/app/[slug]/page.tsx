@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import Script from 'next/script';
 import { notFound } from 'next/navigation';
 import { getClientBySlug } from '@/lib/profiles-store';
@@ -67,6 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BioProfilePage({ params }: PageProps) {
+  await connection();
   const { slug } = await params;
   const profile = (await getClientBySlug(slug)) || getProfileBySlug(slug);
 

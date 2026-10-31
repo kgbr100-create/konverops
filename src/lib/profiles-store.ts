@@ -9,10 +9,14 @@ if (!g._konverops_profiles_cache) {
   g._konverops_profiles_cache = { ...CLIENT_PROFILES };
 }
 
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const UPSTASH_URL =
+  process.env.KV_REST_API_URL ||
+  process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN =
+  process.env.KV_REST_API_TOKEN ||
+  process.env.UPSTASH_REDIS_REST_TOKEN;
 
-// Só ativa Redis se houver variáveis reais e não for o host placeholder inativo
+// Só ativa Redis/KV se houver variáveis reais e não for o host placeholder inativo
 const isRedisConfigured = Boolean(
   UPSTASH_URL &&
   UPSTASH_TOKEN &&
