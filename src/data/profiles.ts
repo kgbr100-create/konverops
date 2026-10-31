@@ -150,20 +150,19 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
     bannerBorderStyle: 'subtle',
     bannerShadow: 'bottom',
     bannerElevation: true,
-    metaPixelId: '',
+    metaPixelId: '1712704816533561',
     name: 'Top Veículos SP',
     title: 'Seminovos Selecionados & Blindados de Alta Procedência',
     description:
       'Veículos seminovos selecionados e com garantia de procedência em São Paulo.\n\nFale conosco no WhatsApp ou confira nosso estoque atualizado abaixo.',
     avatarUrl: '/banners/topveiculos-sp/avatar.webp',
-    footerUrl: 'konverops.tech/topveiculos-sp',
+    footerUrl: 'topveiculossp.com.br',
     banners: [
       {
         id: 'banner-estoque',
         title: 'Confira Nosso Estoque de Seminovos',
         imageUrl: '/banners/topveiculos-sp/banner-estoque.webp',
-        destinationUrl:
-          'https://wa.me/5511999999999?text=Ol%C3%A1%20Top%20Ve%C3%ADculos,%20gostaria%20de%20consultar%20os%20modelos%20dispon%C3%ADveis%20no%20estoque.',
+        destinationUrl: 'https://topveiculossp.com.br/Veiculos',
         trackingEvent: 'ViewContent',
         eventCategory: 'Estoque',
         eventValue: 0,
@@ -175,7 +174,7 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         title: 'Venda ou Consigne seu Veículo',
         imageUrl: '/banners/topveiculos-sp/banner-consignacao.webp',
         destinationUrl:
-          'https://wa.me/5511999999999?text=Ol%C3%A1,%20gostaria%20de%20uma%20avalia%C3%A7%C3%A3o%20justa%20para%20vender%20ou%20consignar%20meu%20ve%C3%ADculo.',
+          'https://wa.me/5511981556608?text=Ol%C3%A1,%20gostaria%20de%20uma%20avalia%C3%A7%C3%A3o%20justa%20para%20vender%20ou%20consignar%20meu%20ve%C3%ADculo.',
         trackingEvent: 'Lead',
         eventCategory: 'Avaliacao',
         eventValue: 0,
@@ -187,7 +186,7 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         title: 'Falar com Especialista no WhatsApp',
         imageUrl: '/banners/topveiculos-sp/banner-whatsapp.webp',
         destinationUrl:
-          'https://wa.me/5511999999999?text=Ol%C3%A1,%20gostaria%20de%20falar%20com%20um%20especialista%20da%20Top%20Ve%C3%ADculos.',
+          'https://wa.me/5511981556608?text=Ol%C3%A1,%20gostaria%20de%20falar%20com%20um%20especialista%20da%20Top%20Ve%C3%ADculos.',
         trackingEvent: 'Contact',
         eventCategory: 'WhatsApp',
         eventValue: 0,
@@ -199,7 +198,7 @@ export const CLIENT_PROFILES: Record<string, ClientProfile> = {
         title: 'Entrar no Grupo VIP de Oportunidades',
         imageUrl: '/banners/topveiculos-sp/banner-grupo-vip.webp',
         destinationUrl:
-          'https://wa.me/5511999999999?text=Ol%C3%A1,%20quero%20entrar%20no%20Grupo%20VIP%20de%20ofertas%20exclusivas%20da%20Top%20Ve%C3%ADculos.',
+          'https://wa.me/5511981556608?text=Ol%C3%A1,%20quero%20entrar%20no%20Grupo%20VIP%20de%20ofertas%20exclusivas%20da%20Top%20Ve%C3%ADculos.',
         trackingEvent: 'Contact',
         eventCategory: 'GrupoVIP',
         eventValue: 0,

@@ -19,6 +19,61 @@ const isRedisConfigured = Boolean(
   !UPSTASH_URL.includes('unique-ladybird-238762')
 );
 
+const GITHUB_TOKEN =
+  process.env.GITHUB_TOKEN ||
+  process.env.GH_TOKEN ||
+  '';
+
+async function syncToGitHub(
+  data: Record<string, ClientProfile>,
+  commitMessage: string
+): Promise<boolean> {
+  if (!GITHUB_TOKEN) return false;
+
+  const repo = 'kgbr100-create/konverops';
+  const filePath = 'src/data/clients.json';
+  const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+
+  try {
+    const getRes = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'Konverops-BioStudio',
+      },
+      cache: 'no-store',
+    });
+
+    if (!getRes.ok) return false;
+    const fileData = await getRes.json();
+    const sha = fileData.sha;
+
+    const contentEncoded = Buffer.from(
+      JSON.stringify(data, null, 2),
+      'utf-8'
+    ).toString('base64');
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'Konverops-BioStudio',
+      },
+      body: JSON.stringify({
+        message: commitMessage,
+        content: contentEncoded,
+        sha,
+        branch: 'main',
+      }),
+    });
+
+    return putRes.ok;
+  } catch (err) {
+    console.warn('GitHub auto-sync error:', err);
+    return false;
+  }
+}
+
 const DATA_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'clients.json');
 
 function readLocalClientsJson(): Record<string, ClientProfile> {
@@ -192,7 +247,13 @@ export async function saveClientProfile(profile: ClientProfile): Promise<void> {
   fileClients[normalizedSlug] = toSave;
   writeLocalClientsJson(fileClients);
 
-  // 3. Persiste no Redis se configurado
+  // 3. Auto-sincroniza com GitHub para persistência permanente em nuvem
+  await syncToGitHub(
+    fileClients,
+    `chore(bio-studio): auto-save profile ${normalizedSlug} from admin`
+  );
+
+  // 4. Persiste no Redis se configurado
   if (isRedisConfigured) {
     const payload = JSON.stringify(toSave);
     await redisCommand(['SET', `profile:${normalizedSlug}`, payload]);
@@ -215,7 +276,13 @@ export async function deleteClientProfile(slug: string): Promise<boolean> {
     writeLocalClientsJson(fileClients);
   }
 
-  // 3. Remove do Redis se configurado
+  // 3. Auto-sincroniza com GitHub para persistência permanente em nuvem
+  await syncToGitHub(
+    fileClients,
+    `chore(bio-studio): auto-delete profile ${normalizedSlug} from admin`
+  );
+
+  // 4. Remove do Redis se configurado
   if (isRedisConfigured) {
     await redisCommand(['DEL', `profile:${normalizedSlug}`]);
     await redisCommand(['SREM', 'profiles:slugs', normalizedSlug]);
