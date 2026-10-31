@@ -7,6 +7,7 @@ import {
   InstagramUserProfile,
 } from '@/lib/instagram/types';
 import {
+  DEFAULT_FOLLOW_GATE_RETRY_TEXT,
   DEFAULT_FOLLOW_GATE_TEXT,
   DEFAULT_TWO_STEP_PROMPT_TEXT,
   getRuleById,
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Processamento de Eventos em Tempo Real (POST) — Motor OpenReply + ChatbotX Completo
+ * Processamento de Eventos em Tempo Real (POST) — Motor OpenReply + ChatbotX v3.0
  */
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Entrega a resposta final de uma regra (com até 3 botões nativos) ou aciona a Trava de Seguidor (Follow-Gate do ChatbotX).
+ * Entrega a resposta final de uma regra (com até 3 botões nativos) ou aciona a Trava de Seguidor (Follow-Gate do OpenReply + ChatbotX).
  */
 async function deliverRuleOrFollowGate(
   senderId: string,
@@ -116,13 +117,13 @@ async function deliverRuleOrFollowGate(
   profile: InstagramUserProfile | null,
   context: { isStoryReply?: boolean; fromPostback?: string }
 ): Promise<void> {
-  // Verifica Follow-Gate (ChatbotX): se a regra exige seguir o perfil e a API confirma que ainda não segue
+  // Verifica Follow-Gate: se a regra exige seguir o perfil e a API confirma que ainda não segue
   if (rule.requireFollow && profile?.isUserFollowBusiness === false) {
     const gateText = personalizeMessageText(
       rule.followGateText || DEFAULT_FOLLOW_GATE_TEXT,
       profile
     );
-    const gateBtnTitle = rule.followGateButtonTitle || '✅ Já segui! Liberar';
+    const gateBtnTitle = (rule.followGateButtonTitle || '✅ Já segui! Liberar').slice(0, 20);
 
     const res = await sendDirectMessage(senderId, gateText, {
       buttons: [
@@ -163,6 +164,12 @@ async function deliverRuleOrFollowGate(
     buttonTitle: rule.buttonTitle,
   });
 
+  // Se houver mensagem complementar de Follow-Up configurada (OpenReply followUpEnabled)
+  if (res.success && rule.followUpEnabled && rule.followUpText?.trim()) {
+    const followUpMsg = personalizeMessageText(rule.followUpText.trim(), profile);
+    await sendDirectMessage(senderId, followUpMsg);
+  }
+
   await setUserWelcomeCooldown(senderId);
   await trackInstagramInteraction({
     senderId,
@@ -188,7 +195,7 @@ async function handlePostbackPayload(
 
   const profile = await getInstagramUserProfile(senderId);
 
-  // 1. Confirmação da Trava de Seguidor (Follow-Gate do ChatbotX)
+  // 1. Confirmação da Trava de Seguidor (Follow-Gate)
   if (payload.startsWith('FOLLOW_GATE_VERIFY:')) {
     const ruleId = payload.replace('FOLLOW_GATE_VERIFY:', '').trim();
     const rule = await getRuleById(ruleId);
@@ -199,12 +206,13 @@ async function handlePostbackPayload(
     }
 
     const attempt = recordFollowGateAttempt(senderId, rule.id);
-    // Se ainda não seguiu na 1ª tentativa, lembra gentilmente; a partir da 2ª tentativa ou se já seguiu, libera o material!
+    // Se ainda não seguiu na 1ª tentativa, envia a mensagem configurável de lembrete; na 2ª tentativa ou se já seguiu, libera!
     if (profile?.isUserFollowBusiness === false && attempt <= 1) {
       const retryText = personalizeMessageText(
-        'Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em "Abrir @kit.autismo", clique em Seguir lá no perfil e depois toque em "✅ Já segui! Liberar":',
+        rule.followGateRetryText || DEFAULT_FOLLOW_GATE_RETRY_TEXT,
         profile
       );
+      const gateBtnTitle = (rule.followGateButtonTitle || '✅ Já segui! Liberar').slice(0, 20);
       await sendDirectMessage(senderId, retryText, {
         buttons: [
           {
@@ -214,7 +222,7 @@ async function handlePostbackPayload(
           },
           {
             type: 'postback',
-            title: '✅ Já segui! Liberar',
+            title: gateBtnTitle,
             payload: `FOLLOW_GATE_VERIFY:${rule.id}`,
           },
         ],
@@ -232,6 +240,11 @@ async function handlePostbackPayload(
       linkUrl: rule.linkUrl,
       buttonTitle: rule.buttonTitle,
     });
+
+    if (res.success && rule.followUpEnabled && rule.followUpText?.trim()) {
+      const followUpMsg = personalizeMessageText(rule.followUpText.trim(), profile);
+      await sendDirectMessage(senderId, followUpMsg);
+    }
 
     await setUserWelcomeCooldown(senderId);
     await trackInstagramInteraction({
@@ -262,7 +275,7 @@ async function handlePostbackPayload(
   }
 
   // 3. Outros postbacks por palavra-chave
-  const rule = await matchRule(payload);
+  const rule = await matchRule(payload, { channel: 'dm' });
   if (rule) {
     if (rule.humanTypingDelay !== false) {
       await simulateHumanTyping(senderId, 750);
@@ -331,9 +344,12 @@ async function handleMessagingItem(
 
   if (!text) return;
 
-  // Procura uma regra com base nas palavras-chave e no ID da mídia (se houver)
+  // Procura uma regra respeitando o canal exato ('story_reply' vs 'dm') e o ID do Story (se houver)
   const [rule, profile] = await Promise.all([
-    matchRule(text, storyMediaId),
+    matchRule(text, {
+      channel: isStoryReply ? 'story_reply' : 'dm',
+      mediaId: storyMediaId,
+    }),
     getInstagramUserProfile(senderId),
   ]);
 
@@ -397,7 +413,7 @@ async function handleMessagingItem(
 }
 
 /**
- * Trata comentários em publicações do Feed/Reels (Padrão OpenReply: suporta vinculação por post e Fluxo de 2 Etapas)
+ * Trata comentários em publicações do Feed/Reels (Padrão OpenReply + ChatbotX: canal isolado 'comment', escopo por post e 2 Etapas customizável)
  */
 async function handleCommentChange(
   change: InstagramChangeItem,
@@ -434,8 +450,8 @@ async function handleCommentChange(
   }
   await markMessageAsProcessed(`comment_${commentId}`);
 
-  // Verifica se o comentário aciona alguma regra (priorizando regras vinculadas ao mediaId específico)
-  const rule = await matchRule(commentText, mediaId);
+  // Verifica se o comentário aciona alguma regra habilitada para o canal 'comment'
+  const rule = await matchRule(commentText, { channel: 'comment', mediaId });
 
   if (rule) {
     const profileStub: InstagramUserProfile | null = commenterUsername
@@ -444,14 +460,13 @@ async function handleCommentChange(
 
     let dmRes: { success: boolean; messageId?: string; error?: string };
 
-    // Se o Fluxo de 2 Etapas para Comentários estiver ativo (OpenReply + ChatbotX),
-    // envia primeiro o convite com botão Postback para a pessoa tocar, abrir a janela de 24h e impulsionar os Stories!
+    // Se o Fluxo de 2 Etapas (Opening DM) estiver ativo, envia o texto e título de botão configurados na regra!
     if (rule.twoStepCommentOptIn) {
       const optInText = personalizeMessageText(
         rule.twoStepPromptText || DEFAULT_TWO_STEP_PROMPT_TEXT,
         profileStub
       );
-      const optInBtnTitle = rule.twoStepButtonTitle || '🔓 Liberar meu Guia';
+      const optInBtnTitle = (rule.twoStepButtonTitle || '🎁 Liberar Material').slice(0, 20);
 
       dmRes = await sendPrivateReplyToComment(commentId, optInText, {
         buttons: [
@@ -464,7 +479,7 @@ async function handleCommentChange(
             ? [
                 {
                   type: 'web_url' as const,
-                  title: rule.buttonTitle || 'Acessar Direto',
+                  title: (rule.buttonTitle || 'Acessar Direto').slice(0, 20),
                   url: rule.linkUrl,
                 },
               ]
