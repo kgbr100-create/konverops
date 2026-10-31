@@ -204,42 +204,8 @@ export default function AdminDashboardPage() {
       let activeProfiles: ClientProfile[] =
         data.success && data.profiles ? data.profiles : [];
 
-      // Blindagem & Sincronização Automática com LocalStorage
+      // Salva backup local dos perfis ativos do servidor
       if (typeof window !== 'undefined') {
-        const localBackupRaw = localStorage.getItem('konverops_bio_profiles_backup');
-        if (localBackupRaw) {
-          try {
-            const localProfiles: ClientProfile[] = JSON.parse(localBackupRaw);
-            if (Array.isArray(localProfiles) && localProfiles.length > 0) {
-              const missingOnServer = localProfiles.filter(
-                (lp) =>
-                  !activeProfiles.some(
-                    (sp) => sp.slug.toLowerCase() === lp.slug.toLowerCase()
-                  )
-              );
-              if (missingOnServer.length > 0) {
-                console.log(
-                  'Restaurando perfis locais para o servidor Konverops:',
-                  missingOnServer
-                );
-                for (const p of missingOnServer) {
-                  try {
-                    await fetch('/api/profiles', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(p),
-                    });
-                    activeProfiles.push(p);
-                  } catch (e) {
-                    console.error('Falha ao restaurar perfil:', p.slug, e);
-                  }
-                }
-              }
-            }
-          } catch (e) {
-            console.warn('Erro ao processar backup local do navegador:', e);
-          }
-        }
         localStorage.setItem(
           'konverops_bio_profiles_backup',
           JSON.stringify(activeProfiles)

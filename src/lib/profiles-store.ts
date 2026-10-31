@@ -128,10 +128,53 @@ async function redisCommand(command: (string | number)[]): Promise<any> {
 }
 
 export async function getClientsRecord(): Promise<Record<string, ClientProfile>> {
-  // 1. Base sólida com perfis mestres estáticos
+  // 1. Base sólida com perfil mestre do fundador
   const result: Record<string, ClientProfile> = { ...CLIENT_PROFILES };
 
-  // 2. Mescla com arquivo clients.json em disco
+  // 2. Se Redis/KV estiver ativo (produção), ele é a fonte prioritária
+  if (isRedisConfigured) {
+    try {
+      const deletedSlugs = await redisCommand(['SMEMBERS', 'profiles:deleted']);
+      const isDeletedSet = new Set(
+        Array.isArray(deletedSlugs)
+          ? deletedSlugs.map((s) => String(s).toLowerCase().trim())
+          : []
+      );
+
+      const slugs = await redisCommand(['SMEMBERS', 'profiles:slugs']);
+      if (Array.isArray(slugs) && slugs.length > 0) {
+        for (const slug of slugs) {
+          const norm = String(slug).toLowerCase().trim();
+          if (isDeletedSet.has(norm)) continue;
+          const raw = await redisCommand(['GET', `profile:${norm}`]);
+          if (raw) {
+            try {
+              const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+              if (parsed && typeof parsed === 'object') {
+                result[norm] = parsed;
+                if (g._konverops_profiles_cache) {
+                  g._konverops_profiles_cache[norm] = parsed;
+                }
+              }
+            } catch (e) {
+              console.error(`Falha ao deserializar perfil ${norm}:`, e);
+            }
+          }
+        }
+      }
+
+      // Remove qualquer slug que foi explicitamente excluído
+      for (const d of isDeletedSet) {
+        delete result[d];
+      }
+
+      return result;
+    } catch (error) {
+      console.warn('Erro ao buscar perfis no Redis, usando fallback local:', error);
+    }
+  }
+
+  // 3. Fallback de arquivo local em disco (para dev local e seeds)
   const fileClients = readLocalClientsJson();
   for (const [slug, prof] of Object.entries(fileClients)) {
     result[slug.toLowerCase()] = {
@@ -140,7 +183,7 @@ export async function getClientsRecord(): Promise<Record<string, ClientProfile>>
     };
   }
 
-  // 3. Mescla com cache em memória
+  // 4. Mescla com cache em memória
   if (g._konverops_profiles_cache) {
     for (const [slug, prof] of Object.entries(g._konverops_profiles_cache)) {
       result[slug.toLowerCase()] = {
@@ -150,43 +193,45 @@ export async function getClientsRecord(): Promise<Record<string, ClientProfile>>
     }
   }
 
-  // 4. Se Redis configurado e acessível, sincroniza
-  if (isRedisConfigured) {
-    try {
-      const slugs = await redisCommand(['SMEMBERS', 'profiles:slugs']);
-      if (Array.isArray(slugs) && slugs.length > 0) {
-        for (const slug of slugs) {
-          const raw = await redisCommand(['GET', `profile:${slug}`]);
-          if (raw) {
-            try {
-              const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-              result[slug.toLowerCase()] = parsed;
-              if (g._konverops_profiles_cache) {
-                g._konverops_profiles_cache[slug.toLowerCase()] = parsed;
-              }
-            } catch (e) {
-              console.error(`Falha ao deserializar perfil ${slug}:`, e);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Erro ao buscar perfis no Redis, usando fallback local:', error);
-    }
-  }
-
   return result;
 }
 
 export async function getClientBySlug(slug: string): Promise<ClientProfile | undefined> {
   const normalizedSlug = slug.toLowerCase().trim();
 
-  // 1. Tenta cache em memória instantâneo
+  // 1. Se Redis/KV estiver ativo, consulta em tempo real (15ms)
+  if (isRedisConfigured) {
+    try {
+      // Se foi explicitamente deletado, não busca nem faz fallback
+      const isDeleted = await redisCommand(['SISMEMBER', 'profiles:deleted', normalizedSlug]);
+      if (isDeleted === 1 || isDeleted === true) {
+        if (g._konverops_profiles_cache) {
+          delete g._konverops_profiles_cache[normalizedSlug];
+        }
+        return undefined;
+      }
+
+      const raw = await redisCommand(['GET', `profile:${normalizedSlug}`]);
+      if (raw) {
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (parsed && typeof parsed === 'object') {
+          if (g._konverops_profiles_cache) {
+            g._konverops_profiles_cache[normalizedSlug] = parsed;
+          }
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.warn(`Erro ao buscar profile:${normalizedSlug} no Redis:`, error);
+    }
+  }
+
+  // 2. Tenta cache em memória instantâneo
   if (g._konverops_profiles_cache && g._konverops_profiles_cache[normalizedSlug]) {
     return g._konverops_profiles_cache[normalizedSlug];
   }
 
-  // 2. Tenta arquivo local em disco
+  // 3. Tenta arquivo local em disco
   const fileClients = readLocalClientsJson();
   if (fileClients[normalizedSlug]) {
     if (g._konverops_profiles_cache) {
@@ -195,40 +240,7 @@ export async function getClientBySlug(slug: string): Promise<ClientProfile | und
     return fileClients[normalizedSlug];
   }
 
-  // 3. Tenta Redis se configurado
-  if (isRedisConfigured) {
-    try {
-      const raw = await redisCommand(['GET', `profile:${normalizedSlug}`]);
-      if (raw) {
-        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        if (parsed && Array.isArray(parsed.banners) && parsed.banners.length > 0) {
-          if (g._konverops_profiles_cache) {
-            g._konverops_profiles_cache[normalizedSlug] = parsed;
-          }
-          return parsed;
-        }
-        if (CLIENT_PROFILES[normalizedSlug]) {
-          const merged = {
-            ...CLIENT_PROFILES[normalizedSlug],
-            ...parsed,
-            banners:
-              parsed?.banners && parsed.banners.length > 0
-                ? parsed.banners
-                : CLIENT_PROFILES[normalizedSlug].banners,
-          };
-          if (g._konverops_profiles_cache) {
-            g._konverops_profiles_cache[normalizedSlug] = merged;
-          }
-          return merged;
-        }
-        return parsed;
-      }
-    } catch (error) {
-      console.warn(`Erro ao buscar profile:${normalizedSlug} no Redis:`, error);
-    }
-  }
-
-  // 4. Fallback final para perfil mestre estático em código
+  // 4. Fallback final para perfil mestre estático do fundador (kelvin)
   return CLIENT_PROFILES[normalizedSlug];
 }
 
@@ -257,11 +269,12 @@ export async function saveClientProfile(profile: ClientProfile): Promise<void> {
     `chore(bio-studio): auto-save profile ${normalizedSlug} from admin`
   );
 
-  // 4. Persiste no Redis se configurado
+  // 4. Persiste no Redis/KV se configurado
   if (isRedisConfigured) {
     const payload = JSON.stringify(toSave);
     await redisCommand(['SET', `profile:${normalizedSlug}`, payload]);
     await redisCommand(['SADD', 'profiles:slugs', normalizedSlug]);
+    await redisCommand(['SREM', 'profiles:deleted', normalizedSlug]);
   }
 }
 
@@ -286,10 +299,11 @@ export async function deleteClientProfile(slug: string): Promise<boolean> {
     `chore(bio-studio): auto-delete profile ${normalizedSlug} from admin`
   );
 
-  // 4. Remove do Redis se configurado
+  // 4. Remove do Redis e adiciona à blacklist de deletados
   if (isRedisConfigured) {
     await redisCommand(['DEL', `profile:${normalizedSlug}`]);
     await redisCommand(['SREM', 'profiles:slugs', normalizedSlug]);
+    await redisCommand(['SADD', 'profiles:deleted', normalizedSlug]);
   }
 
   return true;

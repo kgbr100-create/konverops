@@ -3,7 +3,6 @@ import { connection } from 'next/server';
 import Script from 'next/script';
 import { notFound } from 'next/navigation';
 import { getClientBySlug } from '@/lib/profiles-store';
-import { getProfileBySlug } from '@/data/profiles';
 import BannerLink from '@/components/BannerLink';
 import PageViewTracker from '@/components/PageViewTracker';
 
@@ -35,7 +34,7 @@ function isLightColor(hexColor?: string): boolean {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const profile = (await getClientBySlug(slug)) || getProfileBySlug(slug);
+  const profile = await getClientBySlug(slug);
 
   if (!profile) {
     return {
@@ -70,7 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BioProfilePage({ params }: PageProps) {
   await connection();
   const { slug } = await params;
-  const profile = (await getClientBySlug(slug)) || getProfileBySlug(slug);
+  const profile = await getClientBySlug(slug);
 
   if (!profile) {
     notFound();
