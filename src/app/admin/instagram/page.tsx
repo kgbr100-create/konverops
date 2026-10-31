@@ -188,25 +188,50 @@ export default function InstagramManyChatDashboard() {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^\w\s]/gi, ' ')
+        .replace(/\s+/g, ' ')
         .trim();
 
       const words = cleanUserText.split(' ');
-      let matchedReply: string | null = null;
+      let matchedRule: AutomationRule | null = null;
+      const activeRules = rules.filter((r) => r.active);
 
-      for (const rule of rules.filter((r) => r.active)) {
+      // 0. Exact message match (Story Polls A, B, C)
+      for (const rule of activeRules) {
+        if (!rule.exactMessageMatch) continue;
         for (const kw of rule.keywords) {
           const normKw = kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-          if (words.includes(normKw) || cleanUserText === normKw || (normKw.length >= 4 && cleanUserText.includes(normKw))) {
-            matchedReply = rule.replyText;
+          if (cleanUserText === normKw) {
+            matchedRule = rule;
             break;
           }
         }
-        if (matchedReply) break;
+        if (matchedRule) break;
       }
 
-      const botText =
-        matchedReply ||
-        'Olá! Vimos a sua mensagem. 💙\n\nSe você procura nossos materiais, envie a palavra "LINK" que te respondo na hora com o acesso!';
+      // 1. Whole-word or substring match
+      if (!matchedRule) {
+        for (const rule of activeRules) {
+          if (rule.exactMessageMatch) continue;
+          for (const kw of rule.keywords) {
+            const normKw = kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+            if (
+              words.includes(normKw) ||
+              cleanUserText === normKw ||
+              (normKw.length >= 4 && cleanUserText.includes(normKw))
+            ) {
+              matchedRule = rule;
+              break;
+            }
+          }
+          if (matchedRule) break;
+        }
+      }
+
+      const botText = matchedRule
+        ? matchedRule.linkUrl
+          ? `${matchedRule.replyText}\n\n[🔘 Botão Nativo: ${matchedRule.buttonTitle || 'Acessar Material'}]\n🔗 ${matchedRule.linkUrl}`
+          : matchedRule.replyText
+        : 'Olá! Vimos a sua mensagem. 💙\n\nSe você procura nossos materiais, envie a palavra "ROTINA" ou "LINK" que te respondo na hora com o acesso!';
 
       setChatMessages((prev) => [...prev, { from: 'bot', text: botText, time: timeStr }]);
       setIsBotTyping(false);
@@ -635,13 +660,14 @@ export default function InstagramManyChatDashboard() {
                     <p className="text-xs font-bold text-slate-300">Exemplos rápidos para testar:</p>
                     <div className="flex flex-wrap gap-2">
                       {[
+                        'A',
+                        'B',
+                        'C',
+                        'ROTINA',
                         'quero o link',
-                        'qual o material do autismo?',
                         'quais os direitos da crianca no plano?',
                         'meu filho tem seletividade na comida',
-                        'como funciona a rotina no audhd?',
                         'preciso falar com um atendente',
-                        'parabens pelo post!',
                       ].map((promptText, idx) => (
                         <button
                           key={idx}
