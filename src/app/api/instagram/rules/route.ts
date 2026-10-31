@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getActiveRules, DEFAULT_RULES } from '@/lib/instagram/rules';
+import { getAllRules } from '@/lib/instagram/rules';
 import { verifySessionToken } from '@/lib/auth';
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
@@ -23,10 +23,12 @@ async function isAuthorized(request: NextRequest): Promise<boolean> {
 
 export async function GET() {
   try {
-    const rules = await getActiveRules();
+    const rules = await getAllRules();
 
     let recentLogs = [];
     let totalAllTime = 0;
+    let followGateTotal = 0;
+    const byRule: Record<string, number> = {};
 
     if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
       try {
@@ -37,11 +39,13 @@ export async function GET() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify([
-            ['LRANGE', 'konverops:ig:logs:recent', 0, 19],
+            ['LRANGE', 'konverops:ig:logs:recent', 0, 29],
             ['GET', 'konverops:ig:metrics:all_time:total'],
+            ['HGETALL', 'konverops:ig:metrics:by_rule'],
+            ['GET', 'konverops:ig:metrics:all_time:follow_gate'],
           ]),
           cache: 'no-store',
-          signal: AbortSignal.timeout(1000),
+          signal: AbortSignal.timeout(1200),
         });
         const json = await res.json();
         if (Array.isArray(json)) {
@@ -53,6 +57,16 @@ export async function GET() {
             }
           });
           totalAllTime = parseInt(json[1]?.result || '0', 10);
+
+          const rawHash = json[2]?.result;
+          if (Array.isArray(rawHash)) {
+            for (let i = 0; i < rawHash.length; i += 2) {
+              const k = String(rawHash[i]);
+              const v = parseInt(String(rawHash[i + 1] || '0'), 10);
+              if (k && !isNaN(v)) byRule[k] = v;
+            }
+          }
+          followGateTotal = parseInt(json[3]?.result || '0', 10);
         }
       } catch (err) {
         console.warn('Erro ao carregar logs/métricas:', err);
@@ -64,6 +78,8 @@ export async function GET() {
       rules,
       metrics: {
         totalAllTime,
+        followGateTotal,
+        byRule,
         recentLogs,
       },
     });

@@ -3,16 +3,32 @@ import {
   InstagramWebhookEvent,
   InstagramMessagingItem,
   InstagramChangeItem,
+  AutomationRule,
+  InstagramUserProfile,
 } from '@/lib/instagram/types';
-import { matchRule, pickPublicReplyVariation } from '@/lib/instagram/rules';
+import {
+  DEFAULT_FOLLOW_GATE_TEXT,
+  DEFAULT_TWO_STEP_PROMPT_TEXT,
+  getRuleById,
+  matchRule,
+  pickPublicReplyVariation,
+} from '@/lib/instagram/rules';
 import {
   DEFAULT_IG_USER_ID,
   DEFAULT_PAGE_ID,
+  extractRuleButtons,
+  getInstagramUserProfile,
   isMessageAlreadyProcessed,
+  isUserInWelcomeCooldown,
   markMessageAsProcessed,
+  personalizeMessageText,
+  recordFollowGateAttempt,
   sendDirectMessage,
   sendPrivateReplyToComment,
   sendPublicReplyToComment,
+  sendSenderAction,
+  setUserWelcomeCooldown,
+  simulateHumanTyping,
   trackInstagramInteraction,
 } from '@/lib/instagram/messenger';
 
@@ -45,7 +61,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Processamento de Eventos em Tempo Real (POST) — Motor OpenReply + ChatbotX
+ * Processamento de Eventos em Tempo Real (POST) — Motor OpenReply + ChatbotX Completo
  */
 export async function POST(request: NextRequest) {
   try {
@@ -92,6 +108,172 @@ export async function POST(request: NextRequest) {
 }
 
 /**
+ * Entrega a resposta final de uma regra (com até 3 botões nativos) ou aciona a Trava de Seguidor (Follow-Gate do ChatbotX).
+ */
+async function deliverRuleOrFollowGate(
+  senderId: string,
+  rule: AutomationRule,
+  profile: InstagramUserProfile | null,
+  context: { isStoryReply?: boolean; fromPostback?: string }
+): Promise<void> {
+  // Verifica Follow-Gate (ChatbotX): se a regra exige seguir o perfil e a API confirma que ainda não segue
+  if (rule.requireFollow && profile?.isUserFollowBusiness === false) {
+    const gateText = personalizeMessageText(
+      rule.followGateText || DEFAULT_FOLLOW_GATE_TEXT,
+      profile
+    );
+    const gateBtnTitle = rule.followGateButtonTitle || '✅ Já segui! Liberar';
+
+    const res = await sendDirectMessage(senderId, gateText, {
+      buttons: [
+        {
+          type: 'postback',
+          title: gateBtnTitle,
+          payload: `FOLLOW_GATE_VERIFY:${rule.id}`,
+        },
+        {
+          type: 'web_url',
+          title: '📲 Perfil @kit.autismo',
+          url: 'https://www.instagram.com/kit.autismo/',
+        },
+      ],
+    });
+
+    await setUserWelcomeCooldown(senderId);
+    await trackInstagramInteraction({
+      senderId,
+      senderUsername: profile?.username,
+      keywordMatched: `follow_gate_${rule.name}`,
+      ruleId: rule.id,
+      isStoryReply: context.isStoryReply,
+      followGateTriggered: true,
+      status: res.success ? 'SENT' : 'FAILED',
+      errorMessage: res.error,
+    });
+    return;
+  }
+
+  // Entrega a mensagem completa personalizada com até 3 botões nativos
+  const finalReplyText = personalizeMessageText(rule.replyText, profile);
+  const buttons = extractRuleButtons(rule);
+
+  const res = await sendDirectMessage(senderId, finalReplyText, {
+    buttons,
+    linkUrl: rule.linkUrl,
+    buttonTitle: rule.buttonTitle,
+  });
+
+  await setUserWelcomeCooldown(senderId);
+  await trackInstagramInteraction({
+    senderId,
+    senderUsername: profile?.username,
+    keywordMatched: context.fromPostback || rule.name,
+    ruleId: rule.id,
+    isStoryReply: context.isStoryReply,
+    status: res.success ? 'SENT' : 'FAILED',
+    errorMessage: res.error,
+  });
+}
+
+/**
+ * Trata cliques em botões Postback (Follow-Gate, 2-Step Comment Opt-In e botões personalizados).
+ */
+async function handlePostbackPayload(
+  senderId: string,
+  payload: string,
+  postbackId: string
+): Promise<void> {
+  if (await isMessageAlreadyProcessed(postbackId)) return;
+  await markMessageAsProcessed(postbackId);
+
+  const profile = await getInstagramUserProfile(senderId);
+
+  // 1. Confirmação da Trava de Seguidor (Follow-Gate do ChatbotX)
+  if (payload.startsWith('FOLLOW_GATE_VERIFY:')) {
+    const ruleId = payload.replace('FOLLOW_GATE_VERIFY:', '').trim();
+    const rule = await getRuleById(ruleId);
+    if (!rule) return;
+
+    if (rule.humanTypingDelay !== false) {
+      await simulateHumanTyping(senderId, 750);
+    }
+
+    const attempt = recordFollowGateAttempt(senderId, rule.id);
+    // Se ainda não seguiu na 1ª tentativa, lembra gentilmente; a partir da 2ª tentativa ou se já seguiu, libera o material!
+    if (profile?.isUserFollowBusiness === false && attempt <= 1) {
+      const retryText = personalizeMessageText(
+        'Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em "Abrir @kit.autismo", clique em Seguir lá no perfil e depois toque em "✅ Já segui! Liberar":',
+        profile
+      );
+      await sendDirectMessage(senderId, retryText, {
+        buttons: [
+          {
+            type: 'web_url',
+            title: '📲 Abrir @kit.autismo',
+            url: 'https://www.instagram.com/kit.autismo/',
+          },
+          {
+            type: 'postback',
+            title: '✅ Já segui! Liberar',
+            payload: `FOLLOW_GATE_VERIFY:${rule.id}`,
+          },
+        ],
+      });
+      return;
+    }
+
+    const unlockedText = personalizeMessageText(
+      `Perfeito{nome}! Muito obrigado por seguir o @kit.autismo! 💙✨\n\n${rule.replyText}`,
+      profile
+    );
+    const buttons = extractRuleButtons(rule);
+    const res = await sendDirectMessage(senderId, unlockedText, {
+      buttons,
+      linkUrl: rule.linkUrl,
+      buttonTitle: rule.buttonTitle,
+    });
+
+    await setUserWelcomeCooldown(senderId);
+    await trackInstagramInteraction({
+      senderId,
+      senderUsername: profile?.username,
+      keywordMatched: `unlocked_${rule.name}`,
+      ruleId: rule.id,
+      status: res.success ? 'SENT' : 'FAILED',
+      errorMessage: res.error,
+    });
+    return;
+  }
+
+  // 2. Desbloqueio de 2 Etapas vindo de Comentário (OpenReply 2-Step Opt-In)
+  if (payload.startsWith('COMMENT_OPTIN:')) {
+    const ruleId = payload.replace('COMMENT_OPTIN:', '').trim();
+    const rule = await getRuleById(ruleId);
+    if (!rule) return;
+
+    if (rule.humanTypingDelay !== false) {
+      await simulateHumanTyping(senderId, 750);
+    }
+
+    await deliverRuleOrFollowGate(senderId, rule, profile, {
+      fromPostback: `optin_${rule.name}`,
+    });
+    return;
+  }
+
+  // 3. Outros postbacks por palavra-chave
+  const rule = await matchRule(payload);
+  if (rule) {
+    if (rule.humanTypingDelay !== false) {
+      await simulateHumanTyping(senderId, 750);
+    }
+    await deliverRuleOrFollowGate(senderId, rule, profile, {
+      fromPostback: `postback_${rule.name}`,
+    });
+  }
+}
+
+/**
  * Trata mensagens diretas (DMs), respostas a Stories (incluindo enquete A/B/C) e cliques em botões postback.
  */
 async function handleMessagingItem(
@@ -112,22 +294,9 @@ async function handleMessagingItem(
 
   // Caso 1: Clique em botão postback
   if (item.postback?.payload) {
-    const postbackId = item.postback.mid || `pb_${senderId}_${item.timestamp || Date.now()}`;
-    if (await isMessageAlreadyProcessed(postbackId)) return;
-    await markMessageAsProcessed(postbackId);
-
-    const rule = await matchRule(item.postback.payload);
-    if (rule) {
-      await sendDirectMessage(senderId, rule.replyText, {
-        linkUrl: rule.linkUrl,
-        buttonTitle: rule.buttonTitle,
-      });
-      await trackInstagramInteraction({
-        senderId,
-        keywordMatched: `postback_${rule.name}`,
-        ruleId: rule.id,
-      });
-    }
+    const postbackId =
+      item.postback.mid || `pb_${senderId}_${item.postback.payload}_${item.timestamp || Date.now()}`;
+    await handlePostbackPayload(senderId, item.postback.payload, postbackId);
     return;
   }
 
@@ -146,52 +315,79 @@ async function handleMessagingItem(
   }
   await markMessageAsProcessed(mid);
 
+  // Se for clique em Quick Reply com payload especial (Follow-Gate ou Comment Opt-In)
+  if (
+    msg.quick_reply?.payload &&
+    (msg.quick_reply.payload.startsWith('FOLLOW_GATE_VERIFY:') ||
+      msg.quick_reply.payload.startsWith('COMMENT_OPTIN:'))
+  ) {
+    await handlePostbackPayload(senderId, msg.quick_reply.payload, `qr_${mid}`);
+    return;
+  }
+
   const text = (msg.text || msg.quick_reply?.payload || '').trim();
   const isStoryReply = Boolean(msg.reply_to?.story);
+  const storyMediaId = msg.reply_to?.story?.id;
 
   if (!text) return;
 
-  // Procura uma regra com base nas palavras-chave (inclui A, B, C, ROTINA, LINK, DIREITOS, ALIMENTACAO)
-  const rule = await matchRule(text);
+  // Procura uma regra com base nas palavras-chave e no ID da mídia (se houver)
+  const [rule, profile] = await Promise.all([
+    matchRule(text, storyMediaId),
+    getInstagramUserProfile(senderId),
+  ]);
 
   if (rule) {
-    const res = await sendDirectMessage(senderId, rule.replyText, {
-      linkUrl: rule.linkUrl,
-      buttonTitle: rule.buttonTitle,
-    });
-    await trackInstagramInteraction({
-      senderId,
-      keywordMatched: rule.name,
-      ruleId: rule.id,
-      isStoryReply,
-      status: res.success ? 'SENT' : 'FAILED',
-      errorMessage: res.error,
-    });
-  } else if (isStoryReply) {
-    // Se respondeu a um Story com texto livre (ex: emoji ou comentário carinhoso), acolhe e entrega acesso rápido
-    const fallbackText =
-      'Que bom receber sua resposta no nosso Story! 💙\n\nSe você quiser receber nossos guias práticos e quadros visuais agora mesmo, responda com "ROTINA" ou toque no botão abaixo:';
+    if (rule.humanTypingDelay !== false) {
+      await simulateHumanTyping(senderId, 850);
+    }
+
+    await deliverRuleOrFollowGate(senderId, rule, profile, { isStoryReply });
+    return;
+  }
+
+  // Cooldown Anti-Spam (ChatbotX): se não bateu nenhuma palavra-chave e o usuário já interagiu nas últimas 24h,
+  // apenas marca como "Visto" e não interrompe a conversa com menu repetitivo!
+  if (await isUserInWelcomeCooldown(senderId)) {
+    await sendSenderAction(senderId, 'mark_seen');
+    console.log(
+      `[ChatbotX Cooldown] Usuário ${senderId} enviou texto livre em conversa ativa. Menu automático silenciado por 24h.`
+    );
+    return;
+  }
+
+  await simulateHumanTyping(senderId, 850);
+  await setUserWelcomeCooldown(senderId);
+
+  if (isStoryReply) {
+    const fallbackText = personalizeMessageText(
+      'Oi{nome}! Que bom receber sua resposta no nosso Story! 💙\n\nSe você quiser receber nossos guias práticos e quadros visuais agora mesmo, responda com "ROTINA" ou toque no botão abaixo:',
+      profile
+    );
     const res = await sendDirectMessage(senderId, fallbackText, {
       linkUrl: 'https://kitautismo.com',
       buttonTitle: 'Acessar Kit Autismo',
     });
     await trackInstagramInteraction({
       senderId,
+      senderUsername: profile?.username,
       keywordMatched: 'fallback_story_reply',
       isStoryReply: true,
       status: res.success ? 'SENT' : 'FAILED',
       errorMessage: res.error,
     });
   } else {
-    // Resposta padrão acolhedora com botão clicável caso nenhuma palavra-chave específica seja acionada
-    const defaultReply =
-      'Olá! Seja muito bem-vindo(a) ao Kit Autismo. 💙\n\nPara receber nossos materiais imediatamente aqui no Direct, responda com:\n👉 "ROTINA" para quadros visuais e previsibilidade;\n👉 "ALIMENTACAO" para seletividade alimentar;\n👉 "DIREITOS" para planos de saúde e escola;\n\nOu toque no botão abaixo para acessar tudo agora:';
+    const defaultReply = personalizeMessageText(
+      'Olá! Seja muito bem-vindo(a) ao Kit Autismo. 💙\n\nPara receber nossos materiais imediatamente aqui no Direct, responda com:\n👉 "ROTINA" para quadros visuais e previsibilidade;\n👉 "ALIMENTACAO" para seletividade alimentar;\n👉 "DIREITOS" para planos de saúde e escola;\n\nOu toque no botão abaixo para acessar tudo agora:',
+      profile
+    );
     const res = await sendDirectMessage(senderId, defaultReply, {
       linkUrl: 'https://kitautismo.com',
       buttonTitle: 'Acessar Kit Autismo',
     });
     await trackInstagramInteraction({
       senderId,
+      senderUsername: profile?.username,
       keywordMatched: 'default_welcome',
       isStoryReply: false,
       status: res.success ? 'SENT' : 'FAILED',
@@ -201,7 +397,7 @@ async function handleMessagingItem(
 }
 
 /**
- * Trata comentários em publicações do Feed/Reels (Padrão OpenReply: suporta change.value.id e change.value.comment_id)
+ * Trata comentários em publicações do Feed/Reels (Padrão OpenReply: suporta vinculação por post e Fluxo de 2 Etapas)
  */
 async function handleCommentChange(
   change: InstagramChangeItem,
@@ -211,15 +407,14 @@ async function handleCommentChange(
   const val = change.value;
   if (!val) return;
 
-  // Se vier do feed de página, ignora eventos que não sejam adição de comentário
   if (val.item && val.item !== 'comment') return;
   if (val.verb && val.verb !== 'add') return;
 
-  // No webhook oficial do Instagram (object: "instagram"), o ID do comentário vem em `val.id`
   const commentId = val.id || val.comment_id;
   const commentText = (val.text || '').trim();
   const commenterId = val.from?.id;
   const commenterUsername = val.from?.username;
+  const mediaId = val.media?.id || val.media_id || val.post_id;
 
   if (!commentId || !commentText) return;
 
@@ -239,22 +434,65 @@ async function handleCommentChange(
   }
   await markMessageAsProcessed(`comment_${commentId}`);
 
-  // Verifica se o comentário aciona alguma regra de palavra-chave
-  const rule = await matchRule(commentText);
+  // Verifica se o comentário aciona alguma regra (priorizando regras vinculadas ao mediaId específico)
+  const rule = await matchRule(commentText, mediaId);
 
   if (rule) {
-    // 1. Envia Resposta Privada no Direct (Private Reply) com botão clicável
-    const dmRes = await sendPrivateReplyToComment(commentId, rule.replyText, {
-      linkUrl: rule.linkUrl,
-      buttonTitle: rule.buttonTitle,
-    });
+    const profileStub: InstagramUserProfile | null = commenterUsername
+      ? { id: commenterId || 'commenter', username: commenterUsername }
+      : null;
 
-    // 2. Publica Resposta Pública embaixo do comentário no post (OpenReply publicReplyVariations)
+    let dmRes: { success: boolean; messageId?: string; error?: string };
+
+    // Se o Fluxo de 2 Etapas para Comentários estiver ativo (OpenReply + ChatbotX),
+    // envia primeiro o convite com botão Postback para a pessoa tocar, abrir a janela de 24h e impulsionar os Stories!
+    if (rule.twoStepCommentOptIn) {
+      const optInText = personalizeMessageText(
+        rule.twoStepPromptText || DEFAULT_TWO_STEP_PROMPT_TEXT,
+        profileStub
+      );
+      const optInBtnTitle = rule.twoStepButtonTitle || '🔓 Liberar meu Guia';
+
+      dmRes = await sendPrivateReplyToComment(commentId, optInText, {
+        buttons: [
+          {
+            type: 'postback',
+            title: optInBtnTitle,
+            payload: `COMMENT_OPTIN:${rule.id}`,
+          },
+          ...(rule.linkUrl
+            ? [
+                {
+                  type: 'web_url' as const,
+                  title: rule.buttonTitle || 'Acessar Direto',
+                  url: rule.linkUrl,
+                },
+              ]
+            : []),
+        ],
+        linkUrl: rule.linkUrl,
+        buttonTitle: rule.buttonTitle,
+      });
+    } else {
+      const replyText = personalizeMessageText(rule.replyText, profileStub);
+      const buttons = extractRuleButtons(rule);
+      dmRes = await sendPrivateReplyToComment(commentId, replyText, {
+        buttons,
+        linkUrl: rule.linkUrl,
+        buttonTitle: rule.buttonTitle,
+      });
+    }
+
+    // Publica Resposta Pública embaixo do comentário no post (OpenReply publicReplyVariations)
     let publicReplySent = false;
     if (rule.publicReplyEnabled !== false) {
       const publicText = pickPublicReplyVariation(rule, commenterUsername);
       const pubRes = await sendPublicReplyToComment(commentId, publicText);
       publicReplySent = pubRes.success;
+    }
+
+    if (commenterId) {
+      await setUserWelcomeCooldown(commenterId);
     }
 
     await trackInstagramInteraction({
@@ -264,6 +502,7 @@ async function handleCommentChange(
       ruleId: rule.id,
       isCommentReply: true,
       publicReplySent,
+      twoStepTriggered: Boolean(rule.twoStepCommentOptIn),
       status: dmRes.success ? 'SENT' : 'FAILED',
       errorMessage: dmRes.error,
     });

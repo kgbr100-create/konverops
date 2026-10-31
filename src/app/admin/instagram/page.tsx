@@ -4,15 +4,38 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AutomationRule } from '@/lib/instagram/types';
 
+interface InstagramMediaItem {
+  id: string;
+  caption?: string;
+  media_type?: string;
+  media_url?: string;
+  thumbnail_url?: string;
+  permalink?: string;
+  timestamp?: string;
+  comments_count?: number;
+  like_count?: number;
+}
+
 export default function InstagramManyChatDashboard() {
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'flows' | 'simulator' | 'stories' | 'webhook'>('flows');
-  const [metrics, setMetrics] = useState<{ totalAllTime: number; recentLogs: any[] }>({
+  const [metrics, setMetrics] = useState<{
+    totalAllTime: number;
+    followGateTotal?: number;
+    byRule?: Record<string, number>;
+    recentLogs: any[];
+  }>({
     totalAllTime: 0,
+    followGateTotal: 0,
+    byRule: {},
     recentLogs: [],
   });
+
+  // Publicações recentes do @kit.autismo para o seletor de posts específicos (OpenReply)
+  const [recentMedia, setRecentMedia] = useState<InstagramMediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(false);
 
   // Modal de edição / criação de fluxo
   const [editingRule, setEditingRule] = useState<AutomationRule | null>(null);
@@ -21,18 +44,29 @@ export default function InstagramManyChatDashboard() {
 
   // Simulador de Direct (Sandbox)
   const [simulatorInput, setSimulatorInput] = useState('');
+  const [simulateNonFollower, setSimulateNonFollower] = useState(false);
+  const [simulateUserName, setSimulateUserName] = useState('Ana');
   const [chatMessages, setChatMessages] = useState<
-    Array<{ from: 'user' | 'bot'; text: string; time: string }>
+    Array<{
+      from: 'user' | 'bot';
+      text: string;
+      time: string;
+      buttons?: Array<{ title: string; url?: string; payload?: string }>;
+    }>
   >([
     {
       from: 'user',
-      text: 'Olá! Vi o post de vocês sobre AuDHD, vocês têm material sobre isso?',
+      text: 'ROTINA',
       time: '10:42',
     },
     {
       from: 'bot',
-      text: 'Olá! Conciliar a busca por novidade com a necessidade de previsibilidade é um dos maiores desafios do dia a dia.\n\nAqui está o modelo prático de quadro de rotina visual para imprimir e organizar a semana sem sobrecarga:\n\n👉 https://kitautismo.com/rotina\n\nConta com a gente!',
+      text: 'Olá, Ana! Dar previsibilidade visual para a criança autista é a forma mais gentil e neurocientífica de reduzir crises de transição no dia a dia. 💙\n\nAqui está o nosso modelo prático de Quadro de Rotina Visual para organizar a semana sem sobrecarga sensorial:',
       time: '10:42',
+      buttons: [
+        { title: 'Acessar Guia Rotina', url: 'https://kitautismo.com/rotina' },
+        { title: 'Ver Kit Completo', url: 'https://kitautismo.com' },
+      ],
     },
   ]);
   const [isBotTyping, setIsBotTyping] = useState(false);
@@ -64,6 +98,23 @@ export default function InstagramManyChatDashboard() {
     }
   };
 
+  // Carrega últimas publicações do @kit.autismo para vinculação por post
+  const fetchInstagramMedia = async () => {
+    if (recentMedia.length > 0 || loadingMedia) return;
+    try {
+      setLoadingMedia(true);
+      const res = await fetch('/api/instagram/media');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.media)) {
+        setRecentMedia(data.media);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar posts do Instagram:', err);
+    } finally {
+      setLoadingMedia(false);
+    }
+  };
+
   useEffect(() => {
     fetchRules();
   }, []);
@@ -84,7 +135,7 @@ export default function InstagramManyChatDashboard() {
       } else {
         alert('Erro ao salvar: ' + (data.error || 'Falha desconhecida.'));
       }
-    } catch (err) {
+    } catch {
       alert('Erro de conexão ao salvar regras.');
     } finally {
       setSaving(false);
@@ -94,6 +145,24 @@ export default function InstagramManyChatDashboard() {
   // Toggle ativo/inativo de um fluxo
   const handleToggleRule = async (ruleId: string) => {
     const updated = rules.map((r) => (r.id === ruleId ? { ...r, active: !r.active } : r));
+    setRules(updated);
+    await saveRulesToBackend(updated);
+  };
+
+  // Toggle rápido de Follow-Gate direto no card
+  const handleQuickToggleFollowGate = async (ruleId: string) => {
+    const updated = rules.map((r) =>
+      r.id === ruleId ? { ...r, requireFollow: !r.requireFollow } : r
+    );
+    setRules(updated);
+    await saveRulesToBackend(updated);
+  };
+
+  // Toggle rápido de Fluxo 2 Etapas direto no card
+  const handleQuickToggleTwoStep = async (ruleId: string) => {
+    const updated = rules.map((r) =>
+      r.id === ruleId ? { ...r, twoStepCommentOptIn: !r.twoStepCommentOptIn } : r
+    );
     setRules(updated);
     await saveRulesToBackend(updated);
   };
@@ -108,12 +177,19 @@ export default function InstagramManyChatDashboard() {
 
   // Abrir modal para novo fluxo
   const handleCreateNewRule = () => {
+    fetchInstagramMedia();
     setEditingRule({
       id: `regra-${Date.now()}`,
       name: 'Novo Fluxo de Palavra-chave',
       keywords: ['quero'],
-      replyText: 'Olá! Aqui está o seu link solicitado:\n\n👉 https://kitautismo.com',
+      replyText: 'Olá! Aqui está o seu material solicitado:\n\nToque no botão abaixo para acessar agora:',
       linkUrl: 'https://kitautismo.com',
+      buttonTitle: 'Acessar Material',
+      publicReplyEnabled: true,
+      requireFollow: true,
+      twoStepCommentOptIn: true,
+      humanTypingDelay: true,
+      targetMediaIds: [],
       active: true,
     });
     setIsNewRule(true);
@@ -168,20 +244,31 @@ export default function InstagramManyChatDashboard() {
     });
   };
 
-  // Simulador de Envio no Sandbox
-  const handleSendSimulator = () => {
-    if (!simulatorInput.trim()) return;
+  // Alterna seleção de um post específico na regra
+  const toggleTargetMediaId = (mediaId: string) => {
+    if (!editingRule) return;
+    const current = editingRule.targetMediaIds || [];
+    const exists = current.includes(mediaId);
+    const next = exists ? current.filter((id) => id !== mediaId) : [...current, mediaId];
+    setEditingRule({
+      ...editingRule,
+      targetMediaIds: next,
+    });
+  };
 
-    const userText = simulatorInput.trim();
+  // Simulador de Envio no Sandbox (testando Follow-Gate, Nome Real e Múltiplos Botões)
+  const handleSendSimulator = (overrideText?: string, isFollowUnlock?: boolean) => {
+    const rawInput = overrideText ?? simulatorInput;
+    if (!rawInput.trim()) return;
+
+    const userText = rawInput.trim();
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // Adiciona fala do usuário
     setChatMessages((prev) => [...prev, { from: 'user', text: userText, time: timeStr }]);
-    setSimulatorInput('');
+    if (!overrideText) setSimulatorInput('');
     setIsBotTyping(true);
 
-    // Normaliza e busca nas regras ativas
     setTimeout(() => {
       const cleanUserText = userText
         .toLowerCase()
@@ -195,7 +282,6 @@ export default function InstagramManyChatDashboard() {
       let matchedRule: AutomationRule | null = null;
       const activeRules = rules.filter((r) => r.active);
 
-      // 0. Exact message match (Story Polls A, B, C)
       for (const rule of activeRules) {
         if (!rule.exactMessageMatch) continue;
         for (const kw of rule.keywords) {
@@ -208,7 +294,6 @@ export default function InstagramManyChatDashboard() {
         if (matchedRule) break;
       }
 
-      // 1. Whole-word or substring match
       if (!matchedRule) {
         for (const rule of activeRules) {
           if (rule.exactMessageMatch) continue;
@@ -227,15 +312,85 @@ export default function InstagramManyChatDashboard() {
         }
       }
 
-      const botText = matchedRule
-        ? matchedRule.linkUrl
-          ? `${matchedRule.replyText}\n\n[🔘 Botão Nativo: ${matchedRule.buttonTitle || 'Acessar Material'}]\n🔗 ${matchedRule.linkUrl}`
-          : matchedRule.replyText
-        : 'Olá! Vimos a sua mensagem. 💙\n\nSe você procura nossos materiais, envie a palavra "ROTINA" ou "LINK" que te respondo na hora com o acesso!';
+      const firstName = simulateUserName.trim() || 'Ana';
 
-      setChatMessages((prev) => [...prev, { from: 'bot', text: botText, time: timeStr }]);
+      if (matchedRule) {
+        // Se simulando não-seguidor e a regra tem Follow-Gate ativo:
+        if (matchedRule.requireFollow && simulateNonFollower && !isFollowUnlock) {
+          const gateText = `Oi, ${firstName}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu Guia gratuitamente aqui no Direct:`;
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              from: 'bot',
+              text: gateText,
+              time: timeStr,
+              buttons: [
+                {
+                  title: matchedRule?.followGateButtonTitle || '✅ Já segui! Liberar',
+                  payload: matchedRule?.keywords[0] || 'rotina',
+                },
+                {
+                  title: '📲 Perfil @kit.autismo',
+                  url: 'https://www.instagram.com/kit.autismo/',
+                },
+              ],
+            },
+          ]);
+          setIsBotTyping(false);
+          return;
+        }
+
+        const personalized = matchedRule.replyText.startsWith('Olá!')
+          ? matchedRule.replyText.replace(/^Olá!/, `Olá, ${firstName}!`)
+          : matchedRule.replyText;
+
+        const finalPrefix = isFollowUnlock
+          ? `Perfeito, ${firstName}! Muito obrigado por seguir o @kit.autismo! 💙✨\n\n`
+          : '';
+
+        const btns: Array<{ title: string; url?: string }> = [];
+        if (matchedRule.linkUrl) {
+          btns.push({
+            title: matchedRule.buttonTitle || 'Acessar Material',
+            url: matchedRule.linkUrl,
+          });
+        }
+        if (matchedRule.secondaryLinkUrl) {
+          btns.push({
+            title: matchedRule.secondaryButtonTitle || 'Ver Kit Completo',
+            url: matchedRule.secondaryLinkUrl,
+          });
+        }
+        if (matchedRule.thirdLinkUrl) {
+          btns.push({
+            title: matchedRule.thirdButtonTitle || 'Falar no Suporte',
+            url: matchedRule.thirdLinkUrl,
+          });
+        }
+
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            from: 'bot',
+            text: `${finalPrefix}${personalized}`,
+            time: timeStr,
+            buttons: btns,
+          },
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            from: 'bot',
+            text: `Olá, ${firstName}! Seja muito bem-vindo(a) ao Kit Autismo. 💙\n\nResponda com "ROTINA", "ALIMENTACAO" ou "DIREITOS" para receber nossos materiais agora mesmo!`,
+            time: timeStr,
+            buttons: [{ title: 'Acessar Kit Autismo', url: 'https://kitautismo.com' }],
+          },
+        ]);
+      }
+
       setIsBotTyping(false);
-    }, 600);
+    }, 650);
   };
 
   // Publicar Story direto
@@ -260,7 +415,7 @@ export default function InstagramManyChatDashboard() {
       } else {
         setStoryStatus({ success: false, msg: data.error || 'Erro ao publicar Story.' });
       }
-    } catch (err) {
+    } catch {
       setStoryStatus({ success: false, msg: 'Erro de conexão com o servidor.' });
     } finally {
       setStoryPublishing(false);
@@ -282,20 +437,20 @@ export default function InstagramManyChatDashboard() {
             ⚡
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-base font-bold text-white tracking-tight">
                 Konverops Flow Studio
               </h1>
               <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border border-pink-500/30">
-                OpenReply + ChatbotX Engine
+                OpenReply + ChatbotX v2.0
               </span>
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Token Perpétuo + Reconciliador 10m Ativo
+                Follow-Gate + 2-Step + Cooldown 24h Ativos
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Automação Oficial de Directs, Respostas a Stories e Entrega de Links da Meta
+              Automação Oficial de Directs, Trava de Seguidor, Respostas a Stories e Entrega de Links
             </p>
           </div>
         </div>
@@ -321,12 +476,12 @@ export default function InstagramManyChatDashboard() {
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-              Total de Mensagens Atendidas
+              Total de DMs & Comentários
             </p>
             <p className="text-2xl font-black text-white mt-1">
               {metrics.totalAllTime.toLocaleString()}
             </p>
-            <p className="text-[11px] text-emerald-400 mt-0.5">Automático 24/7 sem ManyChat</p>
+            <p className="text-[11px] text-emerald-400 mt-0.5">Webhook + Reconciliador 10m</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-lg">
             💬
@@ -336,41 +491,41 @@ export default function InstagramManyChatDashboard() {
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-              Fluxos de Resposta Ativos
+              Regras com Follow-Gate
             </p>
             <p className="text-2xl font-black text-white mt-1">
-              {rules.filter((r) => r.active).length} / {rules.length}
+              {rules.filter((r) => r.active && r.requireFollow).length} ativas
             </p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Palavras-chave vigentes</p>
+            <p className="text-[11px] text-pink-400 mt-0.5">Converte visitantes em seguidores</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
-            ⚡
+          <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 text-lg">
+            🔒
           </div>
         </div>
 
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-              Tempo Médio de Resposta
+              Proteção Anti-Spam (Cooldown)
             </p>
-            <p className="text-2xl font-black text-white mt-1">&lt; 1.5s</p>
-            <p className="text-[11px] text-teal-400 mt-0.5">Borda da Vercel + Upstash</p>
+            <p className="text-2xl font-black text-white mt-1">24h / Lead</p>
+            <p className="text-[11px] text-teal-400 mt-0.5">Silencia menu em conversa aberta</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 text-lg">
-            🚀
+            🛡️
           </div>
         </div>
 
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-              Economia Mensal
+              Status Humanizado
             </p>
-            <p className="text-2xl font-black text-emerald-400 mt-1">R$ 0 / mês</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Zero licença de terceiros</p>
+            <p className="text-2xl font-black text-emerald-400 mt-1">Visto + Digitando</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Personalizado com 1º nome real</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
-            💰
+            ✨
           </div>
         </div>
       </section>
@@ -418,7 +573,7 @@ export default function InstagramManyChatDashboard() {
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <span>🔌</span> Credenciais & Webhook da Meta
+          <span>🔌</span> Credenciais & Telemetria em Tempo Real
         </button>
       </div>
 
@@ -434,12 +589,15 @@ export default function InstagramManyChatDashboard() {
             {/* TAB 1: FLUXOS DE AUTOMAÇÃO */}
             {activeTab === 'flows' && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-sm font-bold text-white">Gatilhos de Palavras-Chave</h2>
+                    <h2 className="text-sm font-bold text-white">
+                      Gatilhos de Palavras-Chave, Follow-Gate & Fluxo de 2 Etapas
+                    </h2>
                     <p className="text-xs text-slate-400">
-                      Quando um seguidor responder ao Story ou enviar DM com essas palavras, o robô
-                      responde instantaneamente com o link.
+                      Clique nos selos de qualquer regra abaixo para ativar/desativar rapidamente a{' '}
+                      <strong className="text-pink-300">Trava de Seguidor (Follow-Gate)</strong> ou o{' '}
+                      <strong className="text-purple-300">Fluxo de 2 Etapas p/ Comentários</strong>.
                     </p>
                   </div>
                   <button
@@ -451,124 +609,188 @@ export default function InstagramManyChatDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {rules.map((rule) => (
-                    <div
-                      key={rule.id}
-                      className={`bg-slate-900/80 border rounded-2xl p-5 transition-all flex flex-col justify-between ${
-                        rule.active
-                          ? 'border-slate-800 hover:border-slate-700 shadow-md shadow-black/40'
-                          : 'border-slate-800/50 opacity-60'
-                      }`}
-                    >
-                      <div>
-                        {/* Header do Card */}
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div>
+                  {rules.map((rule) => {
+                    const ruleCount = metrics.byRule?.[rule.id] || 0;
+                    const targetedPostsCount = rule.targetMediaIds?.length || 0;
+
+                    return (
+                      <div
+                        key={rule.id}
+                        className={`bg-slate-900/80 border rounded-2xl p-5 transition-all flex flex-col justify-between ${
+                          rule.active
+                            ? 'border-slate-800 hover:border-slate-700 shadow-md shadow-black/40'
+                            : 'border-slate-800/50 opacity-60'
+                        }`}
+                      >
+                        <div>
+                          {/* Header do Card */}
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <h3 className="text-sm font-bold text-white">{rule.name}</h3>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                  {ruleCount} envios
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  ID: {rule.id}
+                                </span>
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">
+                                  {targetedPostsCount > 0
+                                    ? `📌 ${targetedPostsCount} post(s) específico(s)`
+                                    : '🌐 Global (Todos os Posts & Stories)'}
+                                </span>
+                              </div>
+                            </div>
+
                             <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                              <h3 className="text-sm font-bold text-white">{rule.name}</h3>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={rule.active}
+                                  onChange={() => handleToggleRule(rule.id)}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                              </label>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
-                              ID: {rule.id}
-                            </span>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={rule.active}
-                                onChange={() => handleToggleRule(rule.id)}
-                                className="sr-only peer"
-                              />
-                              <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Palavras-chave */}
-                        <div className="mb-3">
-                          <p className="text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            Gatilhos Ativadores:
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {rule.keywords.map((kw, idx) => (
-                              <span
-                                key={idx}
-                                className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/30"
-                              >
-                                #{kw}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Balão de Resposta */}
-                        <div className="mb-3">
-                          <p className="text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            Resposta no Direct:
-                          </p>
-                          <div className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">
-                            {rule.replyText}
-                          </div>
-                        </div>
-
-                        {/* Link de Destino & Badges OpenReply */}
-                        <div className="space-y-2">
-                          {rule.linkUrl && (
-                            <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono bg-emerald-500/5 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
-                              <span>🔘</span>
-                              <span className="font-sans font-bold text-white bg-emerald-500/20 px-2 py-0.5 rounded text-[11px]">
-                                {rule.buttonTitle || 'Acessar Material'}
-                              </span>
-                              <span className="truncate flex-1">{rule.linkUrl}</span>
-                              <a
-                                href={rule.linkUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[10px] uppercase font-bold text-slate-400 hover:text-emerald-400"
-                              >
-                                Testar ↗
-                              </a>
+                          {/* Palavras-chave */}
+                          <div className="mb-3">
+                            <p className="text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                              Gatilhos Ativadores:
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {rule.keywords.map((kw, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/30"
+                                >
+                                  #{kw}
+                                </span>
+                              ))}
                             </div>
-                          )}
+                          </div>
 
+                          {/* Balão de Resposta */}
+                          <div className="mb-3">
+                            <p className="text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                              Resposta no Direct (Personalizada com 1º Nome):
+                            </p>
+                            <div className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">
+                              {rule.replyText}
+                            </div>
+                          </div>
+
+                          {/* Botões Nativos Configurados */}
+                          <div className="space-y-1.5 mb-3">
+                            {rule.linkUrl && (
+                              <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono bg-emerald-500/5 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
+                                <span>🔘</span>
+                                <span className="font-sans font-bold text-white bg-emerald-500/20 px-2 py-0.5 rounded text-[11px]">
+                                  1. {rule.buttonTitle || 'Acessar Material'}
+                                </span>
+                                <span className="truncate flex-1">{rule.linkUrl}</span>
+                              </div>
+                            )}
+                            {rule.secondaryLinkUrl && (
+                              <div className="flex items-center gap-2 text-xs text-teal-400 font-mono bg-teal-500/5 border border-teal-500/20 px-3 py-1.5 rounded-lg">
+                                <span>🔘</span>
+                                <span className="font-sans font-bold text-white bg-teal-500/20 px-2 py-0.5 rounded text-[11px]">
+                                  2. {rule.secondaryButtonTitle || 'Ver Kit Completo'}
+                                </span>
+                                <span className="truncate flex-1">{rule.secondaryLinkUrl}</span>
+                              </div>
+                            )}
+                            {rule.thirdLinkUrl && (
+                              <div className="flex items-center gap-2 text-xs text-purple-400 font-mono bg-purple-500/5 border border-purple-500/20 px-3 py-1.5 rounded-lg">
+                                <span>🔘</span>
+                                <span className="font-sans font-bold text-white bg-purple-500/20 px-2 py-0.5 rounded text-[11px]">
+                                  3. {rule.thirdButtonTitle || 'Suporte'}
+                                </span>
+                                <span className="truncate flex-1">{rule.thirdLinkUrl}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Selos Interativos OpenReply + ChatbotX */}
                           <div className="flex flex-wrap gap-1.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickToggleFollowGate(rule.id)}
+                              title="Clique para ativar/desativar a Trava de Seguidor (Follow-Gate)"
+                              className={`text-[10px] font-semibold px-2.5 py-1 rounded-md border transition-all ${
+                                rule.requireFollow
+                                  ? 'bg-pink-500/15 text-pink-300 border-pink-500/40'
+                                  : 'bg-slate-800/60 text-slate-400 border-slate-700/60 hover:text-slate-200'
+                              }`}
+                            >
+                              {rule.requireFollow
+                                ? '🔒 Follow-Gate Ativo (Exige Seguir)'
+                                : '🔓 Sem Trava de Seguidor'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleQuickToggleTwoStep(rule.id)}
+                              title="Clique para ativar/desativar o Fluxo de 2 Etapas nos comentários"
+                              className={`text-[10px] font-semibold px-2.5 py-1 rounded-md border transition-all ${
+                                rule.twoStepCommentOptIn
+                                  ? 'bg-purple-500/15 text-purple-300 border-purple-500/40'
+                                  : 'bg-slate-800/60 text-slate-400 border-slate-700/60 hover:text-slate-200'
+                              }`}
+                            >
+                              {rule.twoStepCommentOptIn
+                                ? '⚡ Comentário 2 Etapas (Abre Janela 24h)'
+                                : '⚡ Comentário Direto 1 Etapa'}
+                            </button>
+
                             {rule.publicReplyEnabled !== false && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20">
-                                💬 Resposta Pública no Comentário Ativa
+                              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                💬 Resposta Pública Ativa
                               </span>
                             )}
+
+                            {rule.humanTypingDelay !== false && (
+                              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                ✍️ Digitando Humanizado
+                              </span>
+                            )}
+
                             {rule.exactMessageMatch && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
                                 🎯 Match Exato (Enquete Story)
                               </span>
                             )}
                           </div>
                         </div>
-                      </div>
 
-                      {/* Ações */}
-                      <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-slate-800/80">
-                        <button
-                          onClick={() => {
-                            setEditingRule(rule);
-                            setIsNewRule(false);
-                            setTempKeyword('');
-                          }}
-                          className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
-                        >
-                          Editar ✏️
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRule(rule.id)}
-                          className="px-3 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold transition-colors"
-                        >
-                          Excluir 🗑️
-                        </button>
+                        {/* Ações */}
+                        <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-slate-800/80">
+                          <button
+                            onClick={() => {
+                              fetchInstagramMedia();
+                              setEditingRule(rule);
+                              setIsNewRule(false);
+                              setTempKeyword('');
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+                          >
+                            Configurar Regra ⚙️
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRule(rule.id)}
+                            className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold transition-colors"
+                          >
+                            Excluir 🗑️
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -578,13 +800,11 @@ export default function InstagramManyChatDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div className="lg:col-span-5 flex justify-center">
                   {/* Smartphone Frame (iPhone Style) */}
-                  <div className="w-[340px] h-[640px] bg-slate-950 rounded-[44px] border-[6px] border-slate-800 shadow-2xl shadow-purple-500/10 flex flex-col overflow-hidden relative">
-                    {/* Top Notch */}
+                  <div className="w-[350px] h-[660px] bg-slate-950 rounded-[44px] border-[6px] border-slate-800 shadow-2xl shadow-purple-500/10 flex flex-col overflow-hidden relative">
                     <div className="h-6 bg-slate-950 flex items-center justify-center">
                       <div className="w-24 h-4 bg-slate-900 rounded-full"></div>
                     </div>
 
-                    {/* Instagram Direct Header */}
                     <div className="bg-slate-900 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <span className="text-slate-400 text-xs">←</span>
@@ -598,7 +818,9 @@ export default function InstagramManyChatDashboard() {
                             <span className="text-xs font-bold text-white">kit.autismo</span>
                             <span className="text-[10px] text-blue-400">✓</span>
                           </div>
-                          <span className="text-[10px] text-slate-400">Ativo agora</span>
+                          <span className="text-[10px] text-emerald-400">
+                            {isBotTyping ? 'Digitando...' : 'Online agora'}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 text-slate-400 text-xs">
@@ -611,7 +833,7 @@ export default function InstagramManyChatDashboard() {
                     <div className="flex-1 p-3 overflow-y-auto space-y-3 bg-[#0a0f1d] text-xs">
                       <div className="text-center my-2">
                         <span className="text-[10px] text-slate-500 bg-slate-900/80 px-2.5 py-0.5 rounded-full">
-                          Hoje
+                          Simulador Oficial • Visto + Digitando Ativo
                         </span>
                       </div>
 
@@ -623,15 +845,43 @@ export default function InstagramManyChatDashboard() {
                           }`}
                         >
                           <div
-                            className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl whitespace-pre-line text-xs leading-relaxed ${
+                            className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl whitespace-pre-line text-xs leading-relaxed ${
                               msg.from === 'user'
                                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-xs'
                                 : 'bg-slate-800 text-slate-100 rounded-bl-xs border border-slate-700/60 shadow-sm'
                             }`}
                           >
                             {msg.text}
+
+                            {msg.buttons && msg.buttons.length > 0 && (
+                              <div className="mt-2.5 pt-2 border-t border-slate-700/80 space-y-1.5">
+                                {msg.buttons.map((b, bIdx) =>
+                                  b.payload ? (
+                                    <button
+                                      key={bIdx}
+                                      onClick={() => handleSendSimulator(b.payload, true)}
+                                      className="w-full py-1.5 px-3 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-200 font-bold text-[11px] text-center block transition-colors"
+                                    >
+                                      {b.title}
+                                    </button>
+                                  ) : (
+                                    <a
+                                      key={bIdx}
+                                      href={b.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="w-full py-1.5 px-3 rounded-lg bg-slate-900/90 hover:bg-slate-950 border border-slate-700 text-emerald-400 font-bold text-[11px] text-center block transition-colors"
+                                    >
+                                      {b.title} ↗
+                                    </a>
+                                  )
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <span className="text-[9px] text-slate-500 px-1 mt-0.5">{msg.time}</span>
+                          <span className="text-[9px] text-slate-500 px-1 mt-0.5">
+                            {msg.from === 'user' ? `Visto • ${msg.time}` : msg.time}
+                          </span>
                         </div>
                       ))}
 
@@ -655,7 +905,7 @@ export default function InstagramManyChatDashboard() {
                         className="flex-1 bg-slate-950 border border-slate-800 rounded-full px-3.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500"
                       />
                       <button
-                        onClick={handleSendSimulator}
+                        onClick={() => handleSendSimulator()}
                         className="w-7 h-7 rounded-full bg-purple-600 hover:bg-purple-500 flex items-center justify-center text-white text-xs font-bold transition-transform active:scale-95"
                       >
                         ↑
@@ -664,51 +914,68 @@ export default function InstagramManyChatDashboard() {
                   </div>
                 </div>
 
-                <div className="lg:col-span-7 bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-                  <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                    <span>🧪</span> Laboratório de Testes em Tempo Real
-                  </h3>
-                  <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                    Teste como o motor reage a qualquer frase ou variação que um seguidor digitar.
-                    O simulador roda a mesma lógica de normalização (remove acentos, pontuações e
-                    emojis) que está operando na Vercel.
-                  </p>
+                <div className="lg:col-span-7 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-5">
+                  <div>
+                    <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                      <span>🧪</span> Laboratório Interativo (Follow-Gate + Personalização)
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Simule abaixo o comportamento exato para quem <strong>já é seguidor</strong> vs.
+                      quem <strong>ainda não segue o @kit.autismo</strong> (Trava de Seguidor do
+                      ChatbotX).
+                    </p>
+                  </div>
 
-                  <div className="space-y-3">
-                    <p className="text-xs font-bold text-slate-300">Exemplos rápidos para testar:</p>
+                  {/* Controles de Perfil Simulado */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+                        Nome do Seguidor Simulado:
+                      </label>
+                      <input
+                        type="text"
+                        value={simulateUserName}
+                        onChange={(e) => setSimulateUserName(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div className="flex flex-col justify-end">
+                      <label className="inline-flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-pink-500/10 border border-pink-500/30 text-xs text-pink-200 font-semibold">
+                        <input
+                          type="checkbox"
+                          checked={simulateNonFollower}
+                          onChange={(e) => setSimulateNonFollower(e.target.checked)}
+                          className="rounded border-pink-500"
+                        />
+                        <span>🔒 Simular visitante que NÃO segue o perfil</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-slate-300">
+                      Clique em um gatilho para testar imediatamente:
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {[
                         'A',
                         'B',
                         'C',
                         'ROTINA',
-                        'quero o link',
-                        'quais os direitos da crianca no plano?',
-                        'meu filho tem seletividade na comida',
+                        'EU QUERO',
+                        'DIREITOS',
+                        'ALIMENTACAO',
                         'preciso falar com um atendente',
                       ].map((promptText, idx) => (
                         <button
                           key={idx}
-                          onClick={() => {
-                            setSimulatorInput(promptText);
-                          }}
-                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700/80 transition-colors"
+                          onClick={() => handleSendSimulator(promptText)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700/80 transition-colors"
                         >
-                          "{promptText}"
+                          &ldquo;{promptText}&rdquo;
                         </button>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="mt-8 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                    <h4 className="text-xs font-bold text-emerald-400 mb-1">
-                      💡 Vantagem do Nosso Motor Próprio:
-                    </h4>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      Diferente de ferramentas comerciais que cobram a mais por gatilhos flexíveis,
-                      nosso motor detecta palavras-chave em qualquer posição da frase e entrega o
-                      link com formatação otimizada para o aplicativo nativo do Instagram.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -741,25 +1008,7 @@ export default function InstagramManyChatDashboard() {
                       placeholder="https://seu-servidor.com/story.png"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      A imagem deve ter resolução recomendada de 1080x1920 pixels.
-                    </p>
                   </div>
-
-                  {storyImageUrl && (
-                    <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center">
-                      <div className="w-36 h-64 bg-slate-900 rounded-xl overflow-hidden border border-slate-800 relative shadow-lg">
-                        <img
-                          src={storyImageUrl}
-                          alt="Prévia Story"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   {storyStatus && (
                     <div
@@ -778,32 +1027,20 @@ export default function InstagramManyChatDashboard() {
                     disabled={storyPublishing}
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 via-purple-500 to-emerald-400 hover:opacity-95 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2"
                   >
-                    {storyPublishing ? (
-                      <>
-                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        Publicando no Instagram...
-                      </>
-                    ) : (
-                      '🚀 Publicar Story Agora'
-                    )}
+                    {storyPublishing ? 'Publicando no Instagram...' : '🚀 Publicar Story Agora'}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* TAB 4: WEBHOOK & CONFIGURAÇÕES */}
+            {/* TAB 4: WEBHOOK & TELEMETRIA */}
             {activeTab === 'webhook' && (
               <div className="space-y-6 max-w-3xl mx-auto">
                 <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
                   <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                     <span>🔌</span> Endpoints de Integração com a Meta
                   </h3>
-                  <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                    Copie essas informações e cole nas configurações do produto **Webhooks** no seu
-                    aplicativo do Meta for Developers.
-                  </p>
-
-                  <div className="space-y-4">
+                  <div className="space-y-4 mt-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                         URL de Retorno de Chamada (Callback URL):
@@ -822,7 +1059,7 @@ export default function InstagramManyChatDashboard() {
                               'url'
                             )
                           }
-                          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors"
+                          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700"
                         >
                           {copyFeedback === 'url' ? '✓ Copiado!' : 'Copiar'}
                         </button>
@@ -842,7 +1079,7 @@ export default function InstagramManyChatDashboard() {
                         />
                         <button
                           onClick={() => copyToClipboard('konverops_ig_secret_2026', 'token')}
-                          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors"
+                          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700"
                         >
                           {copyFeedback === 'token' ? '✓ Copiado!' : 'Copiar'}
                         </button>
@@ -855,31 +1092,39 @@ export default function InstagramManyChatDashboard() {
                   <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                     <span>📊</span> Registro Recente de Interações em Tempo Real
                   </h3>
-                  <p className="text-xs text-slate-400 mb-4">
-                    Últimas conversas processadas e respondidas automaticamente pelo robô:
-                  </p>
-
                   {metrics.recentLogs && metrics.recentLogs.length > 0 ? (
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="space-y-2 max-h-80 overflow-y-auto mt-3">
                       {metrics.recentLogs.map((logItem, idx) => (
                         <div
                           key={idx}
                           className="flex items-center justify-between p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs"
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-emerald-400 font-bold">✓</span>
                             <span className="font-mono text-slate-300">
-                              ID: {logItem.senderId?.slice(0, 10)}...
+                              {logItem.senderUsername
+                                ? `@${logItem.senderUsername}`
+                                : `ID: ${logItem.senderId?.slice(0, 10)}...`}
                             </span>
                             {logItem.isStoryReply && (
                               <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300">
-                                Resposta a Story
+                                Story
+                              </span>
+                            )}
+                            {logItem.isCommentReply && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                                Comentário
+                              </span>
+                            )}
+                            {logItem.followGateTriggered && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
+                                Follow-Gate
                               </span>
                             )}
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-purple-300 font-mono">
-                              #{logItem.keywordMatched || 'resposta'}
+                              #{logItem.keyword || logItem.keywordMatched || 'resposta'}
                             </span>
                             <span className="text-slate-500 text-[11px]">
                               {new Date(logItem.timestamp).toLocaleTimeString('pt-BR')}
@@ -890,8 +1135,7 @@ export default function InstagramManyChatDashboard() {
                     </div>
                   ) : (
                     <div className="py-8 text-center text-xs text-slate-500">
-                      Nenhuma interação registrada ainda. Os eventos aparecerão aqui assim que os
-                      seguidores responderem às suas postagens e Stories.
+                      Nenhuma interação registrada ainda.
                     </div>
                   )}
                 </div>
@@ -901,13 +1145,13 @@ export default function InstagramManyChatDashboard() {
         )}
       </main>
 
-      {/* Modal de Edição de Regra / Fluxo */}
+      {/* Modal Completo de Edição de Regra / Fluxo (OpenReply + ChatbotX) */}
       {editingRule && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl shadow-purple-500/10 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl shadow-purple-500/10 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <span>⚡</span> {isNewRule ? 'Criar Novo Fluxo' : 'Editar Fluxo de Automação'}
+                <span>⚡</span> {isNewRule ? 'Criar Novo Fluxo' : 'Configurar Fluxo de Automação'}
               </h3>
               <button
                 onClick={() => setEditingRule(null)}
@@ -926,14 +1170,14 @@ export default function InstagramManyChatDashboard() {
                   type="text"
                   value={editingRule.name}
                   onChange={(e) => setEditingRule({ ...editingRule, name: e.target.value })}
-                  placeholder="Ex: Entrega do Guia de Alimentação"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
+              {/* Palavras-chave */}
               <div>
                 <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
-                  Palavras-chave Gatilho (o robô responde se a mensagem contiver):
+                  Palavras-chave Gatilho:
                 </label>
                 <div className="flex items-center gap-2 mb-2">
                   <input
@@ -941,7 +1185,7 @@ export default function InstagramManyChatDashboard() {
                     value={tempKeyword}
                     onChange={(e) => setTempKeyword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
-                    placeholder="Digite uma palavra e aperte Enter (ex: quero)"
+                    placeholder="Digite uma palavra e aperte Enter (ex: rotina)"
                     className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-purple-500"
                   />
                   <button
@@ -969,73 +1213,271 @@ export default function InstagramManyChatDashboard() {
                 </div>
               </div>
 
+              {/* Mensagem no Direct */}
               <div>
                 <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
-                  Mensagem de Resposta no Direct (Links aqui são clicáveis automaticamente):
+                  Mensagem Principal no Direct (Personaliza automaticamente &ldquo;Olá!&rdquo; com o 1º nome):
                 </label>
                 <textarea
-                  rows={5}
+                  rows={4}
                   value={editingRule.replyText}
                   onChange={(e) => setEditingRule({ ...editingRule, replyText: e.target.value })}
-                  placeholder="Olá! Aqui está o seu material..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-emerald-500 font-sans leading-relaxed"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
-                    Texto do Botão Nativo (máx 20 chars):
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={20}
-                    value={editingRule.buttonTitle || ''}
-                    onChange={(e) =>
-                      setEditingRule({ ...editingRule, buttonTitle: e.target.value })
-                    }
-                    placeholder="Ex: Ver Quadro de Rotina"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[11px]">
-                    Link do Botão (URL):
-                  </label>
-                  <input
-                    type="url"
-                    value={editingRule.linkUrl || ''}
-                    onChange={(e) => setEditingRule({ ...editingRule, linkUrl: e.target.value })}
-                    placeholder="https://kitautismo.com/rotina"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
-                  />
+              {/* Até 3 Botões Nativos */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+                <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+                  🔘 Botões Clicáveis Nativos do Card (Até 3 Botões por DM)
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-slate-400 text-[10px] uppercase mb-1">
+                      Botão 1 — Título (máx 20 chars):
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={20}
+                      value={editingRule.buttonTitle || ''}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, buttonTitle: e.target.value })
+                      }
+                      placeholder="Ex: Acessar Guia Rotina"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-[10px] uppercase mb-1">
+                      Botão 1 — Link (URL):
+                    </label>
+                    <input
+                      type="url"
+                      value={editingRule.linkUrl || ''}
+                      onChange={(e) => setEditingRule({ ...editingRule, linkUrl: e.target.value })}
+                      placeholder="https://kitautismo.com/rotina"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-emerald-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-400 text-[10px] uppercase mb-1">
+                      Botão 2 (Opcional) — Título:
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={20}
+                      value={editingRule.secondaryButtonTitle || ''}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, secondaryButtonTitle: e.target.value })
+                      }
+                      placeholder="Ex: Ver Kit Completo"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-[10px] uppercase mb-1">
+                      Botão 2 (Opcional) — Link:
+                    </label>
+                    <input
+                      type="url"
+                      value={editingRule.secondaryLinkUrl || ''}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, secondaryLinkUrl: e.target.value })
+                      }
+                      placeholder="https://kitautismo.com"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-teal-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-400 text-[10px] uppercase mb-1">
+                      Botão 3 (Opcional) — Título:
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={20}
+                      value={editingRule.thirdButtonTitle || ''}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, thirdButtonTitle: e.target.value })
+                      }
+                      placeholder="Ex: Falar no WhatsApp"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-[10px] uppercase mb-1">
+                      Botão 3 (Opcional) — Link:
+                    </label>
+                    <input
+                      type="url"
+                      value={editingRule.thirdLinkUrl || ''}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, thirdLinkUrl: e.target.value })
+                      }
+                      placeholder="https://kitautismo.com/suporte"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-purple-400 font-mono"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-1">
-                <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+              {/* Opções Avançadas do Motor OpenReply + ChatbotX */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                <p className="text-[11px] font-bold text-pink-400 uppercase tracking-wider">
+                  🚀 Recursos de Conversão & Retenção (OpenReply + ChatbotX)
+                </p>
+
+                <label className="flex items-start gap-2.5 cursor-pointer text-slate-200">
                   <input
                     type="checkbox"
-                    checked={editingRule.publicReplyEnabled !== false}
+                    checked={Boolean(editingRule.requireFollow)}
                     onChange={(e) =>
-                      setEditingRule({ ...editingRule, publicReplyEnabled: e.target.checked })
+                      setEditingRule({ ...editingRule, requireFollow: e.target.checked })
                     }
-                    className="rounded border-slate-700 bg-slate-950 text-emerald-500"
+                    className="mt-0.5 rounded border-slate-700 bg-slate-950 text-pink-500"
                   />
-                  <span>💬 Responder também publicamente no comentário do post</span>
+                  <div>
+                    <span className="font-bold text-pink-300">
+                      🔒 Trava de Seguidor (Follow-Gate do ChatbotX)
+                    </span>
+                    <p className="text-[11px] text-slate-400">
+                      Se a pessoa ainda não segue o @kit.autismo, pede para seguir primeiro e libera
+                      o link quando ela tocar em &ldquo;✅ Já segui! Liberar&rdquo;.
+                    </p>
+                  </div>
                 </label>
 
-                <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+                <label className="flex items-start gap-2.5 cursor-pointer text-slate-200">
                   <input
                     type="checkbox"
-                    checked={Boolean(editingRule.exactMessageMatch)}
+                    checked={Boolean(editingRule.twoStepCommentOptIn)}
                     onChange={(e) =>
-                      setEditingRule({ ...editingRule, exactMessageMatch: e.target.checked })
+                      setEditingRule({ ...editingRule, twoStepCommentOptIn: e.target.checked })
                     }
-                    className="rounded border-slate-700 bg-slate-950 text-amber-500"
+                    className="mt-0.5 rounded border-slate-700 bg-slate-950 text-purple-500"
                   />
-                  <span>🎯 Exigir mensagem exata (ex: letra A, B ou C)</span>
+                  <div>
+                    <span className="font-bold text-purple-300">
+                      ⚡ Fluxo de 2 Etapas para Comentários (Impulsionador de Stories)
+                    </span>
+                    <p className="text-[11px] text-slate-400">
+                      Quando alguém comenta num post, envia primeiro o botão &ldquo;🔓 Liberar meu
+                      Guia&rdquo; no Direct. Ao tocar, abre a janela de 24h e joga seus Stories para
+                      o 1º lugar da fila!
+                    </p>
+                  </div>
                 </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={editingRule.publicReplyEnabled !== false}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, publicReplyEnabled: e.target.checked })
+                      }
+                      className="rounded border-slate-700 bg-slate-950 text-blue-500"
+                    />
+                    <span>💬 Resposta Pública no Post</span>
+                  </label>
+
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={editingRule.humanTypingDelay !== false}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, humanTypingDelay: e.target.checked })
+                      }
+                      className="rounded border-slate-700 bg-slate-950 text-emerald-500"
+                    />
+                    <span>✍️ Visto + Digitando...</span>
+                  </label>
+
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(editingRule.exactMessageMatch)}
+                      onChange={(e) =>
+                        setEditingRule({ ...editingRule, exactMessageMatch: e.target.checked })
+                      }
+                      className="rounded border-slate-700 bg-slate-950 text-amber-500"
+                    />
+                    <span>🎯 Match Exato (A/B/C)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Seletor Visual de Publicações Específicas (OpenReply Media Grid) */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-200 uppercase tracking-wider">
+                      📌 Escopo de Publicações (OpenReply Post Picker)
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {(editingRule.targetMediaIds?.length || 0) === 0
+                        ? 'Atualmente GLOBAL (vale para qualquer publicação e Story). Clique em um post abaixo se quiser restringir esta regra a publicações específicas:'
+                        : `Restrita a ${editingRule.targetMediaIds?.length} publicação(ões) selecionada(s):`}
+                    </p>
+                  </div>
+                  {(editingRule.targetMediaIds?.length || 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingRule({ ...editingRule, targetMediaIds: [] })}
+                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-[10px] font-bold"
+                    >
+                      Tornar Global 🌐
+                    </button>
+                  )}
+                </div>
+
+                {loadingMedia ? (
+                  <p className="text-[11px] text-slate-400 py-3">
+                    Carregando publicações recentes de @kit.autismo...
+                  </p>
+                ) : recentMedia.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 max-h-40 overflow-y-auto pt-1">
+                    {recentMedia.map((post) => {
+                      const isSelected = Boolean(editingRule.targetMediaIds?.includes(post.id));
+                      const thumb = post.thumbnail_url || post.media_url;
+                      return (
+                        <button
+                          key={post.id}
+                          type="button"
+                          onClick={() => toggleTargetMediaId(post.id)}
+                          className={`relative rounded-xl overflow-hidden border-2 aspect-square group text-left ${
+                            isSelected
+                              ? 'border-emerald-400 ring-2 ring-emerald-500/40'
+                              : 'border-slate-800 opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          {thumb ? (
+                            <img
+                              src={thumb}
+                              alt={post.caption?.slice(0, 30) || 'Post'}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-slate-900 flex items-center justify-center p-1 text-[9px] text-slate-400 text-center">
+                              {post.caption?.slice(0, 35) || post.id}
+                            </div>
+                          )}
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-black text-[11px] flex items-center justify-center shadow">
+                              ✓
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-500">
+                    Regra operando em modo Global para todas as publicações do @kit.autismo.
+                  </p>
+                )}
               </div>
             </div>
 

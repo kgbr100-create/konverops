@@ -69,6 +69,22 @@ export interface InstagramChangeItem {
   };
 }
 
+export interface InstagramUserProfile {
+  id: string;
+  name?: string;
+  firstName?: string;
+  username?: string;
+  isUserFollowBusiness?: boolean;
+  isBusinessFollowUser?: boolean;
+}
+
+export interface InstagramLinkButton {
+  type?: 'web_url' | 'postback';
+  title: string;
+  url?: string;
+  payload?: string;
+}
+
 export interface AutomationRule {
   id: string;
   name: string;
@@ -78,22 +94,33 @@ export interface AutomationRule {
   buttonTitle?: string;
   secondaryButtonTitle?: string;
   secondaryLinkUrl?: string;
+  thirdButtonTitle?: string;
+  thirdLinkUrl?: string;
+  buttons?: InstagramLinkButton[];
   publicReplyEnabled?: boolean;
   publicReplyVariations?: string[];
   wholeWordMatch?: boolean;
   exactMessageMatch?: boolean;
+  /** Follow-Gate (ChatbotX): exige que a pessoa siga @kit.autismo antes de liberar o link final */
+  requireFollow?: boolean;
+  followGateText?: string;
+  followGateButtonTitle?: string;
+  /** Fluxo de 2 Etapas para Comentários (OpenReply + ChatbotX): envia botão "Liberar Material" para abrir janela de 24h e elevar alcance dos Stories */
+  twoStepCommentOptIn?: boolean;
+  twoStepPromptText?: string;
+  twoStepButtonTitle?: string;
+  /** Vinculação por Publicação Específica (OpenReply): vazio = Qualquer Publicação (Global) */
+  targetMediaIds?: string[];
+  /** Status Humanizado (OpenReply): envia Visto (mark_seen) + Digitando... (typing_on) antes da resposta */
+  humanTypingDelay?: boolean;
   active: boolean;
   priority?: number;
 }
 
-export interface InstagramLinkButton {
-  title: string;
-  url: string;
-}
-
 export interface InstagramSendMessagePayload {
   recipient: { id?: string; comment_id?: string };
-  message: {
+  sender_action?: 'mark_seen' | 'typing_on' | 'typing_off';
+  message?: {
     text?: string;
     attachment?: {
       type: 'template';
