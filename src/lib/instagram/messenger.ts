@@ -514,6 +514,45 @@ function buildPlainTextFallback(text: string, buttons?: InstagramLinkButton[]): 
 }
 
 /**
+ * Divide textos longos em blocos seguros (< 950 caracteres) respeitando quebras de parágrafos e frases.
+ * Evita rejeição pela Meta Graph API (limite de 1.000 caracteres no campo 'text').
+ */
+export function splitTextIntoSafeChunks(text: string, maxLength = 950): string[] {
+  if (!text || text.length <= maxLength) return [text];
+  const chunks: string[] = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLength) {
+      chunks.push(remaining);
+      break;
+    }
+    // 1. Tenta quebra de parágrafo duplo
+    let splitIndex = remaining.lastIndexOf('\n\n', maxLength);
+    if (splitIndex === -1 || splitIndex < maxLength * 0.3) {
+      // 2. Tenta quebra de linha simples
+      splitIndex = remaining.lastIndexOf('\n', maxLength);
+    }
+    if (splitIndex === -1 || splitIndex < maxLength * 0.3) {
+      // 3. Tenta pontuação final de frase (. ! ?)
+      const match = remaining.slice(0, maxLength).match(/(?:[\s\S]*)[.!?]\s+/);
+      if (match && match[0].length >= maxLength * 0.3) {
+        splitIndex = match[0].length;
+      }
+    }
+    if (splitIndex === -1 || splitIndex < maxLength * 0.3) {
+      // 4. Tenta espaço entre palavras
+      splitIndex = remaining.lastIndexOf(' ', maxLength);
+    }
+    if (splitIndex === -1) {
+      splitIndex = maxLength;
+    }
+    chunks.push(remaining.slice(0, splitIndex).trim());
+    remaining = remaining.slice(splitIndex).trim();
+  }
+  return chunks.filter((c) => c.length > 0);
+}
+
+/**
  * Dispara um payload de mensagem tentando os endpoints da Graph API em cascata (IG Node -> Page Node -> /me).
  */
 async function dispatchGraphMessage(
@@ -605,6 +644,30 @@ export async function sendDirectMessage(
   }
 
   const plainText = buildPlainTextFallback(text, buttons);
+
+  if (plainText.length > 950) {
+    const chunks = splitTextIntoSafeChunks(plainText, 950);
+    console.log(
+      `[OpenReply Engine] Texto longo detectado (${plainText.length} caracteres). Dividindo em ${chunks.length} mensagens para cumprir limite da Meta.`
+    );
+    let lastResult: { success: boolean; messageId?: string; error?: string } = { success: false };
+    for (let i = 0; i < chunks.length; i++) {
+      if (i > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
+      const chunkPayload = buildMessagePayload({ id: recipientId }, chunks[i]);
+      lastResult = await dispatchGraphMessage(chunkPayload);
+      if (!lastResult.success) {
+        console.error(
+          `[OpenReply Engine] Falha ao enviar parte ${i + 1}/${chunks.length} para ${recipientId}:`,
+          lastResult.error
+        );
+        return lastResult;
+      }
+    }
+    return lastResult;
+  }
+
   const textPayload = buildMessagePayload({ id: recipientId }, plainText);
   const textResult = await dispatchGraphMessage(textPayload);
 

@@ -1,0 +1,419 @@
+[
+  {
+    "id": "regra-reel-codigo-autismo-18114422954165890",
+    "name": "Reels - Código do Autismo (3 Direitos Vitais)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "specific",
+    "storyScope": "any",
+    "targetMediaIds": [
+      "18114422954165890"
+    ],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "direitos",
+      "direito",
+      "codigo",
+      "cartilha",
+      "lei",
+      "leis"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia dos Direitos do Código do Autismo, {nome}! 💙⚖️\n\n1️⃣ LAUDO COM VALIDADE INDETERMINADA\n• Autismo não é doença, não passa e não tem cura. Exigir renovação periódica de laudo médico para manter terapias, escola ou benefícios é ilegal (PL do Código do Autismo e leis estaduais).\n\n2️⃣ TERAPIAS ILIMITADAS\n• Resolução ANS nº 539/2022 e STJ (Tema 1.069 / Tema 1.295): planos de saúde são proibidos de fixar teto ou limite de sessões (ABA, Fono, TO) com prescrição médica.\n\n3️⃣ APOIO ESCOLAR GRATUITO\n• Lei Berenice Piana (Lei 12.764/12) e LBI (Lei 13.146/15): a escola (pública ou particular) é obrigada a fornecer profissional de apoio sem cobrar nenhuma taxa extra. Cobrança adicional é crime!",
+    "followUpEnabled": true,
+    "followUpText": "📋 MODELO PARA COPIAR E ENVIAR SE PRECISAR:\n\n\"Com base no art. 3º da Lei Federal 12.764/12 e no Tema 1.069 do STJ, solicito a imediata disponibilização do profissional de apoio escolar / cobertura integral das terapias prescritas no laudo, sem ônus adicional, sob pena de notificação aos órgãos de fiscalização e Ministério Público.\"\n\n💙 Guarde esta mensagem nos seus favoritos do Direct para consultar e apresentar sempre que precisar! Esperamos que esse guia traga segurança para os direitos do seu pequeno. Estamos sempre por aqui! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Enviei o guia prático dos 3 direitos no seu Direct! Dá uma olhada lá 💙",
+      "Separei os detalhes e o modelo no seu Direct! ⚖️✨",
+      "Acabei de te enviar no Direct! Dá uma olhadinha lá 💙"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
+    "id": "regra-enquete-story-abc",
+    "name": "Enquete Interativa dos Stories (Opções A, B ou C)",
+    "triggerType": "story_reply",
+    "triggerChannels": [
+      "story_reply"
+    ],
+    "storyScope": "any",
+    "targetStoryIds": [],
+    "matchMode": "exact",
+    "exactMessageMatch": true,
+    "isInteractivePoll": true,
+    "keywords": [
+      "a",
+      "b",
+      "c",
+      "letra a",
+      "letra b",
+      "letra c",
+      "opcao a",
+      "opcao b",
+      "opcao c"
+    ],
+    "pollBranches": [
+      {
+        "id": "opcao-a",
+        "label": "Opção A — Crise na Transição / Parar de Brincar",
+        "keywords": [
+          "a",
+          "letra a",
+          "opcao a"
+        ],
+        "replyText": "Olá! Eu te entendo demais! 💙 A transição (parar de brincar para tomar banho ou sair) é um dos momentos que mais sobrecarrega o cérebro autista, porque o aviso falado (\"daqui a pouco\") parece um abismo sem chão.\n\nQuando você mostra a transição visualmente com 2 figurinhas (Primeiro: Brincar ➡️ Depois: Banho), o alarme cerebral desliga em segundos.\n\nToque no botão abaixo para acessar o nosso Quadro Visual de Rotina e Previsibilidade:",
+        "buttonTitle": "Ver Quadro de Rotina",
+        "linkUrl": "https://kitautismo.com/rotina",
+        "secondaryButtonTitle": "Kit Completo TEA",
+        "secondaryLinkUrl": "https://kitautismo.com"
+      },
+      {
+        "id": "opcao-b",
+        "label": "Opção B — Hora das Refeições / Seletividade",
+        "keywords": [
+          "b",
+          "letra b",
+          "opcao b"
+        ],
+        "replyText": "Olá! A hora da refeição exige tanta energia emocional, né? 💙 No autismo, a seletividade alimentar nunca é \"frescura\" — é o sistema sensorial tentando se proteger de texturas, cheiros e temperaturas imprevisíveis.\n\nSeparamos o nosso Guia Prático de Transição Suave e Previsibilidade na Mesa para você aplicar sem forçar e sem choro.\n\nToque no botão abaixo para acessar agora:",
+        "buttonTitle": "Guia de Alimentação",
+        "linkUrl": "https://kitautismo.com/alimentacao",
+        "secondaryButtonTitle": "Kit Completo TEA",
+        "secondaryLinkUrl": "https://kitautismo.com"
+      },
+      {
+        "id": "opcao-c",
+        "label": "Opção C — Hora de Dormir / Agitação Noturna",
+        "keywords": [
+          "c",
+          "letra c",
+          "opcao c"
+        ],
+        "replyText": "Olá! A agitação noturna acontece porque o sistema nervoso da criança acumula estímulos o dia inteiro e não consegue \"desligar a chave\" sozinho à noite. 💙\n\nO segredo é criar um ritual visual de descompressão de 3 passos antes de ir para a cama, dando previsibilidade total ao cérebro.\n\nToque no botão abaixo para acessar o nosso Kit de Rotina Noturna e Previsibilidade:",
+        "buttonTitle": "Ver Ritual do Sono",
+        "linkUrl": "https://kitautismo.com/rotina",
+        "secondaryButtonTitle": "Kit Completo TEA",
+        "secondaryLinkUrl": "https://kitautismo.com"
+      }
+    ],
+    "replyText": "Olá! Recebi sua resposta na enquete do nosso Story! 💙\n\nToque no botão abaixo para acessar o material recomendado para a sua rotina:",
+    "linkUrl": "https://kitautismo.com/rotina",
+    "buttonTitle": "Ver Quadro de Rotina",
+    "secondaryButtonTitle": "Kit Completo TEA",
+    "secondaryLinkUrl": "https://kitautismo.com",
+    "publicReplyEnabled": false,
+    "requireFollow": false,
+    "twoStepCommentOptIn": false,
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 1,
+    "postScope": "any",
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🎁 Liberar Material"
+  },
+  {
+    "id": "regra-rotina",
+    "name": "Rotinas Visuais & Previsibilidade (AuDHD / TEA)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment",
+      "story_reply",
+      "dm"
+    ],
+    "postScope": "any",
+    "storyScope": "any",
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "rotina",
+      "rotinas",
+      "audhd",
+      "tdah",
+      "previsibilidade",
+      "crise",
+      "quadro",
+      "visual",
+      "transicao"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Olá! Dar previsibilidade visual para a criança autista é a forma mais gentil e neurocientífica de reduzir crises de transição no dia a dia. 💙\n\nAqui está o nosso modelo prático de Quadro de Rotina Visual para organizar a semana sem sobrecarga sensorial:",
+    "linkUrl": "https://kitautismo.com/rotina",
+    "buttonTitle": "Acessar Guia Rotina",
+    "secondaryButtonTitle": "Ver Kit Completo",
+    "secondaryLinkUrl": "https://kitautismo.com",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "requireFollow": true,
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🎁 Liberar Material",
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 2
+  },
+  {
+    "id": "regra-link-geral",
+    "name": "Link Geral / Materiais & Kit Autismo",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment",
+      "story_reply",
+      "dm"
+    ],
+    "postScope": "any",
+    "storyScope": "any",
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "link",
+      "guia",
+      "material",
+      "materiais",
+      "ebook",
+      "quero",
+      "eu quero",
+      "acessar",
+      "kit",
+      "escola",
+      "pei",
+      "fobia"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Olá! Que alegria ter você por aqui no Kit Autismo. 💙\n\nPreparamos o acesso direto aos nossos materiais práticos, atividades adaptadas e guias visuais para apoiar o desenvolvimento no seu dia a dia:",
+    "linkUrl": "https://kitautismo.com",
+    "buttonTitle": "Acessar Kit Autismo",
+    "secondaryButtonTitle": "Quadros de Rotina",
+    "secondaryLinkUrl": "https://kitautismo.com/rotina",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "requireFollow": true,
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🎁 Liberar Material",
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 2
+  },
+  {
+    "id": "regra-direitos",
+    "name": "Direitos, Escola & Planos de Saúde (ANS / SUS)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment",
+      "story_reply",
+      "dm"
+    ],
+    "postScope": "any",
+    "storyScope": "any",
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "direito",
+      "direitos",
+      "ans",
+      "plano",
+      "justica",
+      "lei",
+      "laudo",
+      "liminar",
+      "terapia",
+      "terapias",
+      "bpc",
+      "ciptea"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Olá! Sabemos o quanto a luta pelos direitos terapêuticos e escolares é desgastante para as famílias atípicas. 💙\n\nPreparamos um guia prático com orientações claras sobre cobertura de planos (ANS), SUS e direitos na escola:",
+    "linkUrl": "https://kitautismo.com/direitos",
+    "buttonTitle": "Guia de Direitos",
+    "secondaryButtonTitle": "Acessar Kit Autismo",
+    "secondaryLinkUrl": "https://kitautismo.com",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "requireFollow": true,
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Abrir Guia Direitos",
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 2
+  },
+  {
+    "id": "regra-seletividade",
+    "name": "Seletividade Alimentar & Integração Sensorial",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment",
+      "story_reply",
+      "dm"
+    ],
+    "postScope": "any",
+    "storyScope": "any",
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "comida",
+      "alimentacao",
+      "seletividade",
+      "cardapio",
+      "mastigacao",
+      "textura",
+      "comer",
+      "refeicao"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Olá! A seletividade alimentar no autismo não é \"paladar chato\" — envolve integração sensorial, tônus oral e muita sensibilidade. 💙\n\nSeparamos estratégias práticas e um modelo de transição suave para você aplicar em casa sem estresse:",
+    "linkUrl": "https://kitautismo.com/alimentacao",
+    "buttonTitle": "Guia de Alimentação",
+    "secondaryButtonTitle": "Acessar Kit Autismo",
+    "secondaryLinkUrl": "https://kitautismo.com",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "requireFollow": true,
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🎁 Liberar Estratégias",
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 2
+  },
+  {
+    "id": "regra-saudacao",
+    "name": "Saudação / Menu Inicial no Direct",
+    "triggerType": "dm",
+    "triggerChannels": [
+      "dm"
+    ],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "oi",
+      "ola",
+      "opa",
+      "bom dia",
+      "boa tarde",
+      "boa noite",
+      "e ai",
+      "fala",
+      "teste",
+      "testando",
+      "comecar",
+      "iniciar",
+      "tudo bem"
+    ],
+    "replyText": "Olá! Seja muito bem-vindo(a) ao Kit Autismo. 💙\n\nEstou aqui para te entregar nossos materiais práticos em segundos:\n\n👉 Responda \"ROTINA\" para os quadros visuais de previsibilidade;\n👉 Responda \"ALIMENTACAO\" para estratégias de seletividade alimentar;\n👉 Responda \"DIREITOS\" para o guia de planos de saúde e escola;\n👉 Ou toque no botão abaixo para acessar o portal completo:",
+    "linkUrl": "https://kitautismo.com",
+    "buttonTitle": "Abrir Kit Autismo",
+    "publicReplyEnabled": false,
+    "requireFollow": false,
+    "twoStepCommentOptIn": false,
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 3,
+    "postScope": "any",
+    "storyScope": "any",
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🎁 Liberar Material"
+  },
+  {
+    "id": "regra-suporte",
+    "name": "Acolhimento & Suporte Humano no Direct",
+    "triggerType": "dm",
+    "triggerChannels": [
+      "dm"
+    ],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "ajuda",
+      "duvida",
+      "contato",
+      "falar",
+      "humano",
+      "conversa",
+      "atendente"
+    ],
+    "replyText": "Olá! Acolhemos a sua mensagem com muito carinho. 💙\n\nNossa equipe acompanha cada conversa. Pode deixar a sua dúvida detalhada aqui que responderemos o mais rápido possível! Enquanto isso, você também pode consultar nossos guias práticos:",
+    "linkUrl": "https://kitautismo.com",
+    "buttonTitle": "Ver Materiais",
+    "publicReplyEnabled": false,
+    "requireFollow": false,
+    "twoStepCommentOptIn": false,
+    "humanTypingDelay": true,
+    "active": false,
+    "priority": 3,
+    "postScope": "any",
+    "storyScope": "any",
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!",
+      "Prontinho! Acabei de mandar o material no seu Direct! 💙✨"
+    ],
+    "followGateText": "Oi{nome}! 💙 Vi que você ainda não segue o @kit.autismo!\n\nSiga nosso perfil rapidinho e toque no botão abaixo para eu liberar seu acesso gratuitamente aqui no Direct:",
+    "followGateButtonTitle": "�� Já segui! Liberar",
+    "followGateRetryText": "Oi{nome}! 💙 Ainda não apareceu aqui pra mim que você seguiu o @kit.autismo.\n\nToque em \"Abrir @kit.autismo\", clique em Seguir lá no perfil e depois toque no botão de confirmação abaixo:",
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o conteúdo que você pediu no nosso post!\n\nToque no botão abaixo para eu liberar o acesso completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🎁 Liberar Material"
+  }
+]
