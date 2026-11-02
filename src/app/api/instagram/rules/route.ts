@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllRules, saveAllRules } from '@/lib/instagram/rules';
 import { verifySessionToken } from '@/lib/auth';
+import { getLocalMetrics } from '@/lib/instagram/metrics';
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -25,10 +26,11 @@ export async function GET() {
   try {
     const rules = await getAllRules();
 
-    let recentLogs = [];
-    let totalAllTime = 0;
-    let followGateTotal = 0;
-    const byRule: Record<string, number> = {};
+    const localMetrics = getLocalMetrics();
+    let recentLogs = localMetrics.recentLogs || [];
+    let totalAllTime = localMetrics.totalAllTime || 0;
+    let followGateTotal = localMetrics.followGateTotal || 0;
+    const byRule: Record<string, number> = { ...(localMetrics.byRule || {}) };
 
     if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
       try {

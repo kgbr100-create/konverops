@@ -4,6 +4,7 @@ import {
   InstagramSendMessagePayload,
   InstagramUserProfile,
 } from './types';
+import { recordLocalInteraction } from './metrics';
 
 const UPSTASH_URL =
   process.env.KV_REST_API_URL ||
@@ -381,6 +382,9 @@ export async function trackInstagramInteraction(data: {
   status?: 'SENT' | 'FAILED';
   errorMessage?: string;
 }): Promise<void> {
+  // Sempre registra métricas no cache resiliente (memória e disco local)
+  recordLocalInteraction(data);
+
   if (!UPSTASH_URL || !UPSTASH_TOKEN || UPSTASH_URL.includes('unique-ladybird-238762')) {
     return;
   }

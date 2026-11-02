@@ -1,0 +1,48 @@
+{
+  "totalAllTime": 3,
+  "followGateTotal": 0,
+  "byRule": {
+    "regra-reel-codigo-autismo-18114422954165890": 3
+  },
+  "recentLogs": [
+    {
+      "timestamp": "2026-11-02T23:03:37.000Z",
+      "senderId": "okelvingonzaga",
+      "senderUsername": "okelvingonzaga",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    },
+    {
+      "timestamp": "2026-11-02T22:56:37.000Z",
+      "senderId": "terezinhapereira18101",
+      "senderUsername": "terezinhapereira18101",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    },
+    {
+      "timestamp": "2026-11-02T20:57:09.000Z",
+      "senderId": "sitio.oasis.es",
+      "senderUsername": "sitio.oasis.es",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    }
+  ]
+}
