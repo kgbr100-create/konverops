@@ -187,3 +187,33 @@ export interface InstagramSendMessagePayload {
     }>;
   };
 }
+
+export interface ChatMessageItem {
+  id: string;
+  sender: 'user' | 'bot' | 'human';
+  text: string;
+  timestamp: string;
+  buttons?: InstagramLinkButton[];
+  ruleId?: string;
+  ruleName?: string;
+  channel?: 'comment' | 'dm' | 'story_reply' | 'manual';
+  status?: 'sent' | 'delivered' | 'failed';
+  errorMessage?: string;
+}
+
+export interface InstagramConversation {
+  id: string;
+  igUserId?: string;
+  commentId?: string;
+  mediaId?: string;
+  username: string;
+  name?: string;
+  isFollower?: boolean;
+  lastMessageText: string;
+  lastMessageAt: string;
+  lastUserInteractionAt: string;
+  unreadCount: number;
+  triggeredRuleIds: string[];
+  messages: ChatMessageItem[];
+}
+

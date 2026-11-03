@@ -32,6 +32,7 @@ import {
   simulateHumanTyping,
   trackInstagramInteraction,
 } from '@/lib/instagram/messenger';
+import { appendConversationMessage } from '@/lib/instagram/chat-store';
 
 const DEFAULT_VERIFY_TOKEN = 'konverops_ig_secret_2026';
 
@@ -164,10 +165,38 @@ async function deliverRuleOrFollowGate(
     buttonTitle: rule.buttonTitle,
   });
 
+  appendConversationMessage({
+    userKey: profile?.username || senderId,
+    igUserId: senderId,
+    username: profile?.username || senderId,
+    name: profile?.name || profile?.firstName,
+    isFollower: profile?.isUserFollowBusiness,
+    sender: 'bot',
+    text: finalReplyText,
+    buttons,
+    ruleId: rule.id,
+    ruleName: rule.name,
+    channel: context.isStoryReply ? 'story_reply' : 'dm',
+    status: res.success ? 'delivered' : 'failed',
+    errorMessage: res.error,
+  });
+
   // Se houver mensagem complementar de Follow-Up configurada (OpenReply followUpEnabled)
   if (res.success && rule.followUpEnabled && rule.followUpText?.trim()) {
     const followUpMsg = personalizeMessageText(rule.followUpText.trim(), profile);
-    await sendDirectMessage(senderId, followUpMsg);
+    const followUpRes = await sendDirectMessage(senderId, followUpMsg);
+    appendConversationMessage({
+      userKey: profile?.username || senderId,
+      igUserId: senderId,
+      username: profile?.username || senderId,
+      name: profile?.name || profile?.firstName,
+      sender: 'bot',
+      text: followUpMsg,
+      ruleId: rule.id,
+      ruleName: `${rule.name} (Complemento)`,
+      channel: 'dm',
+      status: followUpRes.success ? 'delivered' : 'failed',
+    });
   }
 
   await setUserWelcomeCooldown(senderId);
@@ -264,6 +293,18 @@ async function handlePostbackPayload(
     const rule = await getRuleById(ruleId);
     if (!rule) return;
 
+    appendConversationMessage({
+      userKey: profile?.username || senderId,
+      igUserId: senderId,
+      username: profile?.username || senderId,
+      name: profile?.name || profile?.firstName,
+      isFollower: profile?.isUserFollowBusiness,
+      sender: 'user',
+      text: `🔘 Tocou no botão: "${rule.twoStepButtonTitle || '📄 Liberar Guia'}"`,
+      channel: 'dm',
+      status: 'delivered',
+    });
+
     if (rule.humanTypingDelay !== false) {
       await simulateHumanTyping(senderId, 750);
     }
@@ -352,6 +393,19 @@ async function handleMessagingItem(
     }),
     getInstagramUserProfile(senderId),
   ]);
+
+  appendConversationMessage({
+    userKey: profile?.username || senderId,
+    igUserId: senderId,
+    username: profile?.username || senderId,
+    name: profile?.name || profile?.firstName,
+    isFollower: profile?.isUserFollowBusiness,
+    sender: 'user',
+    text: isStoryReply ? `📸 Respondeu ao Story: "${text}"` : text,
+    channel: isStoryReply ? 'story_reply' : 'dm',
+    status: 'delivered',
+    messageId: mid,
+  });
 
   if (rule) {
     if (rule.humanTypingDelay !== false) {
@@ -458,7 +512,8 @@ async function handleCommentChange(
       ? { id: commenterId || 'commenter', username: commenterUsername }
       : null;
 
-    let dmRes: { success: boolean; messageId?: string; error?: string };
+    let dmRes: { success: boolean; messageId?: string; recipientId?: string; error?: string };
+    let sentBotText = '';
 
     // Se o Fluxo de 2 Etapas (Opening DM) estiver ativo, envia o texto e título de botão configurados na regra!
     if (rule.twoStepCommentOptIn) {
@@ -466,6 +521,7 @@ async function handleCommentChange(
         rule.twoStepPromptText || DEFAULT_TWO_STEP_PROMPT_TEXT,
         profileStub
       );
+      sentBotText = optInText;
       const optInBtnTitle = (rule.twoStepButtonTitle || '🎁 Liberar Material').slice(0, 20);
 
       dmRes = await sendPrivateReplyToComment(commentId, optInText, {
@@ -490,6 +546,7 @@ async function handleCommentChange(
       });
     } else {
       const replyText = personalizeMessageText(rule.replyText, profileStub);
+      sentBotText = replyText;
       const buttons = extractRuleButtons(rule);
       dmRes = await sendPrivateReplyToComment(commentId, replyText, {
         buttons,
@@ -497,6 +554,44 @@ async function handleCommentChange(
         buttonTitle: rule.buttonTitle,
       });
     }
+
+    appendConversationMessage({
+      userKey: commenterUsername || commenterId || commentId,
+      igUserId: dmRes.recipientId || commenterId,
+      commentId,
+      mediaId,
+      username: commenterUsername || commenterId || 'seguidor',
+      sender: 'user',
+      text: `💬 Comentou no Post/Reel: "${commentText}"`,
+      channel: 'comment',
+      status: 'delivered',
+      messageId: `comment_${commentId}`,
+    });
+
+    appendConversationMessage({
+      userKey: commenterUsername || commenterId || commentId,
+      igUserId: dmRes.recipientId || commenterId,
+      commentId,
+      mediaId,
+      username: commenterUsername || commenterId || 'seguidor',
+      sender: 'bot',
+      text: sentBotText,
+      buttons: rule.twoStepCommentOptIn
+        ? [
+            {
+              type: 'postback',
+              title: (rule.twoStepButtonTitle || '🎁 Liberar Material').slice(0, 20),
+              payload: `COMMENT_OPTIN:${rule.id}`,
+            },
+          ]
+        : extractRuleButtons(rule),
+      ruleId: rule.id,
+      ruleName: rule.name,
+      channel: 'comment',
+      status: dmRes.success ? 'delivered' : 'failed',
+      errorMessage: dmRes.error,
+      messageId: `bot_optin_${commentId}`,
+    });
 
     // Publica Resposta Pública embaixo do comentário no post (OpenReply publicReplyVariations)
     let publicReplySent = false;

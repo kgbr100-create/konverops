@@ -18,6 +18,7 @@ import {
   TWO_STEP_TEMPLATES,
 } from '@/lib/instagram/constants';
 import FlowPreviewPhone from '@/components/instagram/FlowPreviewPhone';
+import InstagramLiveChatInbox from '@/components/admin/InstagramLiveChatInbox';
 
 interface InstagramMediaItem {
   id: string;
@@ -39,9 +40,9 @@ export default function InstagramFlowStudioV3() {
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'flows' | 'simulator' | 'stories' | 'webhook'>(
-    'flows'
-  );
+  const [activeTab, setActiveTab] = useState<
+    'flows' | 'inbox' | 'simulator' | 'stories' | 'webhook'
+  >('flows');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
 
   const [metrics, setMetrics] = useState<{
@@ -2376,6 +2377,20 @@ export default function InstagramFlowStudioV3() {
             </button>
 
             <button
+              onClick={() => setActiveTab('inbox')}
+              className={`pb-3 pt-1 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'inbox'
+                  ? 'border-emerald-500 text-emerald-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span>💬</span> Live Chat & Inbox (ManyChat)
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded-full text-[10px]">
+                NOVO
+              </span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('simulator')}
               className={`pb-3 pt-1 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'simulator'
@@ -2418,6 +2433,17 @@ export default function InstagramFlowStudioV3() {
               </div>
             ) : (
               <>
+                {/* TAB INBOX: LIVE CHAT & INBOX (MANYCHAT STYLE) */}
+                {activeTab === 'inbox' && (
+                  <InstagramLiveChatInbox
+                    rules={rules}
+                    onTriggerToast={(msg) => {
+                      setCopyFeedback(msg);
+                      setTimeout(() => setCopyFeedback(null), 3500);
+                    }}
+                  />
+                )}
+
                 {/* TAB 1: LISTA DE FLUXOS COM FILTRO POR CANAL */}
                 {activeTab === 'flows' && (
                   <div className="space-y-5">

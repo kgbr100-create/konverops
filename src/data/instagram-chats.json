@@ -1,0 +1,350 @@
+[
+  {
+    "id": "ruthweissbatista",
+    "igUserId": "2522542791573662",
+    "commentId": "18146031499504432",
+    "mediaId": "18114422954165890",
+    "username": "ruthweissbatista",
+    "name": "Ruth Weiss Batista",
+    "isFollower": true,
+    "lastMessageText": "Oi, Ruth! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!",
+    "lastMessageAt": "2026-11-03T19:43:08.000Z",
+    "lastUserInteractionAt": "2026-11-03T17:38:48.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_ruth_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direto\"",
+        "timestamp": "2026-11-03T17:38:48.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_ruth_2",
+        "sender": "bot",
+        "text": "Oi, Ruth! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-03T19:43:08.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "neuma.vitoriano",
+    "commentId": "18092144012695684",
+    "mediaId": "18114422954165890",
+    "username": "neuma.vitoriano",
+    "name": "Neuma Vitoriano",
+    "isFollower": true,
+    "lastMessageText": "Oi, neuma.vitoriano! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!",
+    "lastMessageAt": "2026-11-03T15:31:17.000Z",
+    "lastUserInteractionAt": "2026-11-03T15:31:07.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_neuma_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direito\"",
+        "timestamp": "2026-11-03T15:31:07.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_neuma_2",
+        "sender": "bot",
+        "text": "Oi, neuma.vitoriano! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-03T15:31:17.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "maraizaf.alencar",
+    "commentId": "17975359530173837",
+    "mediaId": "18114422954165890",
+    "username": "maraizaf.alencar",
+    "name": "Maraiza Alencar",
+    "isFollower": true,
+    "lastMessageText": "Oi, maraizaf.alencar! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!",
+    "lastMessageAt": "2026-11-03T11:00:10.000Z",
+    "lastUserInteractionAt": "2026-11-03T10:52:04.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_maraiza_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direitos\"",
+        "timestamp": "2026-11-03T10:52:04.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_maraiza_2",
+        "sender": "bot",
+        "text": "Oi, maraizaf.alencar! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-03T11:00:10.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "veraasmb",
+    "commentId": "18153490120512294",
+    "mediaId": "18114422954165890",
+    "username": "veraasmb",
+    "name": "Vera",
+    "isFollower": true,
+    "lastMessageText": "Oi, veraasmb! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!",
+    "lastMessageAt": "2026-11-03T08:03:37.000Z",
+    "lastUserInteractionAt": "2026-11-03T08:03:21.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_vera_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direito\"",
+        "timestamp": "2026-11-03T08:03:21.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_vera_2",
+        "sender": "bot",
+        "text": "Oi, veraasmb! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-03T08:03:37.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "okelvingonzaga",
+    "commentId": "18145501138587787",
+    "mediaId": "18114422954165890",
+    "username": "okelvingonzaga",
+    "name": "Kelvin Gonzaga",
+    "isFollower": true,
+    "lastMessageText": "📋 MODELO PARA COPIAR E ENVIAR SE PRECISAR: \"Com base no art. 3º da Lei Federal 12.764/12...\"",
+    "lastMessageAt": "2026-11-02T23:20:00.000Z",
+    "lastUserInteractionAt": "2026-11-02T23:19:50.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_kelvin_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direitos\"",
+        "timestamp": "2026-11-02T23:03:30.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_kelvin_2",
+        "sender": "bot",
+        "text": "Oi, Kelvin! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-02T23:03:37.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      },
+      {
+        "id": "msg_kelvin_3",
+        "sender": "user",
+        "text": "🔘 Tocou no botão: \"📄 Liberar Guia\"",
+        "timestamp": "2026-11-02T23:19:50.000Z",
+        "channel": "dm",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_kelvin_4",
+        "sender": "bot",
+        "text": "Aqui está o seu Guia dos Direitos do Código do Autismo, Kelvin! 💙⚖️\n\n1️⃣ LAUDO COM VALIDADE INDETERMINADA\n• Autismo não é doença, não passa e não tem cura. Exigir renovação periódica de laudo médico para manter terapias, escola ou benefícios é ilegal (PL do Código do Autismo e leis estaduais).\n\n2️⃣ TERAPIAS ILIMITADAS\n• Resolução ANS nº 539/2022 e STJ (Tema 1.069 / Tema 1.295): planos de saúde são proibidos de fixar teto ou limite de sessões (ABA, Fono, TO) com prescrição médica.\n\n3️⃣ APOIO ESCOLAR GRATUITO\n• Lei Berenice Piana (Lei 12.764/12) e LBI (Lei 13.146/15): a escola (pública ou particular) é obrigada a fornecer profissional de apoio sem cobrar nenhuma taxa extra. Cobrança adicional é crime!",
+        "timestamp": "2026-11-02T23:19:55.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais) [Parte 1]",
+        "channel": "dm",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_kelvin_5",
+        "sender": "bot",
+        "text": "📋 MODELO PARA COPIAR E ENVIAR SE PRECISAR:\n\n\"Com base no art. 3º da Lei Federal 12.764/12 e no Tema 1.069 do STJ, solicito a imediata disponibilização do profissional de apoio escolar / cobertura integral das terapias prescritas no laudo, sem ônus adicional, sob pena de notificação aos órgãos de fiscalização e Ministério Público.\"\n\n💙 Guarde esta mensagem nos seus favoritos do Direct para consultar e apresentar sempre que precisar! Esperamos que esse guia traga segurança para os direitos do seu pequeno. Estamos sempre por aqui! ✨",
+        "timestamp": "2026-11-02T23:20:00.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais) [Parte 2]",
+        "channel": "dm",
+        "status": "delivered"
+      }
+    ]
+  },
+  {
+    "id": "terezinhapereira18101",
+    "commentId": "18142230100723165",
+    "mediaId": "18114422954165890",
+    "username": "terezinhapereira18101",
+    "name": "Terezinha Pereira",
+    "isFollower": true,
+    "lastMessageText": "Oi, terezinhapereira18101! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!",
+    "lastMessageAt": "2026-11-02T22:56:37.000Z",
+    "lastUserInteractionAt": "2026-11-02T22:56:29.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_terezinha_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direito\"",
+        "timestamp": "2026-11-02T22:56:29.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_terezinha_2",
+        "sender": "bot",
+        "text": "Oi, terezinhapereira18101! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-02T22:56:37.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "junilson_rodrigues",
+    "commentId": "18121987879942372",
+    "mediaId": "18114422954165890",
+    "username": "junilson_rodrigues",
+    "name": "Junilson Rodrigues",
+    "isFollower": true,
+    "lastMessageText": "@kit.autismo realmente, a neuro passou 7 terapias para meu filho estamos comercando agora nem sei quanto vai vir de coparticipação",
+    "lastMessageAt": "2026-11-03T00:03:00.000Z",
+    "lastUserInteractionAt": "2026-11-03T00:03:00.000Z",
+    "unreadCount": 1,
+    "triggeredRuleIds": [],
+    "messages": [
+      {
+        "id": "msg_junilson_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"O que seria coparticipação abusiva? O plano cobra 20% deveria cobrar abaixo\"",
+        "timestamp": "2026-11-02T21:39:05.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_junilson_2",
+        "sender": "human",
+        "text": "@junilson_rodrigues Olá, Junilson! Perfeita a sua dúvida. Pelas regras da ANS e do STJ (REsp 2.001.108), cobrar 20% por sessão em si não é proibido, MAS o abuso acontece no valor total do mês.\n\nComo o autismo exige muitas sessões semanais (ABA, Fono, TO), 20% sobre tudo gera contas absurdas que nenhuma família consegue pagar. O STJ determinou que a soma de todas as coparticipações do mês NÃO pode ultrapassar o valor da sua mensalidade.",
+        "timestamp": "2026-11-02T22:11:14.000Z",
+        "channel": "manual",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_junilson_3",
+        "sender": "user",
+        "text": "💬 Respondeu no comentário: \"@kit.autismo realmente, a neuro passou 7 terapias para meu filho estamos comercando agora nem sei quanto vai vir de coparticipação\"",
+        "timestamp": "2026-11-03T00:03:00.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      }
+    ]
+  },
+  {
+    "id": "sitio.oasis.es",
+    "commentId": "18119480974788318",
+    "mediaId": "18114422954165890",
+    "username": "sitio.oasis.es",
+    "name": "Sítio Oásis ES",
+    "isFollower": true,
+    "lastMessageText": "Oi, sitio.oasis.es! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!",
+    "lastMessageAt": "2026-11-02T20:57:09.000Z",
+    "lastUserInteractionAt": "2026-11-02T20:56:58.000Z",
+    "unreadCount": 0,
+    "triggeredRuleIds": ["regra-reel-codigo-autismo-18114422954165890"],
+    "messages": [
+      {
+        "id": "msg_oasis_1",
+        "sender": "user",
+        "text": "💬 Comentou no Reel: \"Direitos\"",
+        "timestamp": "2026-11-02T20:56:58.000Z",
+        "channel": "comment",
+        "status": "delivered"
+      },
+      {
+        "id": "msg_oasis_2",
+        "sender": "bot",
+        "text": "Oi, sitio.oasis.es! 💙 Separei o Guia Prático com os 3 Direitos Vitais do Código do Autismo que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+        "timestamp": "2026-11-02T20:57:09.000Z",
+        "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+        "ruleName": "Reels - Código do Autismo (3 Direitos Vitais)",
+        "channel": "comment",
+        "status": "delivered",
+        "buttons": [
+          {
+            "type": "postback",
+            "title": "📄 Liberar Guia",
+            "payload": "COMMENT_OPTIN:regra-reel-codigo-autismo-18114422954165890"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -561,7 +561,7 @@ export function splitTextIntoSafeChunks(text: string, maxLength = 950): string[]
  */
 async function dispatchGraphMessage(
   payload: InstagramSendMessagePayload
-): Promise<{ success: boolean; messageId?: string; error?: string; code?: number }> {
+): Promise<{ success: boolean; messageId?: string; recipientId?: string; error?: string; code?: number }> {
   const token = getInstagramAccessToken();
   const igUserId =
     process.env.INSTAGRAM_USER_ID || process.env.IG_USER_ID || DEFAULT_IG_USER_ID;
@@ -598,6 +598,7 @@ async function dispatchGraphMessage(
         return {
           success: true,
           messageId: json.message_id || json.recipient_id,
+          recipientId: json.recipient_id,
         };
       }
 
@@ -622,7 +623,7 @@ export async function sendDirectMessage(
     buttonTitle?: string;
     buttons?: InstagramLinkButton[];
   }
-): Promise<{ success: boolean; messageId?: string; error?: string }> {
+): Promise<{ success: boolean; messageId?: string; recipientId?: string; error?: string }> {
   const buttons: InstagramLinkButton[] = options?.buttons ? [...options.buttons] : [];
   if (options?.linkUrl && buttons.length === 0) {
     buttons.push({
@@ -701,7 +702,7 @@ export async function sendPrivateReplyToComment(
     buttonTitle?: string;
     buttons?: InstagramLinkButton[];
   }
-): Promise<{ success: boolean; messageId?: string; error?: string }> {
+): Promise<{ success: boolean; messageId?: string; recipientId?: string; error?: string }> {
   const buttons: InstagramLinkButton[] = options?.buttons ? [...options.buttons] : [];
   if (options?.linkUrl && buttons.length === 0) {
     buttons.push({
