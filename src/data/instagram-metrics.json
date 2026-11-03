@@ -1,10 +1,62 @@
 {
-  "totalAllTime": 3,
+  "totalAllTime": 7,
   "followGateTotal": 0,
   "byRule": {
-    "regra-reel-codigo-autismo-18114422954165890": 3
+    "regra-reel-codigo-autismo-18114422954165890": 7
   },
   "recentLogs": [
+    {
+      "timestamp": "2026-11-03T19:43:08.000Z",
+      "senderId": "ruthweissbatista",
+      "senderUsername": "ruthweissbatista",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    },
+    {
+      "timestamp": "2026-11-03T15:31:17.000Z",
+      "senderId": "neuma.vitoriano",
+      "senderUsername": "neuma.vitoriano",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    },
+    {
+      "timestamp": "2026-11-03T11:00:10.000Z",
+      "senderId": "maraizaf.alencar",
+      "senderUsername": "maraizaf.alencar",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    },
+    {
+      "timestamp": "2026-11-03T08:03:37.000Z",
+      "senderId": "veraasmb",
+      "senderUsername": "veraasmb",
+      "keyword": "comment_Reels - Código do Autismo (3 Direitos Vitais)",
+      "ruleId": "regra-reel-codigo-autismo-18114422954165890",
+      "isStoryReply": false,
+      "isCommentReply": true,
+      "publicReplySent": true,
+      "followGateTriggered": false,
+      "twoStepTriggered": true,
+      "status": "SENT"
+    },
     {
       "timestamp": "2026-11-02T23:03:37.000Z",
       "senderId": "okelvingonzaga",

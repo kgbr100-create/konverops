@@ -24,7 +24,7 @@ async function main() {
     targetStoryIds: [],
     matchMode: 'whole_word',
     wholeWordMatch: true,
-    keywords: ['direitos', 'direito', 'codigo', 'cartilha', 'lei', 'leis'],
+    keywords: ['direitos', 'direito', 'direto', 'diretos', 'codigo', 'código', 'cartilha', 'lei', 'leis'],
     excludeKeywords: [],
     replyText: part1Rights,
     followUpEnabled: true,
