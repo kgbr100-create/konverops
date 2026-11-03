@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllRules, saveAllRules } from '@/lib/instagram/rules';
 import { verifySessionToken } from '@/lib/auth';
-import { getLocalMetrics } from '@/lib/instagram/metrics';
+import { getLocalMetrics, syncLiveRulesMetrics } from '@/lib/instagram/metrics';
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -27,10 +27,13 @@ export async function GET() {
     const rules = await getAllRules();
 
     const localMetrics = getLocalMetrics();
-    let recentLogs = localMetrics.recentLogs || [];
-    let totalAllTime = localMetrics.totalAllTime || 0;
-    let followGateTotal = localMetrics.followGateTotal || 0;
-    const byRule: Record<string, number> = { ...(localMetrics.byRule || {}) };
+    // Sincroniza em tempo real com a Meta Graph API os posts monitorados (100% automático, zero dependência externa)
+    const liveMetrics = await syncLiveRulesMetrics(rules, localMetrics);
+
+    let recentLogs = liveMetrics.recentLogs || [];
+    let totalAllTime = liveMetrics.totalAllTime || 0;
+    let followGateTotal = liveMetrics.followGateTotal || 0;
+    const byRule: Record<string, number> = { ...(liveMetrics.byRule || {}) };
 
     if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
       try {
