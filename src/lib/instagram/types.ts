@@ -158,6 +158,8 @@ export interface AutomationRule {
   /** Mensagem extra de fechamento/agradecimento após o envio do link (OpenReply followUpEnabled) */
   followUpEnabled?: boolean;
   followUpText?: string;
+  followUpLinkUrl?: string;
+  followUpButtonTitle?: string;
   /** Status Humanizado (OpenReply): envia Visto (mark_seen) + Digitando... (typing_on) antes da resposta */
   humanTypingDelay?: boolean;
   active: boolean;

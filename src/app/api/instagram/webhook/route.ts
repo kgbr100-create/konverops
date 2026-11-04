@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import {
   InstagramWebhookEvent,
   InstagramMessagingItem,
@@ -32,7 +32,10 @@ import {
   simulateHumanTyping,
   trackInstagramInteraction,
 } from '@/lib/instagram/messenger';
-import { appendConversationMessage } from '@/lib/instagram/chat-store';
+import {
+  appendConversationMessage,
+  checkAndDeliverTwoStepForUser,
+} from '@/lib/instagram/chat-store';
 
 const DEFAULT_VERIFY_TOKEN = 'konverops_ig_secret_2026';
 
@@ -616,5 +619,26 @@ async function handleCommentChange(
       status: dmRes.success ? 'SENT' : 'FAILED',
       errorMessage: dmRes.error,
     });
+
+    // Monitora em segundo plano a janela de 24h por até ~55s após o comentário:
+    // assim que o seguidor tocar no botão "📄 Liberar Guia", o KonverOps detecta a abertura
+    // da janela (mark_seen 200 OK) e dispara a Parte 1 + Parte 2 automaticamente em segundos!
+    const targetIgId = dmRes.recipientId || commenterId;
+    if (rule.twoStepCommentOptIn && dmRes.success && targetIgId) {
+      after(async () => {
+        const delays = [3500, 4500, 5500, 6500, 8000, 10000, 12000];
+        for (const d of delays) {
+          await new Promise((r) => setTimeout(r, d));
+          const delivered = await checkAndDeliverTwoStepForUser({
+            igUserId: targetIgId,
+            commentId,
+            mediaId,
+            username: commenterUsername || targetIgId,
+            rule,
+          });
+          if (delivered) break;
+        }
+      });
+    }
   }
 }

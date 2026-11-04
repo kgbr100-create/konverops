@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllRules, saveAllRules } from '@/lib/instagram/rules';
 import { verifySessionToken } from '@/lib/auth';
 import { getLocalMetrics, syncLiveRulesMetrics } from '@/lib/instagram/metrics';
+import { syncLiveConversationsFromInstagram } from '@/lib/instagram/chat-store';
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -27,8 +28,11 @@ export async function GET() {
     const rules = await getAllRules();
 
     const localMetrics = getLocalMetrics();
-    // Sincroniza em tempo real com a Meta Graph API os posts monitorados (100% automático, zero dependência externa)
-    const liveMetrics = await syncLiveRulesMetrics(rules, localMetrics);
+    // Sincroniza em tempo real com a Meta Graph API os posts monitorados e verifica cliques de 2 etapas
+    const [liveMetrics] = await Promise.all([
+      syncLiveRulesMetrics(rules, localMetrics),
+      syncLiveConversationsFromInstagram(rules).catch(() => {}),
+    ]);
 
     let recentLogs = liveMetrics.recentLogs || [];
     let totalAllTime = liveMetrics.totalAllTime || 0;
