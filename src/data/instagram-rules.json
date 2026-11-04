@@ -1,14 +1,16 @@
 [
   {
-    "id": "regra-reel-escola-pei-2026-11-04",
+    "id": "regra-reel-escola-pei-18094589849196566",
     "name": "Reels - Escola & PEI (3 Adaptações Obrigatórias)",
     "triggerType": "comment",
     "triggerChannels": [
       "comment"
     ],
-    "postScope": "next",
+    "postScope": "specific",
     "storyScope": "any",
-    "targetMediaIds": [],
+    "targetMediaIds": [
+      "18094589849196566"
+    ],
     "targetStoryIds": [],
     "matchMode": "whole_word",
     "wholeWordMatch": true,
