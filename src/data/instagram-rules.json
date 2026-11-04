@@ -1,5 +1,53 @@
 [
   {
+    "id": "regra-reel-escola-pei-2026-11-04",
+    "name": "Reels - Escola & PEI (3 Adaptações Obrigatórias)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "next",
+    "storyScope": "any",
+    "targetMediaIds": [],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "escola",
+      "pei",
+      "adaptacao",
+      "adaptação",
+      "adaptar",
+      "adaptadas",
+      "apoio",
+      "inclusao",
+      "inclusão",
+      "quero",
+      "eu quero",
+      "guia",
+      "modelo",
+      "direito",
+      "direitos"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia de Adaptações Escolares no Autismo, {nome}! 💙📚\n\n1️⃣ PEI (PLANO EDUCACIONAL INDIVIDUALIZADO)\n• Toda escola (pública ou particular) é obrigada a elaborar o PEI com metas, recursos visuais e estratégias para o ritmo da criança (Lei Brasileira de Inclusão - Lei 13.146/15, art. 28).\n\n2️⃣ PROVAS E ATIVIDADES ADAPTADAS\n• Seu filho tem direito a enunciados curtos, apoio visual e tempo extra em avaliações. Deixar a criança apenas pintando folha solta sem objetivo pedagógico fere o direito à educação inclusiva!\n\n3️⃣ HORÁRIO INTEGRAL E APOIO SEM TAXA EXTRA\n• É proibido cobrar taxa extra na mensalidade ou reduzir o horário da criança (ex: \"ficar só 1h por dia\"). O profissional de apoio é garantido pela Lei Berenice Piana (Lei 12.764/12, art. 3º)!",
+    "followUpEnabled": true,
+    "followUpText": "📋 MODELO PRONTO PARA COPIAR E ENVIAR À ESCOLA:\n\n\"À Coordenação Pedagógica: Com base no art. 28 da Lei Federal 13.146/2015 (LBI) e no art. 3º da Lei 12.764/2012, solicito reunião para elaboração e entrega do PEI (Plano Educacional Individualizado) do(a) meu(minha) filho(a), bem como a adaptação das atividades/avaliações e permanência integral com suporte adequado, sem ônus adicional.\"\n\n💙 Guarde esta mensagem nos seus favoritos do Direct para consultar e usar sempre que precisar! Estamos juntos por aqui no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar o guia escolar e o modelo de pedido do PEI lá no seu Direct! Dá uma olhadinha 💙",
+      "Separei as 3 leis escolares e o modelo pronto para mandar na escola lá no seu Direct! 📚✨",
+      "Enviado no seu Direct! Dá uma olhada lá para salvar o modelo de pedido do PEI 💙"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Guia Prático das 3 Adaptações Escolares Obrigatórias + o Modelo de Pedido de PEI que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-codigo-autismo-18114422954165890",
     "name": "Reels - Código do Autismo (3 Direitos Vitais)",
     "triggerType": "comment",
@@ -23,7 +71,9 @@
       "código",
       "cartilha",
       "lei",
-      "leis"
+      "leis",
+      "quero",
+      "eu quero"
     ],
     "excludeKeywords": [],
     "replyText": "Aqui está o seu Guia dos Direitos do Código do Autismo, {nome}! 💙⚖️\n\n1️⃣ LAUDO COM VALIDADE INDETERMINADA\n• Autismo não é doença, não passa e não tem cura. Exigir renovação periódica de laudo médico para manter terapias, escola ou benefícios é ilegal (PL do Código do Autismo e leis estaduais).\n\n2️⃣ TERAPIAS ILIMITADAS\n• Resolução ANS nº 539/2022 e STJ (Tema 1.069 / Tema 1.295): planos de saúde são proibidos de fixar teto ou limite de sessões (ABA, Fono, TO) com prescrição médica.\n\n3️⃣ APOIO ESCOLAR GRATUITO\n• Lei Berenice Piana (Lei 12.764/12) e LBI (Lei 13.146/15): a escola (pública ou particular) é obrigada a fornecer profissional de apoio sem cobrar nenhuma taxa extra. Cobrança adicional é crime!",
