@@ -1,5 +1,55 @@
 [
   {
+    "id": "regra-reel-direitos-financeiros-2026-11-05",
+    "name": "Reels - Direitos Financeiros (Luz, Jornada e IPVA)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "next",
+    "storyScope": "any",
+    "targetMediaIds": [],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "beneficio",
+      "benefício",
+      "beneficios",
+      "benefícios",
+      "luz",
+      "jornada",
+      "ipva",
+      "isencao",
+      "isenção",
+      "bpc",
+      "loas",
+      "lista",
+      "quero",
+      "eu quero",
+      "guia",
+      "direito",
+      "direitos"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia de Direitos Financeiros no Autismo, {nome}! 💙⚖️\n\n1️⃣ DESCONTO NA CONTA DE LUZ (TARIFA SOCIAL - LEI 12.212/10)\n• Famílias inscritas no CadÚnico (renda até meio salário por pessoa) ou que recebem BPC/LOAS têm até 65% de desconto na energia elétrica.\n\n2️⃣ REDUÇÃO DE JORNADA SEM CORTE SALARIAL (STF TEMA 1.097)\n• Servidores públicos (municipais, estaduais e federais) têm direito à redução de 20% a 50% da carga horária sem desconto no salário para acompanhar o filho autista nas terapias. Na CLT, há precedentes via Justiça do Trabalho!\n\n3️⃣ ISENÇÃO DE IPVA, IPI E ICMS NO CARRO (LEI 8.989/95)\n• Mesmo que a criança não dirija, os pais podem cadastrar 1 veículo utilizado no transporte dela para isenção de impostos!",
+    "followUpEnabled": true,
+    "followUpText": "📋 ONDE SOLICITAR E DOCUMENTOS NECESSÁRIOS:\n\n• Conta de Luz: Leve RG, CPF, Laudo Médico com CID (F84.0 / 6A02) e número do NIS/BPC até a concessionária de energia ou CRAS.\n• Redução de Jornada: Protocole requerimento no RH citando o Tema 1.097 do STF + Laudo Médico detalhando a carga semanal de terapias.\n• Isenção de IPVA/IPI: Solicite pelo portal Sisen (Receita Federal) para IPI e na Secretaria da Fazenda do seu Estado para IPVA.\n\n💙 Guarde esta mensagem nos seus favoritos do Direct para consultar sempre que precisar! Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar o guia dos 3 benefícios e a lista de documentos lá no seu Direct! Dá uma olhadinha 💙",
+      "Separei as leis e onde solicitar cada benefício lá no seu Direct! ⚖️✨",
+      "Enviado no seu Direct! Dá uma olhada lá para salvar a lista de documentos 💙"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Guia dos 3 Direitos Financeiros no Autismo + o Checklist de Documentos e Onde Solicitar que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-escola-pei-18094589849196566",
     "name": "Reels - Escola & PEI (3 Adaptações Obrigatórias)",
     "triggerType": "comment",
