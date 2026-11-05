@@ -1,14 +1,16 @@
 [
   {
-    "id": "regra-reel-planos-saude-2026-11-05",
+    "id": "regra-reel-planos-saude-17915706312536661",
     "name": "Reels - Planos de Saúde & ANS (3 Cortes Proibidos)",
     "triggerType": "comment",
     "triggerChannels": [
       "comment"
     ],
-    "postScope": "next",
+    "postScope": "specific",
     "storyScope": "any",
-    "targetMediaIds": [],
+    "targetMediaIds": [
+      "17915706312536661"
+    ],
     "targetStoryIds": [],
     "matchMode": "whole_word",
     "wholeWordMatch": true,
