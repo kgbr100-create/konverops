@@ -1,5 +1,53 @@
 [
   {
+    "id": "regra-reel-planos-saude-2026-11-05",
+    "name": "Reels - Planos de Saúde & ANS (3 Cortes Proibidos)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "next",
+    "storyScope": "any",
+    "targetMediaIds": [],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "plano",
+      "planos",
+      "terapia",
+      "terapias",
+      "aba",
+      "fono",
+      "ans",
+      "reembolso",
+      "cancelamento",
+      "quero",
+      "eu quero",
+      "guia",
+      "modelo",
+      "direito",
+      "direitos"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia contra Cortes nos Planos de Saúde no Autismo, {nome}! 💙⚖️\n\n1️⃣ PROIBIDO CANCELAR O PLANO UNILATERALMENTE\n• Súmula Normativa ANS nº 28 e STJ (Tema 1.082): a operadora é proibida de cancelar ou rescindir o plano de pessoa autista em tratamento continuado, mesmo em planos coletivos/empresariais.\n\n2️⃣ CUSTEIO 100% EM CLÍNICA PARTICULAR (RN ANS Nº 566/22)\n• Se o plano não tiver clínica credenciada com vaga em método ABA, Fono ou TO perto da sua casa, é obrigado a custear ou reembolsar 100% em clínica particular!\n\n3️⃣ PRAZO MÁXIMO DE 10 DIAS ÚTEIS (RN ANS Nº 566/22)\n• Deixar a criança meses em fila de espera é ilegal! O prazo máximo para Fono, TO e Psicologia é de 10 dias úteis.",
+    "followUpEnabled": true,
+    "followUpText": "📋 MODELO PRONTO PARA ENVIAR AO PLANO DE SAÚDE / OUVIDORIA:\n\n\"Com base nas Resoluções Normativas ANS nº 539/2022 e nº 566/2022, na Súmula Normativa ANS nº 28 e nos Temas 1.069 e 1.082 do STJ, solicito a imediata autorização/custeio integral das terapias prescritas no laudo médico (ABA, Fonoaudiologia, TO e Psicologia) dentro do prazo legal de 10 dias úteis, ou indicação de custeio integral fora da rede credenciada, sob pena de reclamação formal de NIP na ANS.\"\n\n💙 Salve esta mensagem nos seus favoritos do Direct para usar sempre que precisar! Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar o guia da ANS e o modelo de notificação lá no seu Direct! Dá uma olhadinha 💙",
+      "Separei as 3 normas da ANS/STJ e o modelo pronto lá no seu Direct! ⚖️✨",
+      "Enviado no seu Direct! Dá uma olhada lá para salvar o modelo contra negativa do plano 💙"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Guia das 3 Normas da ANS/STJ + o Modelo de Notificação contra Cortes nos Planos de Saúde que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-direitos-financeiros-18120804688989974",
     "name": "Reels - Direitos Financeiros (Luz, Jornada e IPVA)",
     "triggerType": "comment",
