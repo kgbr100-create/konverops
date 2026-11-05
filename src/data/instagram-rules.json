@@ -1,14 +1,16 @@
 [
   {
-    "id": "regra-reel-direitos-financeiros-2026-11-05",
+    "id": "regra-reel-direitos-financeiros-18120804688989974",
     "name": "Reels - Direitos Financeiros (Luz, Jornada e IPVA)",
     "triggerType": "comment",
     "triggerChannels": [
       "comment"
     ],
-    "postScope": "next",
+    "postScope": "specific",
     "storyScope": "any",
-    "targetMediaIds": [],
+    "targetMediaIds": [
+      "18120804688989974"
+    ],
     "targetStoryIds": [],
     "matchMode": "whole_word",
     "wholeWordMatch": true,
