@@ -1,14 +1,16 @@
 [
   {
-    "id": "regra-reel-ciptea-2026-11-10",
+    "id": "regra-reel-ciptea-17955415704312340",
     "name": "Reels - Carteirinha CIPTEA (3 Benefícios Imediatos)",
     "triggerType": "comment",
     "triggerChannels": [
       "comment"
     ],
-    "postScope": "any",
+    "postScope": "specific",
     "storyScope": "any",
-    "targetMediaIds": [],
+    "targetMediaIds": [
+      "17955415704312340"
+    ],
     "targetStoryIds": [],
     "matchMode": "whole_word",
     "wholeWordMatch": true,
