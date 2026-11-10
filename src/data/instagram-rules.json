@@ -9,7 +9,8 @@
     "postScope": "specific",
     "storyScope": "any",
     "targetMediaIds": [
-      "17955415704312340"
+      "17955415704312340",
+      "17959283439037313"
     ],
     "targetStoryIds": [],
     "matchMode": "whole_word",
