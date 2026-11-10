@@ -1,5 +1,53 @@
 [
   {
+    "id": "regra-reel-ciptea-2026-11-10",
+    "name": "Reels - Carteirinha CIPTEA (3 Benefícios Imediatos)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "any",
+    "storyScope": "any",
+    "targetMediaIds": [],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "carteirinha",
+      "carteira",
+      "ciptea",
+      "passagem",
+      "aviao",
+      "anac",
+      "desconto",
+      "fila",
+      "prioridade",
+      "meia",
+      "meia entrada",
+      "quero",
+      "eu quero",
+      "guia",
+      "modelo"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia dos Direitos da Carteirinha do Autista (CIPTEA), {nome}! 🪪💙\n\n1️⃣ FILA PREFERENCIAL SEM EXIGÊNCIA DE LAUDO (LEI 13.977/20)\n• A CIPTEA tem validade nacional e comprova a condição por lei. Nenhum banco, supermercado ou estabelecimento pode exigir laudo com CID quando ela é apresentada!\n\n2️⃣ ATÉ 80% DE DESCONTO EM PASSAGENS AÉREAS (RESOLUÇÃO ANAC Nº 280)\n• O acompanhante do passageiro autista tem desconto de no mínimo 80% na tarifa de voos nacionais em qualquer companhia aérea.\n\n3️⃣ MEIA-ENTRADA DUPLA (LEI 12.933/13 c/c LEI BERENICE PIANA)\n• Autista e seu acompanhante pagam 50% do valor do ingresso em cinemas, parques, teatros e eventos culturais em todo o Brasil.",
+    "followUpEnabled": true,
+    "followUpText": "📋 COMO EMITIR A CIPTEA GRÁTIS NO SEU ESTADO:\n\n1. Acesse o portal do governo do seu estado (ex: Poupatempo em SP, Detran no RJ, ou Secretaria de Desenvolvimento Social do seu estado).\n2. Documentos necessários: RG/Certidão de nascimento da criança, foto 3x4, comprovante de residência e laudo médico com CID-10 (F84) ou CID-11 (6A02).\n3. Emissão gratuita e formato digital ou físico!\n\n✈️ PARA O DESCONTO NA ANAC: Solicite o formulário MEDIF na companhia aérea com até 72h de antecedência do voo.\n\n💙 Salve esta mensagem nos seus favoritos do Direct para consultar sempre! Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar o guia da Carteirinha CIPTEA e os modelos de desconto lá no seu Direct! Dá uma olhadinha 💙",
+      "Separei o passo a passo da CIPTEA e o modelo para a ANAC no seu Direct! 🪪✨",
+      "Enviado no seu Direct! Veja lá as instruções completas para emitir e usar a carteirinha 💙"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Guia Completo da Carteirinha do Autista (CIPTEA) + Passo a Passo do Desconto da ANAC que você pediu no nosso Reel!\n\nToque no botão abaixo para desbloquear o material completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🪪 Liberar Guia",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-planos-saude-17915706312536661",
     "name": "Reels - Planos de Saúde & ANS (3 Cortes Proibidos)",
     "triggerType": "comment",
