@@ -452,22 +452,11 @@ export async function saveAllRules(newRules: AutomationRule[]): Promise<void> {
 }
 
 /**
- * Carrega todas as regras (ativas e inativas) mesclando memória, disco local, Redis e defaults.
+ * Carrega todas as regras (ativas e inativas) priorizando Redis (persistência entre instâncias serverless),
+ * com fallback para cache em memória, arquivo local em disco e defaults.
  */
 export async function getAllRules(): Promise<AutomationRule[]> {
-  // 1. Tenta cache em memória primeiro (0ms)
-  if (Array.isArray(g._konverops_instagram_rules_cache) && g._konverops_instagram_rules_cache.length > 0) {
-    return g._konverops_instagram_rules_cache;
-  }
-
-  // 2. Tenta arquivo local em disco
-  const fileRules = readLocalRulesJson();
-  if (fileRules) {
-    g._konverops_instagram_rules_cache = fileRules;
-    return fileRules;
-  }
-
-  // 3. Tenta Redis se configurado
+  // 1. Tenta Redis primeiro (fonte única entre instâncias serverless na Vercel)
   if (UPSTASH_URL && UPSTASH_TOKEN && !UPSTASH_URL.includes('unique-ladybird-238762')) {
     try {
       const res = await fetch(UPSTASH_URL, {
@@ -502,8 +491,20 @@ export async function getAllRules(): Promise<AutomationRule[]> {
         }
       }
     } catch (err) {
-      console.warn('Falha ao carregar regras do Redis, usando regras padrão:', err);
+      console.warn('Falha ao carregar regras do Redis, usando fallback local:', err);
     }
+  }
+
+  // 2. Fallback para cache em memória
+  if (Array.isArray(g._konverops_instagram_rules_cache) && g._konverops_instagram_rules_cache.length > 0) {
+    return g._konverops_instagram_rules_cache;
+  }
+
+  // 3. Fallback para arquivo local em disco
+  const fileRules = readLocalRulesJson();
+  if (fileRules) {
+    g._konverops_instagram_rules_cache = fileRules;
+    return fileRules;
   }
 
   // 4. Fallback padrão: hidrata DEFAULT_RULES e persiste localmente

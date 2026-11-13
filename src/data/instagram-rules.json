@@ -1,5 +1,52 @@
 [
   {
+    "id": "regra-reel-matricula-escola-17896246458436109",
+    "name": "Reels - Matrícula Escolar Sem Abusos (ESCOLA)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "specific",
+    "storyScope": "any",
+    "targetMediaIds": [
+      "17896246458436109"
+    ],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "escola",
+      "matricula",
+      "matrícula",
+      "rematricula",
+      "rematrícula",
+      "mediador",
+      "quero",
+      "eu quero",
+      "guia",
+      "modelo",
+      "direito",
+      "direitos"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia de Direitos na Matrícula Escolar (TEA), {nome}! 🎒💙\n\n1️⃣ RECUSA OU LIMITE DE VAGAS É CRIME (LEI 12.764/12, ART. 7º E LBI ART. 88)\n• Nenhuma escola pública ou privada pode negar matrícula alegando falta de estrutura ou \"cota\" de alunos com deficiência. Pena de multa e reclusão.\n\n2️⃣ PROIBIÇÃO DE TAXA EXTRA PELO MEDIADOR (LBI, ART. 28 §1º + STF ADI 5357)\n• A escola particular deve fornecer profissional de apoio escolar sem repassar nenhum custo adicional à família.\n\n3️⃣ ADAPTAÇÃO E PEI SEM EXIGÊNCIA DE LAUDO (NOTA TÉCNICA MEC 04/2014)\n• A escola não pode condicionar o atendimento adaptado à entrega de laudo médico fechado.",
+    "followUpEnabled": true,
+    "followUpText": "📋 MODELO PRONTO DE REQUERIMENTO (COPIE E ENVIE POR E-MAIL/WHATSAPP):\n\n\"Solicito formalmente a efetivação da matrícula / disponibilização de apoio escolar sem custo adicional, nos termos do art. 7º da Lei 12.764/12 e art. 28, §1º da Lei 13.146/15 (ADI 5357/STF). Caso haja negativa, solicito manifestação formal por escrito com a justificativa.\"\n\n💙 Salve esta mensagem nos favoritos do Direct para usar na rematrícula! Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar os artigos da lei e o modelo de requerimento no seu Direct! 💙",
+      "Enviado no seu Direct! ✨ Dá uma olhadinha lá para salvar o modelo antes da rematrícula!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei os artigos da Lei 12.764/12 e da LBI + o Modelo de Requerimento para Matrícula Escolar que você pediu no nosso Reel!\n\nToque no botão abaixo para liberar o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-ciptea-17955415704312340",
     "name": "Reels - Carteirinha CIPTEA (3 Benefícios Imediatos)",
     "triggerType": "comment",
