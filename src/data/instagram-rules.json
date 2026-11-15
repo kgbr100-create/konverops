@@ -1,5 +1,55 @@
 [
   {
+    "id": "regra-reel-direitos-sus-18121114976092883",
+    "name": "Reels - Remédios e Terapias Gratuitas pelo SUS (SUS)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "specific",
+    "storyScope": "any",
+    "targetMediaIds": [
+      "18121114976092883"
+    ],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "sus",
+      "remedio",
+      "remédio",
+      "remedios",
+      "remédios",
+      "farmacia",
+      "farmácia",
+      "terapia",
+      "terapias",
+      "quero",
+      "eu quero",
+      "guia",
+      "modelo",
+      "direito",
+      "direitos"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia de Remédios e Terapias Gratuitas pelo SUS (TEA), {nome}! 💊💙\n\n1️⃣ FARMÁCIA DE ALTO CUSTO (MEDICAMENTOS CONTÍNUOS DE GRAÇA)\n• Documentos: laudo médico com CID (F84 / 6A02), receita médica em duas vias (vale de médico particular ou convênio), RG, CPF, Cartão do SUS e comprovante de residência.\n\n2️⃣ TERAPIAS MULTIPROFISSIONAIS (LEI 12.764/12, ART. 3º)\n• Fonoaudiologia, Terapia Ocupacional e Psicologia são garantidas por lei. Se faltar vaga na rede pública, o município deve custear na rede privada.\n\n3️⃣ SUPLEMENTOS E INSUMOS PRESCRITOS\n• Quando há indicação clínica fundamentada (ex: seletividade severa), a Secretaria de Saúde deve fornecer.",
+    "followUpEnabled": true,
+    "followUpText": "⚠️ SE NEGAREM NO BALCÃO DA FARMÁCIA OU POSTO:\n\n1. Peça a negativa POR ESCRITO (ou número de protocolo da solicitação).\n2. Com o protocolo e o laudo/receita em mãos, procure gratuitamente a Defensoria Pública ou o Ministério Público do seu estado.\n\n💙 Salve esta mensagem nos favoritos do Direct para consultar quando precisar! Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei a Lista Completa de Documentos para a Farmácia de Alto Custo + como exigir Terapias pelo SUS quando não há vaga!\n\nToque no botão abaixo para liberar o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia SUS",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-matricula-escola-17896246458436109",
     "name": "Reels - Matrícula Escolar Sem Abusos (ESCOLA)",
     "triggerType": "comment",
