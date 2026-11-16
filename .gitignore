@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# design inspection cache & temporary source assets
+.taste-skill/
+/assets/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

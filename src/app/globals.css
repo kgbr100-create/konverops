@@ -1,26 +1,240 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #e2e2e2;
+  --surface: #d6d6d6;
+  --ink: #7d0c14;
+  --muted: #7a4a4e;
+  --accent: #7d0c14;
+  --accent-ink: #e2e2e2;
+  --field-1: #7d0c14;
+  --field-1-ink: #e2e2e2;
+
+  /* App-screen Accent Ladder tokens for [data-ui] fragments */
+  --ui-ground: #f5f3f3;
+  --ui-surface: #ebe7e7;
+  --ui-border: #d8ced0;
+  --ui-tint: #f2dfe0;
+  --ui-tint-strong: #e4c2c5;
+  --ui-ink: #38070b;
+  --ui-muted: #6e4548;
+
+  /* Five-step fluid type scale (no font under 13px) */
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-head: clamp(2rem, 1.2rem + 2.8vw, 3.35rem);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-epilogue), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Scoped rules for [data-ui] real interface fragments */
+[data-ui] .ui-header-row {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ui-border); /* taste-skill-ignore */
+}
+
+[data-ui] .ui-footer-row {
+  padding-top: 12px;
+  border-top: 1px solid var(--ui-border); /* taste-skill-ignore */
+}
+
+[data-ui] .ui-data-table td {
+  border-top: 1px solid var(--ui-border); /* taste-skill-ignore */
+}
+
+[data-ui] pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg);
+  color: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-epilogue), system-ui, sans-serif;
+  font-size: var(--step-body);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Masked line reveal signature motion — settles under 1.05s */
+.mask-line-wrap {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.06em;
+  padding-bottom: 0.08em;
+}
+
+@keyframes maskLineRise {
+  0% {
+    transform: translateY(108%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+@keyframes settleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-line-1 {
+  display: block;
+  animation: maskLineRise 850ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-line-2 {
+  display: block;
+  animation: maskLineRise 850ms cubic-bezier(0.16, 1, 0.3, 1) 110ms both;
+}
+
+.hero-bottom-arrive {
+  animation: settleIn 650ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
+}
+
+/* Scroll reveal items — uses keyframe on enter so Web Animations API tracks every element, zero hidden fallback */
+@keyframes revealRise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-item {
+  will-change: transform, opacity;
+}
+
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.reveal-animate {
+  animation: revealRise 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Receipt slip zigzag cut along bottom edge */
+.slip-zigzag {
+  clip-path: polygon(
+    0% 0%, 100% 0%, 100% calc(100% - 12px),
+    97% 100%, 94% calc(100% - 12px), 91% 100%, 88% calc(100% - 12px),
+    85% 100%, 82% calc(100% - 12px), 79% 100%, 76% calc(100% - 12px),
+    73% 100%, 70% calc(100% - 12px), 67% 100%, 64% calc(100% - 12px),
+    61% 100%, 58% calc(100% - 12px), 55% 100%, 52% calc(100% - 12px),
+    49% 100%, 46% calc(100% - 12px), 43% 100%, 40% calc(100% - 12px),
+    37% 100%, 34% calc(100% - 12px), 31% 100%, 28% calc(100% - 12px),
+    25% 100%, 22% calc(100% - 12px), 19% 100%, 16% calc(100% - 12px),
+    13% 100%, 10% calc(100% - 12px), 7% 100%, 4% calc(100% - 12px),
+    1.5% 100%, 0% calc(100% - 12px)
+  );
+}
+
+/* Dotted leader on itinerary rows */
+.leader-dots {
+  flex: 1 1 auto;
+  height: 4px;
+  margin: 0 12px;
+  align-self: center;
+  background-image: radial-gradient(circle, var(--muted) 1.5px, transparent 1.5px); /* taste-skill-ignore */
+  background-size: 10px 4px;
+  background-repeat: repeat-x;
+}
+
+/* Two-column editorial bio with flat inline highlights */
+.about-columns {
+  columns: 2;
+  column-gap: 36px;
+  text-align: justify;
+  hyphens: auto;
+}
+
+@media (max-width: 767px) {
+  .about-columns {
+    columns: 1;
+    text-align: left;
+    hyphens: none;
+  }
+}
+
+.hl-soft {
+  background-color: var(--surface);
+  color: var(--ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.04em 0.14em;
+}
+
+.hl-tint {
+  background-color: var(--ui-tint-strong);
+  color: var(--ui-ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.04em 0.14em;
+}
+
+.hl-ink {
+  background-color: var(--ink);
+  color: var(--accent-ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.06em 0.18em;
+}
+
+/* Slow ambient drift on atmospheric photography */
+@keyframes ambientDrift {
+  0% {
+    transform: scale(1.01) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate3d(-0.6%, -0.6%, 0);
+  }
+  100% {
+    transform: scale(1.01) translate3d(0, 0, 0);
+  }
+}
+
+.atmosphere-drift {
+  animation: ambientDrift 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-line-1,
+  .hero-line-2,
+  .hero-bottom-arrive,
+  .atmosphere-drift {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .reveal-item,
+  .reveal-pending,
+  .reveal-animate {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }

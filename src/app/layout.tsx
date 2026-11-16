@@ -1,41 +1,36 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Epilogue } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const epilogue = Epilogue({
+  variable: "--font-epilogue",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Konverops | Engenharia de Vendas & Infraestrutura de Performance",
+  title: "Konverops | B2B Voice AI & Revenue Telemetry Platform",
   description:
-    "Operações avançadas de tráfego pago (Meta Ads), desenvolvimento web em Next.js e automação comercial com telemetria de inteligência artificial.",
+    "B2B SaaS platform unifying real-time conversational voice agents, first-party server-side CAPI telemetry, and sub-second edge conversion infrastructure.",
   keywords: [
     "Konverops",
-    "Gestão de Tráfego Pago",
-    "Meta Ads",
-    "Media Buyer",
-    "Engenharia de Vendas",
-    "Next.js",
-    "Automação Comercial",
-    "Chatbots de IA",
-    "Looker Studio",
-    "Inteligência Artificial",
+    "B2B Voice AI",
+    "Sales Engineering Software",
+    "Server-Side Telemetry",
+    "CAPI Event Router",
+    "Revenue Infrastructure SaaS",
+    "Conversational AI Agents",
+    "Edge Conversion Workspaces",
   ],
-  authors: [{ name: "Kelvin Nunes Gonzaga" }],
+  authors: [{ name: "Kelvin Gonzaga" }],
   openGraph: {
-    title: "Konverops | Engenharia de Vendas & Infraestrutura de Performance",
+    title: "Konverops | B2B Voice AI & Revenue Telemetry Platform",
     description:
-      "Transformamos investimento em mídia paga em receita previsível com infraestrutura moderna de dados e IA.",
+      "First-party server-side event telemetry and autonomous B2B voice qualification agents in one platform.",
     url: "https://konverops.tech",
     siteName: "Konverops",
-    locale: "pt_BR",
+    locale: "en_US",
     type: "website",
   },
 };
@@ -47,10 +42,10 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      lang="en"
+      className={`${epilogue.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-emerald-500 selection:text-black">
+      <body className="min-h-full flex flex-col bg-[#e2e2e2] text-[#7d0c14] selection:bg-[#7d0c14] selection:text-[#e2e2e2]">
         {children}
       </body>
     </html>
