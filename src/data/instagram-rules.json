@@ -1,5 +1,55 @@
 [
   {
+    "id": "regra-reel-reducao-jornada-17970050325206382",
+    "name": "Reels - Redução de Jornada Sem Cortar Salário (JORNADA)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "specific",
+    "storyScope": "any",
+    "targetMediaIds": [
+      "17970050325206382"
+    ],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "jornada",
+      "reducao",
+      "redução",
+      "horario",
+      "horário",
+      "servidor",
+      "clt",
+      "tema 1097",
+      "13370",
+      "quero",
+      "eu quero",
+      "guia",
+      "modelo",
+      "direito",
+      "direitos"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Guia de Redução de Jornada Sem Cortar Salário (TEA), {nome}! ⏰💙\n\n1️⃣ SERVIDOR PÚBLICO FEDERAL (LEI Nº 13.370/2016)\n• Direito a horário especial sem redução de salário e sem necessidade de compensação de horas (art. 98, §3º da Lei 8.112/90), mediante comprovação por junta médica oficial.\n\n2️⃣ SERVIDORES ESTADUAIS E MUNICIPAIS (STF — TEMA 1097)\n• O Supremo Tribunal Federal decidiu que estados e municípios devem conceder redução de até 50% da carga horária sem corte salarial, mesmo sem lei local.\n\n3️⃣ CARTEIRA ASSINADA (CLT)\n• Ainda não há lei automática no setor privado, mas juízes trabalhistas já têm concedido redução de jornada com base na Convenção da ONU (Decreto 6.949/09) e prioridade absoluta da criança.",
+    "followUpEnabled": true,
+    "followUpText": "📋 DOCUMENTOS PARA ORGANIZAR ANTES DE PROTOCOLAR:\n\n1. Laudo médico atualizado com CID e indicação da necessidade de acompanhamento nas terapias;\n2. Declaração da clínica com os dias e horários fixos das sessões;\n3. Requerimento formal sempre protocolado POR ESCRITO no RH ou órgão público.\n\n💙 Salve esta mensagem nos favoritos do Direct para consultar quando precisar! Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar no Direct! 💙 Dá uma olhadinha na sua caixa de mensagens!",
+      "Enviado no seu Direct com muito carinho! ✨ Olha lá na sua caixa de entrada!",
+      "Te mandei agora mesmo no Direct! 💙 Se não aparecer na aba principal, confere nas Solicitações de Mensagem!"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Guia de Redução de Jornada Sem Cortar Salário (Lei 13.370/16, Tema 1097 do STF e CLT) + a lista de documentos!\n\nToque no botão abaixo para liberar o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "📄 Liberar Guia Jornada",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-direitos-sus-18121114976092883",
     "name": "Reels - Remédios e Terapias Gratuitas pelo SUS (SUS)",
     "triggerType": "comment",
