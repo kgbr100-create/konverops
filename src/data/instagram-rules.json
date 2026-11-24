@@ -1,5 +1,52 @@
 [
   {
+    "id": "regra-reel-autismo-hereditario-18150385687598270",
+    "name": "Reels - Autismo É Hereditário? (GENETICA)",
+    "triggerType": "comment",
+    "triggerChannels": [
+      "comment"
+    ],
+    "postScope": "specific",
+    "storyScope": "any",
+    "targetMediaIds": [
+      "18150385687598270"
+    ],
+    "targetStoryIds": [],
+    "matchMode": "whole_word",
+    "wholeWordMatch": true,
+    "keywords": [
+      "genetica",
+      "genética",
+      "hereditario",
+      "hereditário",
+      "heranca",
+      "herança",
+      "estudo",
+      "dna",
+      "quero",
+      "eu quero",
+      "guia",
+      "resumo"
+    ],
+    "excludeKeywords": [],
+    "replyText": "Aqui está o seu Resumo Científico sobre Genética e Hereditariedade no Autismo, {nome}! 🧬💙\n\n1️⃣ O QUE MOSTROU O MAIOR ESTUDO (BAI ET AL., JAMA PSYCHIATRY 2019)\n• Ao analisar mais de 2 milhões de pessoas em 5 países, os pesquisadores estimaram herdabilidade de cerca de 80% no TEA — ou seja, forte base biológica e genética.\n\n2️⃣ DOIS CAMINHOS GENÉTICOS PRINCIPAIS\n• Herança poligênica: combinação de muitas pequenas variantes familiares (por isso tantos pais se identificam e descobrem o próprio diagnóstico tardio após o filho).\n• Mutações espontâneas (\"de novo\"): variações genéticas que surgem naturalmente na formação do embrião mesmo em famílias sem nenhum caso anterior.",
+    "followUpEnabled": true,
+    "followUpText": "3️⃣ ZERO CULPA MATERNA/PATERNA E ZERO RELAÇÃO COM VACINAS:\n• Os ~20% restantes envolvem interações biológicas precoces complexas — jamais falta de afeto, criação ou vacinação.\n\n💙 Salve esta mensagem nos favoritos do Direct! Para investigação ou aconselhamento genético individual, procure um geneticista ou neuropediatra. Estamos juntos no @kit.autismo! ✨",
+    "publicReplyEnabled": true,
+    "publicReplyVariations": [
+      "Acabei de te enviar o resumo científico no seu Direct! 💙 Dá uma olhadinha lá!",
+      "Enviado no seu Direct! ✨ Confere sua caixa de mensagens (ou Solicitações de Mensagem)!",
+      "Te mandei agora mesmo no Direct! 💙🧬"
+    ],
+    "requireFollow": false,
+    "twoStepCommentOptIn": true,
+    "twoStepPromptText": "Oi{nome}! 💙 Separei o Resumo Científico do estudo do JAMA Psychiatry sobre genética e hereditariedade no autismo!\n\nToque no botão abaixo para liberar o conteúdo completo aqui no seu Direct:",
+    "twoStepButtonTitle": "🧬 Liberar Resumo",
+    "humanTypingDelay": true,
+    "active": true,
+    "priority": 1
+  },
+  {
     "id": "regra-reel-reducao-jornada-17970050325206382",
     "name": "Reels - Redução de Jornada Sem Cortar Salário (JORNADA)",
     "triggerType": "comment",
